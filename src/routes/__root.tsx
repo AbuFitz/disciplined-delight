@@ -77,20 +77,46 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Iron Fajr — Gym & Lifestyle System" },
-      { name: "description", content: "A 4-week upper body training rotation built around 6am sessions, Fajr, and slow, honest progression." },
-      { name: "author", content: "Iron Fajr" },
-      { property: "og:title", content: "Iron Fajr — Gym & Lifestyle System" },
-      { property: "og:description", content: "A 4-week upper body training rotation built around 6am sessions, Fajr, and slow, honest progression." },
+      { title: "Sunrise Strength — Your Gym & Lifestyle System" },
+      {
+        name: "description",
+        content:
+          "A 4-week upper body training rotation built around GymGroup 6am sessions, Fajr at 3:14am, and slow, honest progression.",
+      },
+      { name: "author", content: "Sunrise Strength" },
+      { property: "og:title", content: "Sunrise Strength — Your Gym & Lifestyle System" },
+      {
+        property: "og:description",
+        content:
+          "A 4-week upper body training rotation built around GymGroup 6am sessions, Fajr at 3:14am, and slow, honest progression.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "Iron Fajr — Gym & Lifestyle System" },
-      { name: "twitter:description", content: "A 4-week upper body training rotation built around 6am sessions, Fajr, and slow, honest progression." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/4f6843b9-9d53-4c62-b1f2-855ffa30c9ee/id-preview-1bc56334--a65e0a03-5144-4112-b7fc-11ff36aa7c2a.lovable.app-1784456928078.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/4f6843b9-9d53-4c62-b1f2-855ffa30c9ee/id-preview-1bc56334--a65e0a03-5144-4112-b7fc-11ff36aa7c2a.lovable.app-1784456928078.png" },
+      { name: "twitter:title", content: "Sunrise Strength — Your Gym & Lifestyle System" },
+      {
+        name: "twitter:description",
+        content:
+          "A 4-week upper body training rotation built around GymGroup 6am sessions, Fajr at 3:14am, and slow, honest progression.",
+      },
+      {
+        property: "og:image",
+        content:
+          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/4f6843b9-9d53-4c62-b1f2-855ffa30c9ee/id-preview-1bc56334--a65e0a03-5144-4112-b7fc-11ff36aa7c2a.lovable.app-1784456928078.png",
+      },
+      {
+        name: "twitter:image",
+        content:
+          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/4f6843b9-9d53-4c62-b1f2-855ffa30c9ee/id-preview-1bc56334--a65e0a03-5144-4112-b7fc-11ff36aa7c2a.lovable.app-1784456928078.png",
+      },
     ],
 
     links: [
+      { rel: "preconnect", href: "https://fonts.googleapis.com" },
+      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap",
+      },
       {
         rel: "stylesheet",
         href: appCss,
