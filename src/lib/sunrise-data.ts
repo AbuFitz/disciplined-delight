@@ -378,12 +378,22 @@ export const SHOPPING: ShoppingItem[] = [
 
 // `image` is a /public path, e.g. /meals/breakfast.jpg — see AGENTS notes for
 // exact filenames. Missing files fail gracefully (MealThumb falls back to an icon).
-export type Meal = { id: string; name: string; kcal: string; items: string[]; image: string };
+export type MealTag = "breakfast" | "lunch" | "post-gym" | "dinner" | "evening";
+
+export type Meal = {
+  id: string;
+  name: string;
+  tag: MealTag;
+  kcal: string;
+  items: string[];
+  image: string;
+};
 
 export const MEALS: Meal[] = [
   {
     id: "breakfast",
     name: "Breakfast",
+    tag: "breakfast",
     kcal: "~650 kcal",
     items: [
       "60g oats + 150g plain Milbona Greek yoghurt + 1 banana",
@@ -394,6 +404,7 @@ export const MEALS: Meal[] = [
   {
     id: "lunch",
     name: "Lunch (batch-cooked)",
+    tag: "lunch",
     kcal: "~700 kcal",
     items: [
       "200g halal chicken breast (cooked)",
@@ -405,6 +416,7 @@ export const MEALS: Meal[] = [
   {
     id: "post-gym",
     name: "Post-gym",
+    tag: "post-gym",
     kcal: "~300 kcal",
     items: ["1 scoop Clear Whey shake, or a Lidl Milbona protein shake"],
     image: "/meals/post-gym.jpg",
@@ -412,6 +424,7 @@ export const MEALS: Meal[] = [
   {
     id: "dinner",
     name: "Dinner",
+    tag: "dinner",
     kcal: "~700 kcal",
     items: ["200g halal chicken thigh, lamb, or mince", "200g rice or potatoes", "Vegetables"],
     image: "/meals/dinner.jpg",
@@ -419,6 +432,7 @@ export const MEALS: Meal[] = [
   {
     id: "evening-top-up",
     name: "Evening top-up",
+    tag: "evening",
     kcal: "~400 kcal",
     items: [
       "Plain Milbona cottage cheese (150g) + a Nixe tuna tin",
@@ -432,30 +446,35 @@ export const SUPPLEMENTS = [
   {
     id: "vitd",
     name: "Vitamin D",
+    short: "Vit D",
     time: "With breakfast",
     why: "Fat-soluble, absorbs better with food.",
   },
   {
     id: "multi",
     name: "Vitamin A–Z",
+    short: "Vit A–Z",
     time: "With breakfast",
     why: "Same reason — easier to remember paired with Vit D.",
   },
   {
     id: "fish",
     name: "Fish Oil",
+    short: "Fish Oil",
     time: "With breakfast or dinner",
     why: "Fat-soluble — take with a meal containing some fat.",
   },
   {
     id: "creatine",
     name: "Creatine 5g",
+    short: "Creatine",
     time: "Post-gym, with water",
     why: "Works on consistency, not timing — pick a time you'll never skip.",
   },
   {
     id: "whey",
     name: "Clear Whey",
+    short: "Whey",
     time: "Post-workout / snack",
     why: "Protein top-up toward the 138g daily target.",
   },

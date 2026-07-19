@@ -19,12 +19,30 @@ import {
   SHOPPING,
   SUPPLEMENTS,
   type Meal,
+  type MealTag,
   type ShoppingItem,
 } from "@/lib/sunrise-data";
 
 export const Route = createFileRoute("/nutrition")({
   component: NutritionPage,
 });
+
+// Adapted from NEWLIFE's MealCard tag styling (github.com/AbuFitz/NEWLIFE).
+const TAG_STYLES: Record<MealTag, string> = {
+  breakfast: "bg-amber-100 text-amber-700",
+  lunch: "bg-blue-100 text-blue-700",
+  "post-gym": "bg-primary/10 text-primary",
+  dinner: "bg-purple-100 text-purple-700",
+  evening: "bg-emerald-100 text-emerald-700",
+};
+
+const TAG_LABELS: Record<MealTag, string> = {
+  breakfast: "Breakfast",
+  lunch: "Lunch",
+  "post-gym": "Post-Gym",
+  dinner: "Dinner",
+  evening: "Evening",
+};
 
 function NutritionPage() {
   const tracker = useTrackerState();
@@ -74,7 +92,12 @@ function NutritionPage() {
             >
               <ThumbImage src={m.image} alt={m.name} />
               <div className="min-w-0 flex-1">
-                <div className="text-sm font-semibold text-foreground">{m.name}</div>
+                <span
+                  className={`inline-block rounded px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide ${TAG_STYLES[m.tag]}`}
+                >
+                  {TAG_LABELS[m.tag]}
+                </span>
+                <div className="mt-1 text-sm font-semibold text-foreground">{m.name}</div>
                 <div className="text-xs text-muted-foreground">{m.items.length} items</div>
               </div>
               <div className="shrink-0 text-right">
@@ -164,7 +187,12 @@ function NutritionPage() {
         {openMeal && (
           <div className="px-5 pt-2">
             <ThumbImage src={openMeal.image} alt={openMeal.name} size="lg" />
-            <div className="mt-4 flex items-baseline justify-between gap-3">
+            <span
+              className={`mt-4 inline-block rounded px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide ${TAG_STYLES[openMeal.tag]}`}
+            >
+              {TAG_LABELS[openMeal.tag]}
+            </span>
+            <div className="mt-1.5 flex items-baseline justify-between gap-3">
               <h3 className="font-display text-xl font-bold text-foreground">{openMeal.name}</h3>
               <span className="shrink-0 text-sm font-semibold text-primary">{openMeal.kcal}</span>
             </div>

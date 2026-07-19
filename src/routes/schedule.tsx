@@ -30,19 +30,18 @@ function SchedulePage() {
 
       <div className="px-5">
         {schedule.steps.map((s, i) => (
-          <button
-            key={s.id}
-            onClick={() => setEditingId(s.id)}
-            className="group flex w-full gap-3.5 text-left"
-          >
-            <div className="flex flex-col items-center pt-1.5">
+          <div key={s.id} className="flex gap-3">
+            <div className="flex flex-col items-center pt-4">
               <div
                 className={`h-2.5 w-2.5 shrink-0 rounded-full ${s.highlight ? "bg-primary" : "bg-border"}`}
               />
-              {i !== schedule.steps.length - 1 && <div className="w-px flex-1 bg-border" />}
+              {i !== schedule.steps.length - 1 && <div className="my-1 w-px flex-1 bg-border" />}
             </div>
-            <div
-              className={`flex min-w-0 flex-1 items-start justify-between gap-2 ${i === schedule.steps.length - 1 ? "" : "pb-5"}`}
+            <button
+              onClick={() => setEditingId(s.id)}
+              className={`mb-3 flex min-w-0 flex-1 items-center justify-between gap-2 rounded-2xl border p-3.5 text-left shadow-soft transition-colors active:border-primary/50 ${
+                s.highlight ? "border-primary/25 bg-accent/40" : "border-border bg-white"
+              }`}
             >
               <div className="min-w-0">
                 <div className="text-[11px] font-mono font-semibold text-primary">
@@ -55,9 +54,9 @@ function SchedulePage() {
                   </div>
                 )}
               </div>
-              <ChevronRight className="mt-1 h-4 w-4 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
-            </div>
-          </button>
+              <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+            </button>
+          </div>
         ))}
 
         <button

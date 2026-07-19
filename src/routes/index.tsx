@@ -1,10 +1,21 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ArrowRight, CalendarClock, Dumbbell, Flame, Sunrise, UtensilsCrossed } from "lucide-react";
+import {
+  ArrowRight,
+  CalendarClock,
+  CheckCircle2,
+  Clock,
+  Dumbbell,
+  Flame,
+  Pill,
+  Sunrise,
+  UtensilsCrossed,
+} from "lucide-react";
 import { AppShell } from "@/components/sunrise/AppShell";
+import { SectionLabel } from "@/components/sunrise/ui";
 import { useTrackerState } from "@/hooks/use-tracker-state";
-import { formatStepTime, useScheduleState } from "@/hooks/use-schedule-state";
-import { workouts } from "@/lib/sunrise-data";
+import { formatStepTime, useScheduleState, type ScheduleStep } from "@/hooks/use-schedule-state";
+import { MACROS, SUPPLEMENTS, workouts } from "@/lib/sunrise-data";
 
 export const Route = createFileRoute("/")({
   component: Index,
@@ -31,6 +42,55 @@ function useGreeting() {
   return greeting;
 }
 
+const toMinutes = (hhmm: string) => {
+  const [h = 0, m = 0] = hhmm.split(":").map(Number);
+  return h * 60 + m;
+};
+
+function formatCountdown(mins: number) {
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  if (h === 0) return `in ${m}m`;
+  if (m === 0) return `in ${h}h`;
+  return `in ${h}h ${m}m`;
+}
+
+function useUpNext(steps: ScheduleStep[]) {
+  const [info, setInfo] = useState<{ step: ScheduleStep; when: string } | null>(null);
+
+  useEffect(() => {
+    if (steps.length === 0) return;
+    const nowMinutes = new Date().getHours() * 60 + new Date().getMinutes();
+
+    const inProgress = steps.find((s) => {
+      if (s.endTime === undefined) return false;
+      const start = toMinutes(s.startTime);
+      let end = toMinutes(s.endTime);
+      if (end < start) end += 24 * 60;
+      return nowMinutes >= start && nowMinutes < end;
+    });
+    if (inProgress) {
+      setInfo({ step: inProgress, when: "Now" });
+      return;
+    }
+
+    const upcoming = steps
+      .map((s) => ({ s, start: toMinutes(s.startTime) }))
+      .filter((x) => x.start > nowMinutes)
+      .sort((a, b) => a.start - b.start)[0];
+    if (upcoming) {
+      setInfo({ step: upcoming.s, when: formatCountdown(upcoming.start - nowMinutes) });
+      return;
+    }
+
+    const first = steps[0]!;
+    const mins = 24 * 60 - nowMinutes + toMinutes(first.startTime);
+    setInfo({ step: first, when: `${formatCountdown(mins)} · tomorrow` });
+  }, [steps]);
+
+  return info;
+}
+
 function Index() {
   const greeting = useGreeting();
   const tracker = useTrackerState();
@@ -38,6 +98,8 @@ function Index() {
   const current = workouts.find((w) => w.id === tracker.activeTab) ?? workouts[0];
   const fajr = schedule.findByKey("fajr");
   const gym = schedule.findByKey("gym");
+  const upNext = useUpNext(schedule.steps);
+  const suppsDone = SUPPLEMENTS.filter((s) => tracker.todayLog.supplements[s.id]).length;
 
   return (
     <AppShell>
@@ -67,9 +129,34 @@ function Index() {
         </Link>
       </section>
 
+      {upNext && (
+        <div className="px-5 pt-5">
+          <Link
+            to="/schedule"
+            className="flex items-center gap-3 rounded-2xl border border-border bg-white p-4 shadow-soft transition-colors hover:border-primary/40"
+          >
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent text-primary">
+              <Clock className="h-5 w-5" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
+                {upNext.when === "Now" ? "Happening now" : `Up next · ${upNext.when}`}
+              </div>
+              <div className="truncate text-sm font-semibold text-foreground">
+                {upNext.step.label}
+              </div>
+            </div>
+            <div className="shrink-0 font-mono text-xs font-semibold text-primary">
+              {formatStepTime(upNext.step)}
+            </div>
+          </Link>
+        </div>
+      )}
+
       {/* Progress — kept right here on Home so it's the first thing you see */}
       <div className="px-5 pt-5">
-        <div className="grid grid-cols-2 gap-3">
+        <SectionLabel>This week</SectionLabel>
+        <div className="mt-3 grid grid-cols-2 gap-3">
           <div className="rounded-2xl border border-border bg-white p-4 text-center shadow-soft">
             <div className="font-display text-2xl font-bold text-primary">
               {tracker.totalSessions}
@@ -116,7 +203,62 @@ function Index() {
         )}
       </div>
 
-      <div className="mt-2 grid grid-cols-2 gap-3 px-5 pb-2">
+      <div className="px-5 pt-6">
+        <div className="flex items-center justify-between">
+          <SectionLabel>Today's targets</SectionLabel>
+          <Link to="/nutrition" className="text-xs font-medium text-primary">
+            Nutrition
+          </Link>
+        </div>
+        <div className="mt-3 grid grid-cols-4 gap-2">
+          {MACROS.map((m) => (
+            <div
+              key={m.key}
+              className="rounded-xl border border-border bg-white px-2 py-2.5 text-center shadow-soft"
+            >
+              <div className="font-display text-sm font-bold text-foreground">{m.val}</div>
+              <div className="mt-0.5 text-[9px] uppercase tracking-wider text-muted-foreground">
+                {m.label}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="px-5 pt-6">
+        <div className="flex items-center justify-between">
+          <SectionLabel>Supplements today</SectionLabel>
+          <span className="text-xs font-medium text-primary">
+            {suppsDone}/{SUPPLEMENTS.length}
+          </span>
+        </div>
+        <div className="mt-3 flex gap-2">
+          {SUPPLEMENTS.map((s) => {
+            const done = !!tracker.todayLog.supplements[s.id];
+            return (
+              <button
+                key={s.id}
+                onClick={() => tracker.toggleSupplement(s.id)}
+                aria-label={s.name}
+                className={`flex flex-1 flex-col items-center gap-1.5 rounded-xl border p-2.5 transition-colors ${
+                  done
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-border bg-white shadow-soft"
+                }`}
+              >
+                {done ? (
+                  <CheckCircle2 className="h-4 w-4" />
+                ) : (
+                  <Pill className="h-4 w-4 text-primary" />
+                )}
+                <span className="text-center text-[9px] font-medium leading-tight">{s.short}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="mt-3 grid grid-cols-2 gap-3 px-5 pb-2 pt-3">
         {NAV_CARDS.map((c) => (
           <Link
             key={c.to}
