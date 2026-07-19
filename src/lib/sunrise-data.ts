@@ -6,14 +6,16 @@ import workoutD from "@/assets/workout-d.jpg";
 import chestPress from "@/assets/exercises/chest-press-photo.png";
 import inclinePress from "@/assets/exercises/incline-press-photo.png";
 import cableFly from "@/assets/exercises/cable-fly-photo.png";
-import tricepPushdown from "@/assets/exercises/tricep-pushdown.jpg";
-import overheadTricep from "@/assets/exercises/overhead-tricep.jpg";
+import machineFly from "@/assets/exercises/machine-fly-photo.png";
+import tricepPushdown from "@/assets/exercises/tricep-pushdown-photo.png";
+import overheadTricep from "@/assets/exercises/overhead-tricep-photo.png";
 import plank from "@/assets/exercises/plank.jpg";
-import latPulldown from "@/assets/exercises/lat-pulldown.jpg";
-import cableRow from "@/assets/exercises/cable-row.jpg";
-import assistedPullup from "@/assets/exercises/assisted-pullup.jpg";
-import bicepCurl from "@/assets/exercises/bicep-curl.jpg";
-import hammerCurl from "@/assets/exercises/hammer-curl.jpg";
+import latPulldown from "@/assets/exercises/lat-pulldown-photo.png";
+import cableRow from "@/assets/exercises/cable-row-photo.png";
+import seatedMachineRow from "@/assets/exercises/seated-machine-row-photo.png";
+import assistedPullup from "@/assets/exercises/assisted-pullup-photo.png";
+import bicepCurl from "@/assets/exercises/bicep-curl-photo.png";
+import hammerCurl from "@/assets/exercises/hammer-curl-photo.png";
 import legRaise from "@/assets/exercises/leg-raise.jpg";
 import shoulderPress from "@/assets/exercises/shoulder-press.jpg";
 import lateralRaise from "@/assets/exercises/lateral-raise.jpg";
@@ -47,6 +49,8 @@ export type Exercise = {
   startWeight?: number;
   /** Machine/cable/DB-only substitute — same muscle group, different equipment. */
   alt?: string;
+  /** Reference photo for the alt exercise, when we have one. */
+  altImage?: string;
 };
 
 export type Workout = {
@@ -99,6 +103,7 @@ export const workouts: Workout[] = [
         weighted: true,
         startWeight: 7,
         alt: "Machine Pec Deck Fly",
+        altImage: machineFly,
       },
       {
         id: "a4",
@@ -159,6 +164,7 @@ export const workouts: Workout[] = [
         weighted: true,
         startWeight: 20,
         alt: "Seated Machine Row",
+        altImage: seatedMachineRow,
       },
       {
         id: "b3",
@@ -258,6 +264,7 @@ export const workouts: Workout[] = [
         weighted: true,
         startWeight: 10,
         alt: "Seated Dumbbell Overhead Tricep Extension",
+        altImage: overheadTricep,
       },
       {
         id: "c6",

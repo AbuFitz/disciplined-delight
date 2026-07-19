@@ -178,6 +178,17 @@ function WorkoutsPage() {
       <Sheet open={!!openAlt} onClose={() => setOpenAlt(null)}>
         {openAlt?.alt && (
           <div className="px-5 pb-2 pt-2">
+            {openAlt.altImage && (
+              <div className="mb-3 overflow-hidden rounded-2xl">
+                <img
+                  src={openAlt.altImage}
+                  alt={openAlt.alt}
+                  width={800}
+                  height={500}
+                  className="aspect-[16/10] w-full object-cover"
+                />
+              </div>
+            )}
             <div className="text-xs font-medium text-muted-foreground">Alt for {openAlt.name}</div>
             <h3 className="mt-1 font-display text-xl font-bold text-foreground">{openAlt.alt}</h3>
             <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
