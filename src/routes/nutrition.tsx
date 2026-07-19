@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
 import {
   CheckCircle2,
+  ChevronRight,
   Flame,
   Info,
   Pill,
@@ -9,9 +11,16 @@ import {
   UtensilsCrossed,
 } from "lucide-react";
 import { AppShell } from "@/components/sunrise/AppShell";
-import { Callout, PageHeader, SectionLabel } from "@/components/sunrise/ui";
+import { Callout, PageHeader, SectionLabel, Sheet, ThumbImage } from "@/components/sunrise/ui";
 import { useTrackerState } from "@/hooks/use-tracker-state";
-import { MACROS, MEALS, SHOPPING, SUPPLEMENTS } from "@/lib/sunrise-data";
+import {
+  MACROS,
+  MEALS,
+  SHOPPING,
+  SUPPLEMENTS,
+  type Meal,
+  type ShoppingItem,
+} from "@/lib/sunrise-data";
 
 export const Route = createFileRoute("/nutrition")({
   component: NutritionPage,
@@ -19,6 +28,8 @@ export const Route = createFileRoute("/nutrition")({
 
 function NutritionPage() {
   const tracker = useTrackerState();
+  const [openMeal, setOpenMeal] = useState<Meal | null>(null);
+  const [openShopping, setOpenShopping] = useState<ShoppingItem | null>(null);
 
   return (
     <AppShell>
@@ -44,65 +55,68 @@ function NutritionPage() {
       <div className="mx-5 mt-4">
         <Callout icon={Info}>
           <span className="font-semibold text-foreground">Correction:</span> Lidl UK does not sell
-          halal-certified meat. Fish is halal by default, so Lidl's fish counter and tinned fish are
-          fine — but chicken, beef, lamb and mince need a halal butcher or Iceland's frozen halal
-          range.
+          halal-certified meat — chicken, beef, lamb and mince need a halal butcher or Iceland's
+          frozen halal range. Fish is halal by default, so Lidl's fish counter is fine.
         </Callout>
       </div>
 
       <div className="mt-6 px-5">
         <div className="flex items-center gap-1.5">
-          <ShoppingBasket className="h-4 w-4 text-primary" />
-          <SectionLabel>Where to get what</SectionLabel>
+          <UtensilsCrossed className="h-4 w-4 text-primary" />
+          <SectionLabel>Daily meal template — tap for details</SectionLabel>
         </div>
-        <div className="mt-3 space-y-2.5">
-          {SHOPPING.map((s) => (
-            <div key={s.item} className="rounded-2xl border border-border bg-white p-4 shadow-soft">
-              <div className="text-sm font-semibold">{s.item}</div>
-              <div className="mt-1 text-xs font-medium text-primary">{s.where}</div>
-              <div className="mt-1.5 text-xs leading-relaxed text-muted-foreground">{s.notes}</div>
-            </div>
+        <div className="mt-3 space-y-2">
+          {MEALS.map((m) => (
+            <button
+              key={m.id}
+              onClick={() => setOpenMeal(m)}
+              className="flex w-full items-center gap-3 rounded-2xl border border-border bg-white p-3 text-left shadow-soft transition-colors hover:border-primary/40"
+            >
+              <ThumbImage src={m.image} alt={m.name} />
+              <div className="min-w-0 flex-1">
+                <div className="text-sm font-semibold text-foreground">{m.name}</div>
+                <div className="text-xs text-muted-foreground">{m.items.length} items</div>
+              </div>
+              <div className="shrink-0 text-right">
+                <div className="text-xs font-semibold text-primary">{m.kcal}</div>
+              </div>
+              <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+            </button>
           ))}
         </div>
       </div>
 
-      <div className="mt-7 px-5">
+      <div className="mt-6 px-5">
         <div className="flex items-center gap-1.5">
-          <UtensilsCrossed className="h-4 w-4 text-primary" />
-          <SectionLabel>Daily meal template</SectionLabel>
+          <ShoppingBasket className="h-4 w-4 text-primary" />
+          <SectionLabel>Where to get what — tap for details</SectionLabel>
         </div>
-        <div className="mt-3 space-y-2.5">
-          {MEALS.map((m) => (
-            <div
-              key={m.name}
-              className="overflow-hidden rounded-2xl border border-border shadow-soft"
+        <div className="mt-3 divide-y divide-border overflow-hidden rounded-2xl border border-border bg-white shadow-soft">
+          {SHOPPING.map((s) => (
+            <button
+              key={s.id}
+              onClick={() => setOpenShopping(s)}
+              className="flex w-full items-center gap-3 p-3.5 text-left transition-colors hover:bg-secondary"
             >
-              <div className="flex items-center justify-between bg-secondary px-4 py-2.5">
-                <span className="text-sm font-semibold text-foreground">{m.name}</span>
-                <span className="text-xs font-medium text-primary">{m.kcal}</span>
+              <div className="min-w-0 flex-1">
+                <div className="truncate text-sm font-semibold text-foreground">{s.item}</div>
+                <div className="truncate text-xs text-primary">{s.where}</div>
               </div>
-              <ul className="space-y-1.5 bg-white p-4">
-                {m.items.map((it) => (
-                  <li key={it} className="flex gap-2 text-sm text-foreground">
-                    <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-primary" />
-                    {it}
-                  </li>
-                ))}
-              </ul>
-            </div>
+              <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+            </button>
           ))}
         </div>
+      </div>
 
-        <div className="mt-4 space-y-3">
-          <Callout icon={Sparkles}>
-            Fine-tune exact portions in MyFitnessPal over the first week to land the targets above.
-          </Callout>
-          <Callout icon={Flame}>
-            <span className="font-semibold text-foreground">Meal prep tip:</span> batch-cook halal
-            chicken twice a week (Sun + Wed), 1–1.5kg at a time, seasoned simply and roasted 25 min
-            at 200°C. Portion into containers immediately.
-          </Callout>
-        </div>
+      <div className="mx-5 mt-4 space-y-3">
+        <Callout icon={Sparkles}>
+          Fine-tune exact portions in MyFitnessPal over the first week to land the targets above.
+        </Callout>
+        <Callout icon={Flame}>
+          <span className="font-semibold text-foreground">Meal prep tip:</span> batch-cook halal
+          chicken twice a week (Sun + Wed), 1–1.5kg at a time, seasoned simply and roasted 25 min at
+          200°C. Portion into containers immediately.
+        </Callout>
       </div>
 
       <div className="mt-7 px-5">
@@ -145,6 +159,38 @@ function NutritionPage() {
           </Callout>
         </div>
       </div>
+
+      <Sheet open={!!openMeal} onClose={() => setOpenMeal(null)}>
+        {openMeal && (
+          <div className="px-5 pt-2">
+            <ThumbImage src={openMeal.image} alt={openMeal.name} size="lg" />
+            <div className="mt-4 flex items-baseline justify-between gap-3">
+              <h3 className="font-display text-xl font-bold text-foreground">{openMeal.name}</h3>
+              <span className="shrink-0 text-sm font-semibold text-primary">{openMeal.kcal}</span>
+            </div>
+            <ul className="mt-3 space-y-2">
+              {openMeal.items.map((it) => (
+                <li key={it} className="flex gap-2 text-sm text-foreground">
+                  <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-primary" />
+                  {it}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </Sheet>
+
+      <Sheet open={!!openShopping} onClose={() => setOpenShopping(null)}>
+        {openShopping && (
+          <div className="px-5 pt-2 pb-2">
+            <h3 className="font-display text-xl font-bold text-foreground">{openShopping.item}</h3>
+            <div className="mt-1.5 text-sm font-semibold text-primary">{openShopping.where}</div>
+            <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+              {openShopping.notes}
+            </p>
+          </div>
+        )}
+      </Sheet>
     </AppShell>
   );
 }

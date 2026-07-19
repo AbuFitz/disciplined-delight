@@ -1,14 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import {
-  ArrowRight,
-  CalendarClock,
-  Dumbbell,
-  Flame,
-  Sunrise,
-  TrendingUp,
-  UtensilsCrossed,
-} from "lucide-react";
+import { ArrowRight, CalendarClock, Dumbbell, Flame, Sunrise, UtensilsCrossed } from "lucide-react";
 import { AppShell } from "@/components/sunrise/AppShell";
 import { useTrackerState } from "@/hooks/use-tracker-state";
 import { workouts } from "@/lib/sunrise-data";
@@ -20,8 +12,6 @@ export const Route = createFileRoute("/")({
 const NAV_CARDS = [
   { to: "/workouts", icon: Dumbbell, label: "Workouts", desc: "This week's rotation" },
   { to: "/schedule", icon: CalendarClock, label: "Schedule", desc: "Fajr to lights-out" },
-  { to: "/nutrition", icon: UtensilsCrossed, label: "Nutrition", desc: "Meals & supplements" },
-  { to: "/progress", icon: TrendingUp, label: "Progress", desc: "Streak & habits" },
 ] as const;
 
 function useGreeting() {
@@ -73,18 +63,56 @@ function Index() {
         </Link>
       </section>
 
-      <div className="flex items-center justify-between px-5 py-4">
-        <div className="flex items-center gap-1.5 text-sm text-foreground">
-          <Flame className="h-4 w-4 text-primary" />
-          <span className="font-semibold">{tracker.weekCount}/4</span>
-          <span className="text-muted-foreground">sessions this week</span>
+      {/* Progress — kept right here on Home so it's the first thing you see */}
+      <div className="px-5 pt-5">
+        <div className="grid grid-cols-2 gap-3">
+          <div className="rounded-2xl border border-border bg-white p-4 text-center shadow-soft">
+            <div className="font-display text-2xl font-bold text-primary">
+              {tracker.totalSessions}
+            </div>
+            <div className="mt-0.5 text-[10px] uppercase tracking-wider text-muted-foreground">
+              Total sessions
+            </div>
+          </div>
+          <div className="rounded-2xl border border-border bg-white p-4 text-center shadow-soft">
+            <div className="font-display text-2xl font-bold text-primary">
+              {tracker.weekCount}/4
+            </div>
+            <div className="mt-0.5 text-[10px] uppercase tracking-wider text-muted-foreground">
+              This week
+            </div>
+          </div>
         </div>
-        <Link to="/progress" className="text-xs font-medium text-primary">
-          View streak
-        </Link>
+
+        <div className="mt-3 flex justify-between gap-1.5">
+          {tracker.last7Days.map((d) => (
+            <div
+              key={d.offset}
+              className={`flex-1 rounded-xl border py-2.5 text-center ${
+                d.done
+                  ? "border-primary bg-primary text-primary-foreground"
+                  : "border-border bg-white"
+              } ${d.isToday ? "ring-2 ring-primary ring-offset-1" : ""}`}
+            >
+              <div
+                className={`text-[9px] uppercase ${d.done ? "text-blue-200" : "text-muted-foreground"}`}
+              >
+                {d.letter}
+              </div>
+              <div className="mt-1 text-xs">{d.done ? "✓" : "·"}</div>
+            </div>
+          ))}
+        </div>
+
+        {tracker.weekCount === 0 && (
+          <div className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground">
+            <Flame className="h-3.5 w-3.5 text-primary" />
+            Log a workout or cardio session to start your streak.
+          </div>
+        )}
       </div>
 
-      <div className="grid grid-cols-2 gap-3 px-5">
+      <div className="mt-2 grid grid-cols-2 gap-3 px-5 pb-2">
         {NAV_CARDS.map((c) => (
           <Link
             key={c.to}
@@ -98,6 +126,18 @@ function Index() {
             <div className="mt-0.5 text-xs text-muted-foreground">{c.desc}</div>
           </Link>
         ))}
+        <Link
+          to="/nutrition"
+          className="col-span-2 flex items-center gap-3 rounded-2xl border border-border bg-white p-4 shadow-soft transition-colors hover:border-primary/40"
+        >
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-accent text-primary">
+            <UtensilsCrossed className="h-4.5 w-4.5" />
+          </div>
+          <div>
+            <div className="text-sm font-semibold text-foreground">Nutrition</div>
+            <div className="text-xs text-muted-foreground">Meals & supplements</div>
+          </div>
+        </Link>
       </div>
     </AppShell>
   );

@@ -393,42 +393,55 @@ export const SKELETON = [
   },
 ] satisfies Array<{ time: string; label: string; detail?: string; highlight: boolean }>;
 
-export const SHOPPING = [
+export type ShoppingItem = { id: string; item: string; where: string; notes: string };
+
+export const SHOPPING: ShoppingItem[] = [
   {
+    id: "chicken",
     item: "Chicken breast/thigh, mince, lamb",
     where: "Halal butcher, or Iceland frozen halal range",
     notes: "Iceland stocks an HFA-certified halal range nationwide — reliable for batch buying.",
   },
   {
+    id: "tuna",
     item: "Tinned tuna",
     where: "Lidl (Nixe, ~69p/145g tin)",
     notes: "Fish is halal by default — no certification needed.",
   },
-  { item: "Eggs", where: "Lidl (Milbona)", notes: "Fine as-is." },
+  { id: "eggs", item: "Eggs", where: "Lidl (Milbona)", notes: "Fine as-is." },
   {
+    id: "yoghurt",
     item: "Plain Greek yoghurt, cottage cheese",
     where: "Lidl (Milbona, plain/natural only)",
     notes:
       'Stick to plain/natural — flavoured versions can contain gelatin or E120. Check for a "suitable for vegetarians" mark.',
   },
   {
+    id: "shakes",
     item: "Protein shakes (Milbona/Clear Whey)",
     where: "Lidl",
     notes: "Milk-based whey is generally fine — scan for animal-derived flavouring agents.",
   },
-  { item: "Oats, rice, bread, veg", where: "Lidl", notes: "No issue." },
+  { id: "staples", item: "Oats, rice, bread, veg", where: "Lidl", notes: "No issue." },
 ];
 
-export const MEALS = [
+// `image` is a /public path, e.g. /meals/breakfast.jpg — see AGENTS notes for
+// exact filenames. Missing files fail gracefully (MealThumb falls back to an icon).
+export type Meal = { id: string; name: string; kcal: string; items: string[]; image: string };
+
+export const MEALS: Meal[] = [
   {
+    id: "breakfast",
     name: "Breakfast",
     kcal: "~650 kcal",
     items: [
       "60g oats + 150g plain Milbona Greek yoghurt + 1 banana",
       "3 eggs, scrambled, on 2 slices toast",
     ],
+    image: "/meals/breakfast.jpg",
   },
   {
+    id: "lunch",
     name: "Lunch (batch-cooked)",
     kcal: "~700 kcal",
     items: [
@@ -436,24 +449,31 @@ export const MEALS = [
       "250g white rice or potatoes (cooked)",
       "Mixed veg / sauce of choice",
     ],
+    image: "/meals/lunch.jpg",
   },
   {
+    id: "post-gym",
     name: "Post-gym",
     kcal: "~300 kcal",
     items: ["1 scoop Clear Whey shake, or a Lidl Milbona protein shake"],
+    image: "/meals/post-gym.jpg",
   },
   {
+    id: "dinner",
     name: "Dinner",
     kcal: "~700 kcal",
     items: ["200g halal chicken thigh, lamb, or mince", "200g rice or potatoes", "Vegetables"],
+    image: "/meals/dinner.jpg",
   },
   {
+    id: "evening-top-up",
     name: "Evening top-up",
     kcal: "~400 kcal",
     items: [
       "Plain Milbona cottage cheese (150g) + a Nixe tuna tin",
       "or Greek yoghurt + honey + oats",
     ],
+    image: "/meals/evening-top-up.jpg",
   },
 ];
 
