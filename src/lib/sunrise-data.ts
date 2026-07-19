@@ -8,15 +8,17 @@ import inclinePress from "@/assets/exercises/incline-press-photo.png";
 import cableFly from "@/assets/exercises/cable-fly-photo.png";
 import machineFly from "@/assets/exercises/machine-fly-photo.png";
 import tricepPushdown from "@/assets/exercises/tricep-pushdown-photo.png";
-import overheadTricep from "@/assets/exercises/overhead-tricep-photo.png";
+import overheadRopeTricepExtension from "@/assets/exercises/overhead-rope-tricep-extension-photo.png";
+import singleArmCableTricepExtension from "@/assets/exercises/single-arm-cable-tricep-extension-photo.png";
 import latPulldown from "@/assets/exercises/lat-pulldown-photo.png";
-import neckLatPulldown from "@/assets/exercises/neck-lat-pulldown-photo.png";
+import straightArmRopePulldown from "@/assets/exercises/straight-arm-rope-pulldown-photo.png";
 import cableRow from "@/assets/exercises/cable-row-photo.png";
 import seatedMachineRow from "@/assets/exercises/seated-machine-row-photo.png";
-import bicepCurl from "@/assets/exercises/bicep-curl-photo.png";
+import standingCableBicepCurl from "@/assets/exercises/standing-cable-bicep-curl-photo.png";
+import bicepCurlMachine from "@/assets/exercises/bicep-curl-machine-photo.png";
 import hammerCurl from "@/assets/exercises/hammer-curl-photo.png";
-import shoulderPress from "@/assets/exercises/shoulder-press.jpg";
-import lateralRaise from "@/assets/exercises/lateral-raise.jpg";
+import shoulderPressMachine from "@/assets/exercises/shoulder-press-machine-photo.png";
+import cableLateralRaise from "@/assets/exercises/cable-lateral-raise-photo.png";
 import facePull from "@/assets/exercises/face-pull.jpg";
 
 // Search links instead of fixed video IDs / deep pages — a specific video can
@@ -142,7 +144,7 @@ export const workouts: Workout[] = [
         name: "Overhead Rope Tricep Extension",
         scheme: "3 × 10–15",
         cue: "Full stretch overhead. Keep elbows narrow, don't flare.",
-        image: overheadTricep,
+        image: overheadRopeTricepExtension,
         weighted: true,
         startWeight: 5,
         alt: "Single-Arm Cable Extension",
@@ -200,7 +202,7 @@ export const workouts: Workout[] = [
         name: "Straight-Arm Rope Pulldown",
         scheme: "2 × 12–15",
         cue: "Hinge slightly, keep arms straight — pull with the lats, not the arms.",
-        image: neckLatPulldown,
+        image: straightArmRopePulldown,
         weighted: true,
         startWeight: 5,
         alt: "Straight-Bar Pulldown",
@@ -215,7 +217,7 @@ export const workouts: Workout[] = [
         name: "Standing Cable Bicep Curl",
         scheme: "3 × 10–15",
         cue: "Elbows still. Full range top to bottom.",
-        image: bicepCurl,
+        image: standingCableBicepCurl,
         weighted: true,
         startWeight: 5,
         muscle: "Biceps",
@@ -256,7 +258,7 @@ export const workouts: Workout[] = [
         name: "Shoulder Press Machine",
         scheme: "3 × 8–12",
         cue: "Don't lock out hard. Keep tension on the delts.",
-        image: shoulderPress,
+        image: shoulderPressMachine,
         weighted: true,
         startWeight: 5,
         alt: "Smith Machine Shoulder Press",
@@ -271,7 +273,7 @@ export const workouts: Workout[] = [
         name: "Cable Lateral Raise",
         scheme: "3 × 12–15 each arm",
         cue: "Lead with the elbow, pinky slightly up. Light weight — do both arms, one side at a time.",
-        image: lateralRaise,
+        image: cableLateralRaise,
         weighted: true,
         startWeight: 2,
         alt: "Cross-Body Cable Lateral Raise",
@@ -301,7 +303,7 @@ export const workouts: Workout[] = [
         name: "Standing Cable Bicep Curl",
         scheme: "3 × 10–15",
         cue: "Elbows still, stand tall. Full range top to bottom, no swinging.",
-        image: bicepCurl,
+        image: standingCableBicepCurl,
         weighted: true,
         startWeight: 5,
         muscle: "Biceps",
@@ -315,7 +317,7 @@ export const workouts: Workout[] = [
         name: "Overhead Rope Tricep Extension",
         scheme: "3 × 10–15",
         cue: "Full stretch overhead. Keep elbows narrow, don't flare.",
-        image: overheadTricep,
+        image: overheadRopeTricepExtension,
         weighted: true,
         startWeight: 5,
         alt: "Machine Tricep Extension",
@@ -342,7 +344,7 @@ export const workouts: Workout[] = [
         name: "Bicep Curl Machine or Standing Cable Bicep Curl",
         scheme: "3 × 10–15",
         cue: "Stop 1 rep short of failure on each set.",
-        image: bicepCurl,
+        image: bicepCurlMachine,
         weighted: true,
         startWeight: 5,
         muscle: "Biceps",
@@ -385,7 +387,7 @@ export const workouts: Workout[] = [
         name: "Single-Arm Cable Tricep Extension",
         scheme: "2 × 12–15 each arm",
         cue: "One arm at a time — don't let the stronger arm do more work.",
-        image: overheadTricep,
+        image: singleArmCableTricepExtension,
         weighted: true,
         startWeight: 3,
         muscle: "Triceps — long head",
@@ -427,7 +429,7 @@ export const workouts: Workout[] = [
         name: "Cable Lateral Raise",
         scheme: "2 × 12–15 each arm",
         cue: "Light weight, lead with the elbows — do both arms, this is backoff volume for the delts.",
-        image: lateralRaise,
+        image: cableLateralRaise,
         weighted: true,
         startWeight: 2,
         muscle: "Shoulders — side delts",
@@ -671,7 +673,7 @@ export const DAY_PLANS: DayPlan[] = [
           "38g mixed nuts or peanuts",
           "250ml orange juice",
         ],
-        image: "/meals/bagel-nuts-oj.jpg",
+        image: "/meals/bagel-nuts-oj.png",
       },
     ],
   },
@@ -696,7 +698,7 @@ export const DAY_PLANS: DayPlan[] = [
           "300ml whole milk",
           "1 medium banana",
         ],
-        image: "/meals/eggs-bagel-milk.jpg",
+        image: "/meals/eggs-bagel-milk.png",
       },
       {
         id: "b-lunch",
@@ -728,7 +730,7 @@ export const DAY_PLANS: DayPlan[] = [
           "1 Tesco Tuna & Sweetcorn Sandwich",
           "No Arla shake needed today — chicken, eggs, milk and tuna already cover the protein target",
         ],
-        image: "/meals/tuna-sandwich.jpg",
+        image: "/meals/tuna-sandwich.png",
       },
       {
         id: "b-evening",
