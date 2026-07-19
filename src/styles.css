@@ -98,10 +98,8 @@
   --sidebar-border: oklch(0.91 0.01 264);
   --sidebar-ring: oklch(0.47 0.19 264);
 
-  /* Navy → blue fade used on hero banners, active states, and accent cards */
+  /* Navy → blue fade — reserved for the home hero only, everything else is flat */
   --gradient-dusk: linear-gradient(135deg, #060910 0%, #0c1730 30%, #16265c 60%, #2054d6 100%);
-  --gradient-dusk-soft: linear-gradient(135deg, #0b1329 0%, #16265c 55%, #2f6fed 100%);
-  --shadow-blue: 0 16px 40px -18px oklch(0.47 0.19 264 / 0.45);
   --shadow-soft: 0 2px 10px -4px oklch(0.19 0.03 264 / 0.08);
 
   --font-display: "Oswald", sans-serif;
@@ -166,14 +164,6 @@
 @layer components {
   .bg-gradient-dusk {
     background-image: var(--gradient-dusk);
-  }
-
-  .bg-gradient-dusk-soft {
-    background-image: var(--gradient-dusk-soft);
-  }
-
-  .shadow-blue {
-    box-shadow: var(--shadow-blue);
   }
 
   .shadow-soft {

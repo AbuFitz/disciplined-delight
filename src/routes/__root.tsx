@@ -7,10 +7,9 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import { useEffect, type ReactNode } from "react";
+import type { ReactNode } from "react";
 
 import appCss from "../styles.css?url";
-import { reportLovableError } from "../lib/lovable-error-reporting";
 
 function NotFoundComponent() {
   return (
@@ -37,9 +36,6 @@ function NotFoundComponent() {
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   console.error(error);
   const router = useRouter();
-  useEffect(() => {
-    reportLovableError(error, { boundary: "tanstack_root_error_component" });
-  }, [error]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
@@ -97,16 +93,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         name: "twitter:description",
         content:
           "A 4-week upper body training rotation built around GymGroup 6am sessions, Fajr at 3:14am, and slow, honest progression.",
-      },
-      {
-        property: "og:image",
-        content:
-          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/4f6843b9-9d53-4c62-b1f2-855ffa30c9ee/id-preview-1bc56334--a65e0a03-5144-4112-b7fc-11ff36aa7c2a.lovable.app-1784456928078.png",
-      },
-      {
-        name: "twitter:image",
-        content:
-          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/4f6843b9-9d53-4c62-b1f2-855ffa30c9ee/id-preview-1bc56334--a65e0a03-5144-4112-b7fc-11ff36aa7c2a.lovable.app-1784456928078.png",
       },
     ],
 
