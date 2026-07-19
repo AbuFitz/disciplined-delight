@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { ArrowRight, CalendarClock, Dumbbell, Flame, Sunrise, UtensilsCrossed } from "lucide-react";
 import { AppShell } from "@/components/sunrise/AppShell";
 import { useTrackerState } from "@/hooks/use-tracker-state";
+import { formatStepTime, useScheduleState } from "@/hooks/use-schedule-state";
 import { workouts } from "@/lib/sunrise-data";
 
 export const Route = createFileRoute("/")({
@@ -33,7 +34,10 @@ function useGreeting() {
 function Index() {
   const greeting = useGreeting();
   const tracker = useTrackerState();
+  const schedule = useScheduleState();
   const current = workouts.find((w) => w.id === tracker.activeTab) ?? workouts[0];
+  const fajr = schedule.findByKey("fajr");
+  const gym = schedule.findByKey("gym");
 
   return (
     <AppShell>
@@ -43,10 +47,10 @@ function Index() {
 
         <div className="mt-5 flex items-center gap-2 text-xs text-blue-200">
           <Sunrise className="h-3.5 w-3.5" />
-          Fajr 3:14am
+          {fajr ? `Fajr ${formatStepTime(fajr)}` : "Fajr"}
           <span className="text-blue-400">·</span>
           <Dumbbell className="h-3.5 w-3.5" />
-          GymGroup 6am
+          {gym ? `GymGroup ${formatStepTime(gym)}` : "GymGroup"}
         </div>
 
         <Link

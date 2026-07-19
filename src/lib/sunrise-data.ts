@@ -344,55 +344,6 @@ export const MACROS = [
   { key: "protein", val: "138g", label: "protein" },
 ];
 
-export const SKELETON = [
-  {
-    time: "9:00–9:30pm",
-    label: "Phone charges outside the bedroom",
-    detail: "Magnesium supplement. Wind down.",
-    highlight: false,
-  },
-  { time: "~9:30pm", label: "Sleep", detail: undefined, highlight: false },
-  {
-    time: "3:14am",
-    label: "Fajr",
-    detail: "Pray, then straight back to bed — don't touch your phone.",
-    highlight: true,
-  },
-  {
-    time: "5:00am",
-    label: "Alarm",
-    detail:
-      "Phone across the room, not on the bed. Get up, get dressed. No phone until you're back from the gym.",
-    highlight: false,
-  },
-  {
-    time: "5:15–5:45am",
-    label: "Light stretch, water, out the door",
-    detail: undefined,
-    highlight: false,
-  },
-  {
-    time: "6:00–7:00am",
-    label: "Gym session",
-    detail: "GymGroup — today's rotation.",
-    highlight: true,
-  },
-  {
-    time: "7:00–7:30am",
-    label: "Shower, breakfast, morning supplements",
-    detail: undefined,
-    highlight: false,
-  },
-  { time: "9:30am–6:00pm", label: "Work", detail: undefined, highlight: false },
-  { time: "6:30–7:00pm", label: "Dinner", detail: undefined, highlight: false },
-  {
-    time: "7:00–9:00pm",
-    label: "Life admin, food prep for tomorrow",
-    detail: undefined,
-    highlight: false,
-  },
-] satisfies Array<{ time: string; label: string; detail?: string; highlight: boolean }>;
-
 export type ShoppingItem = { id: string; item: string; where: string; notes: string };
 
 export const SHOPPING: ShoppingItem[] = [
