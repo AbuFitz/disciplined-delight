@@ -81,27 +81,36 @@ export function Sheet({
   );
 }
 
-/** Small food thumbnail that falls back to a plain icon tile if the image is missing. */
+const THUMB_DIMS = {
+  sm: "h-14 w-14 rounded-xl",
+  md: "h-20 w-20 rounded-xl",
+  lg: "h-40 w-full rounded-2xl",
+  banner: "aspect-[16/10] w-full rounded-2xl",
+} as const;
+
+/** Small thumbnail that falls back to a plain icon tile if the image is missing. */
 export function ThumbImage({
   src,
   alt,
   size = "sm",
+  fallbackIcon: FallbackIcon = UtensilsCrossed,
 }: {
   src?: string;
   alt: string;
-  size?: "sm" | "lg";
+  size?: keyof typeof THUMB_DIMS;
+  fallbackIcon?: LucideIcon;
 }) {
   const [failed, setFailed] = useState(false);
   // Only attempt the real <img> after hydration — an SSR'd <img src> can start
   // loading (and fail) before React attaches onError, silently swallowing 404s.
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
-  const dims = size === "sm" ? "h-14 w-14 rounded-xl" : "h-40 w-full rounded-2xl";
+  const dims = THUMB_DIMS[size];
 
   if (!src || !mounted || failed) {
     return (
       <div className={`flex shrink-0 items-center justify-center bg-accent text-primary ${dims}`}>
-        <UtensilsCrossed className={size === "sm" ? "h-5 w-5" : "h-8 w-8"} />
+        <FallbackIcon className={size === "sm" || size === "md" ? "h-5 w-5" : "h-8 w-8"} />
       </div>
     );
   }

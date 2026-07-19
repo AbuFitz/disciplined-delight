@@ -2,7 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import {
   CheckCircle2,
+  ChevronDown,
   ChevronRight,
+  Dumbbell,
   ExternalLink,
   Flame,
   Image as ImageIcon,
@@ -10,12 +12,13 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { AppShell } from "@/components/sunrise/AppShell";
-import { Callout, PageHeader, Sheet } from "@/components/sunrise/ui";
+import { Callout, PageHeader, Sheet, ThumbImage } from "@/components/sunrise/ui";
 import { useTrackerState } from "@/hooks/use-tracker-state";
 import { useWorkoutMode } from "@/hooks/use-workout-mode";
 import {
   diagramSearchUrl,
   RESOURCES,
+  WEEKLY_SPLIT,
   workouts,
   youtubeSearchUrl,
   type Exercise,
@@ -51,11 +54,32 @@ function WorkoutsPage() {
         note={
           mode === "day"
             ? "Cycle A → B → C → D each session. Finishing cardio moves you to the next one."
-            : "Run each for a full week. From week 5, repeat with +1 rep or a little more weight. No leg day."
+            : "Run each for a full week. From week 5, repeat with +1 rep or a little more weight. Machines and cables only — no leg day, no ab isolation. Cardio after every session handles fitness and keeps the waist lean."
         }
       />
 
-      <div className="grid grid-cols-4 gap-2 px-5">
+      <div className="px-5">
+        <div className="flex justify-between gap-1">
+          {WEEKLY_SPLIT.map((d) => (
+            <div key={d.day} className="flex flex-1 flex-col items-center gap-1">
+              <span className="text-[9px] uppercase tracking-wider text-muted-foreground">
+                {d.day}
+              </span>
+              <div
+                className={`flex h-7 w-7 items-center justify-center rounded-full text-[11px] font-bold ${
+                  d.letter
+                    ? "bg-accent text-primary"
+                    : "border border-dashed border-border text-muted-foreground"
+                }`}
+              >
+                {d.letter ?? "·"}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="mt-4 grid grid-cols-4 gap-2 px-5">
         {workouts.map((w, i) => (
           <button
             key={w.id}
@@ -139,19 +163,19 @@ function WorkoutsPage() {
         </button>
       </div>
 
+      <div className="mx-5 mt-3">
+        <Callout icon={Flame}>
+          Keep it moderate, not maxed out — brisk incline walk or a steady climb, still able to
+          speak in short sentences. Cardio won't build the chest and arms directly, but going too
+          hard for too long eats into the calorie surplus you need to grow.
+        </Callout>
+      </div>
+
       <div className="mx-5 mt-4">
         <Callout icon={TrendingUp}>
-          {mode === "day" ? (
-            <>
-              Next time you're back on Workout {current.letter}, add one rep to your top set or a
-              little more weight. That's the whole system.
-            </>
-          ) : (
-            <>
-              Next time you run Workout {current.letter}, add one rep to your top set or a little
-              more weight. That's the whole system.
-            </>
-          )}
+          Work the rep range shown on each set. Once every set hits the top of the range for two
+          clean sessions in a row, bump the weight by the smallest increment and drop back to the
+          bottom of the range. That's double progression — the whole system.
         </Callout>
       </div>
 
@@ -180,12 +204,11 @@ function WorkoutsPage() {
           <div className="px-5 pb-2 pt-2">
             {openAlt.altImage && (
               <div className="mb-3 overflow-hidden rounded-2xl">
-                <img
+                <ThumbImage
                   src={openAlt.altImage}
                   alt={openAlt.alt}
-                  width={800}
-                  height={500}
-                  className="aspect-[16/10] w-full object-cover"
+                  size="banner"
+                  fallbackIcon={Dumbbell}
                 />
               </div>
             )}
@@ -239,6 +262,9 @@ function ExerciseCard({
   onWeightChange: (w: string) => void;
   onOpenAlt: () => void;
 }) {
+  const [expanded, setExpanded] = useState(false);
+  const hasDetails = !!(exercise.description || exercise.muscle || exercise.equipment);
+
   return (
     <div
       className={`overflow-hidden rounded-2xl border shadow-soft transition-colors ${done ? "border-primary/40 bg-accent/40" : "border-border bg-white"}`}
@@ -248,17 +274,15 @@ function ExerciseCard({
           href={youtubeSearchUrl(exercise.name)}
           target="_blank"
           rel="noopener noreferrer"
-          className="group relative h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-slate-900"
+          className="group relative h-20 w-20 shrink-0"
         >
-          <img
+          <ThumbImage
             src={exercise.image}
             alt={`${exercise.name} form`}
-            width={200}
-            height={200}
-            loading="lazy"
-            className="h-full w-full object-cover opacity-90 transition-transform group-hover:scale-105"
+            size="md"
+            fallbackIcon={Dumbbell}
           />
-          <div className="absolute inset-0 flex items-center justify-center bg-black/20 transition-colors group-hover:bg-black/50">
+          <div className="absolute inset-0 flex items-center justify-center rounded-xl bg-black/20 transition-colors group-hover:bg-black/50">
             <div className="flex h-7 w-7 items-center justify-center rounded-full bg-white/90">
               <Play className="ml-0.5 h-3 w-3 text-primary" fill="currentColor" />
             </div>
@@ -283,7 +307,14 @@ function ExerciseCard({
               {done && <CheckCircle2 className="h-4 w-4" />}
             </button>
           </div>
-          <div className="mt-0.5 text-xs font-mono font-medium text-primary">{exercise.scheme}</div>
+          <div className="mt-0.5 flex items-center gap-1.5 text-xs font-mono font-medium text-primary">
+            {exercise.scheme}
+            {exercise.rest && (
+              <span className="font-sans text-[10px] font-normal text-muted-foreground">
+                · {exercise.rest}
+              </span>
+            )}
+          </div>
           <p className="mt-1 text-[11px] leading-snug text-muted-foreground">{exercise.cue}</p>
 
           <div className="mt-2 flex items-center gap-2">
@@ -311,6 +342,46 @@ function ExerciseCard({
           </div>
         </div>
       </div>
+
+      {hasDetails && (
+        <button
+          onClick={() => setExpanded((v) => !v)}
+          className="flex w-full items-center justify-between border-t border-border px-3 py-2 text-left text-[11px] font-semibold text-primary"
+        >
+          <span>{expanded ? "Hide details" : "Details & photo"}</span>
+          <ChevronDown
+            className={`h-3.5 w-3.5 shrink-0 transition-transform ${expanded ? "rotate-180" : ""}`}
+          />
+        </button>
+      )}
+
+      {expanded && (
+        <div className="border-t border-border bg-secondary/40 px-3 pb-3 pt-3">
+          <ThumbImage
+            src={exercise.image}
+            alt={`${exercise.name} form`}
+            size="banner"
+            fallbackIcon={Dumbbell}
+          />
+          <div className="mt-3 flex flex-wrap gap-1.5">
+            {exercise.muscle && (
+              <span className="rounded-full bg-accent px-2 py-0.5 text-[10px] font-semibold text-primary">
+                {exercise.muscle}
+              </span>
+            )}
+            {exercise.equipment && (
+              <span className="rounded-full border border-border bg-white px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                {exercise.equipment}
+              </span>
+            )}
+          </div>
+          {exercise.description && (
+            <p className="mt-2.5 text-xs leading-relaxed text-muted-foreground">
+              {exercise.description}
+            </p>
+          )}
+        </div>
+      )}
 
       {exercise.alt && (
         <button

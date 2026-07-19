@@ -20,6 +20,7 @@ import { PageHeader, SectionLabel } from "@/components/sunrise/ui";
 import { useTrackerState } from "@/hooks/use-tracker-state";
 import { useScheduleState, type ScheduleStep } from "@/hooks/use-schedule-state";
 import { useWorkoutMode, type WorkoutMode } from "@/hooks/use-workout-mode";
+import { WEEKLY_SPLIT } from "@/lib/sunrise-data";
 
 export const Route = createFileRoute("/settings")({
   component: SettingsPage,
@@ -109,6 +110,13 @@ function SettingsPage() {
             </button>
           ))}
         </div>
+        <p className="mt-2.5 text-xs text-muted-foreground">
+          Suggested split once you're settled:{" "}
+          {WEEKLY_SPLIT.filter((d) => d.letter)
+            .map((d) => `${d.day} ${d.letter}`)
+            .join(" · ")}{" "}
+          — rest the other days.
+        </p>
       </div>
 
       <div className="mt-7 px-5">

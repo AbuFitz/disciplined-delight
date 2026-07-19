@@ -14,6 +14,7 @@ import { AppShell } from "@/components/sunrise/AppShell";
 import { Callout, PageHeader, SectionLabel, Sheet, ThumbImage } from "@/components/sunrise/ui";
 import { useTrackerState } from "@/hooks/use-tracker-state";
 import {
+  MACRO_RANGE,
   MACROS,
   MEALS,
   SHOPPING,
@@ -69,6 +70,7 @@ function NutritionPage() {
           </div>
         ))}
       </div>
+      <p className="mx-5 mt-2 text-[11px] leading-relaxed text-muted-foreground">{MACRO_RANGE}</p>
 
       <div className="mx-5 mt-4">
         <Callout icon={Info}>
