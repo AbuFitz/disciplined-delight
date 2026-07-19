@@ -3,9 +3,9 @@ import workoutB from "@/assets/workout-b.jpg";
 import workoutC from "@/assets/workout-c.jpg";
 import workoutD from "@/assets/workout-d.jpg";
 
-import chestPress from "@/assets/exercises/chest-press.jpg";
-import inclinePress from "@/assets/exercises/incline-press.jpg";
-import cableFly from "@/assets/exercises/cable-fly.jpg";
+import chestPress from "@/assets/exercises/chest-press-photo.png";
+import inclinePress from "@/assets/exercises/incline-press-photo.png";
+import cableFly from "@/assets/exercises/cable-fly-photo.png";
 import tricepPushdown from "@/assets/exercises/tricep-pushdown.jpg";
 import overheadTricep from "@/assets/exercises/overhead-tricep.jpg";
 import plank from "@/assets/exercises/plank.jpg";
