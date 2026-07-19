@@ -14,13 +14,14 @@ import { AppShell } from "@/components/sunrise/AppShell";
 import { Callout, PageHeader, SectionLabel, Sheet, ThumbImage } from "@/components/sunrise/ui";
 import { useTrackerState } from "@/hooks/use-tracker-state";
 import {
+  DAY_PLAN_RULE,
+  DAY_PLANS,
   MACRO_RANGE,
   MACROS,
-  MEALS,
   SHOPPING,
   SUPPLEMENTS,
-  type Meal,
-  type MealTag,
+  type DayMeal,
+  type DayMealSlot,
   type ShoppingItem,
 } from "@/lib/sunrise-data";
 
@@ -29,26 +30,26 @@ export const Route = createFileRoute("/nutrition")({
 });
 
 // Adapted from NEWLIFE's MealCard tag styling (github.com/AbuFitz/NEWLIFE).
-const TAG_STYLES: Record<MealTag, string> = {
+const TAG_STYLES: Record<DayMealSlot, string> = {
   breakfast: "bg-amber-100 text-amber-700",
   lunch: "bg-blue-100 text-blue-700",
-  "post-gym": "bg-primary/10 text-primary",
   dinner: "bg-purple-100 text-purple-700",
   evening: "bg-emerald-100 text-emerald-700",
 };
 
-const TAG_LABELS: Record<MealTag, string> = {
+const TAG_LABELS: Record<DayMealSlot, string> = {
   breakfast: "Breakfast",
   lunch: "Lunch",
-  "post-gym": "Post-Gym",
   dinner: "Dinner",
   evening: "Evening",
 };
 
 function NutritionPage() {
   const tracker = useTrackerState();
-  const [openMeal, setOpenMeal] = useState<Meal | null>(null);
+  const [dayId, setDayId] = useState<"a" | "b">("a");
+  const [openMeal, setOpenMeal] = useState<DayMeal | null>(null);
   const [openShopping, setOpenShopping] = useState<ShoppingItem | null>(null);
+  const day = DAY_PLANS.find((d) => d.id === dayId) ?? DAY_PLANS[0]!;
 
   return (
     <AppShell>
@@ -83,10 +84,34 @@ function NutritionPage() {
       <div className="mt-6 px-5">
         <div className="flex items-center gap-1.5">
           <UtensilsCrossed className="h-4 w-4 text-primary" />
-          <SectionLabel>Daily meal template — tap for details</SectionLabel>
+          <SectionLabel>Full-day templates — pick one, not individual meals</SectionLabel>
         </div>
+
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          {DAY_PLANS.map((d) => (
+            <button
+              key={d.id}
+              onClick={() => setDayId(d.id)}
+              className={`rounded-2xl border p-3 text-left transition-colors ${
+                dayId === d.id
+                  ? "border-primary bg-primary text-primary-foreground"
+                  : "border-border bg-white shadow-soft"
+              }`}
+            >
+              <div className="font-display text-base font-bold">{d.label}</div>
+              <div
+                className={`mt-0.5 text-[11px] leading-snug ${dayId === d.id ? "text-blue-200" : "text-muted-foreground"}`}
+              >
+                {d.subtitle}
+              </div>
+            </button>
+          ))}
+        </div>
+
+        <p className="mt-2.5 text-[11px] leading-relaxed text-muted-foreground">{DAY_PLAN_RULE}</p>
+
         <div className="mt-3 space-y-2">
-          {MEALS.map((m) => (
+          {day.meals.map((m) => (
             <button
               key={m.id}
               onClick={() => setOpenMeal(m)}
@@ -95,19 +120,38 @@ function NutritionPage() {
               <ThumbImage src={m.image} alt={m.name} />
               <div className="min-w-0 flex-1">
                 <span
-                  className={`inline-block rounded px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide ${TAG_STYLES[m.tag]}`}
+                  className={`inline-block rounded px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide ${TAG_STYLES[m.slot]}`}
                 >
-                  {TAG_LABELS[m.tag]}
+                  {TAG_LABELS[m.slot]}
                 </span>
                 <div className="mt-1 text-sm font-semibold text-foreground">{m.name}</div>
-                <div className="text-xs text-muted-foreground">{m.items.length} items</div>
+                <div className="text-xs text-muted-foreground">{m.protein}g protein</div>
               </div>
               <div className="shrink-0 text-right">
-                <div className="text-xs font-semibold text-primary">{m.kcal}</div>
+                <div className="text-xs font-semibold text-primary">{m.kcal} kcal</div>
               </div>
               <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
             </button>
           ))}
+        </div>
+
+        <div className="mt-3 grid grid-cols-4 gap-2 rounded-2xl border border-border bg-secondary/50 p-3">
+          <div className="text-center">
+            <div className="text-xs font-bold text-foreground">{day.totals.kcal}</div>
+            <div className="text-[9px] uppercase tracking-wider text-muted-foreground">kcal</div>
+          </div>
+          <div className="text-center">
+            <div className="text-xs font-bold text-foreground">{day.totals.carbs}g</div>
+            <div className="text-[9px] uppercase tracking-wider text-muted-foreground">carbs</div>
+          </div>
+          <div className="text-center">
+            <div className="text-xs font-bold text-foreground">{day.totals.fat}g</div>
+            <div className="text-[9px] uppercase tracking-wider text-muted-foreground">fat</div>
+          </div>
+          <div className="text-center">
+            <div className="text-xs font-bold text-foreground">{day.totals.protein}g</div>
+            <div className="text-[9px] uppercase tracking-wider text-muted-foreground">protein</div>
+          </div>
         </div>
       </div>
 
@@ -135,12 +179,13 @@ function NutritionPage() {
 
       <div className="mx-5 mt-4 space-y-3">
         <Callout icon={Sparkles}>
-          Fine-tune exact portions in MyFitnessPal over the first week to land the targets above.
+          Fine-tune exact portions in MyFitnessPal over the first week — the physical label always
+          wins over the numbers here if a product changes its recipe.
         </Callout>
         <Callout icon={Flame}>
           <span className="font-semibold text-foreground">Meal prep tip:</span> batch-cook halal
-          chicken twice a week (Sun + Wed), 1–1.5kg at a time, seasoned simply and roasted 25 min at
-          200°C. Portion into containers immediately.
+          chicken twice a week (Sun + Wed), seasoned simply and roasted 25 min at 200°C. Portion
+          into containers immediately.
         </Callout>
       </div>
 
@@ -190,13 +235,29 @@ function NutritionPage() {
           <div className="px-5 pt-2">
             <ThumbImage src={openMeal.image} alt={openMeal.name} size="lg" />
             <span
-              className={`mt-4 inline-block rounded px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide ${TAG_STYLES[openMeal.tag]}`}
+              className={`mt-4 inline-block rounded px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide ${TAG_STYLES[openMeal.slot]}`}
             >
-              {TAG_LABELS[openMeal.tag]}
+              {TAG_LABELS[openMeal.slot]}
             </span>
             <div className="mt-1.5 flex items-baseline justify-between gap-3">
               <h3 className="font-display text-xl font-bold text-foreground">{openMeal.name}</h3>
-              <span className="shrink-0 text-sm font-semibold text-primary">{openMeal.kcal}</span>
+              <span className="shrink-0 text-sm font-semibold text-primary">
+                {openMeal.kcal} kcal
+              </span>
+            </div>
+            <div className="mt-3 grid grid-cols-3 gap-2">
+              <div className="rounded-lg bg-secondary py-1.5 text-center">
+                <div className="text-xs font-bold text-foreground">{openMeal.carbs}g</div>
+                <div className="text-[9px] uppercase text-muted-foreground">carbs</div>
+              </div>
+              <div className="rounded-lg bg-secondary py-1.5 text-center">
+                <div className="text-xs font-bold text-foreground">{openMeal.fat}g</div>
+                <div className="text-[9px] uppercase text-muted-foreground">fat</div>
+              </div>
+              <div className="rounded-lg bg-secondary py-1.5 text-center">
+                <div className="text-xs font-bold text-foreground">{openMeal.protein}g</div>
+                <div className="text-[9px] uppercase text-muted-foreground">protein</div>
+              </div>
             </div>
             <ul className="mt-3 space-y-2">
               {openMeal.items.map((it) => (
