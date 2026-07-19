@@ -2,10 +2,12 @@ import { createFileRoute } from "@tanstack/react-router";
 import {
   AlarmClock,
   Briefcase,
+  Calendar,
   Camera,
   CheckCircle2,
   Dumbbell,
   Flame,
+  Repeat,
   Scale,
   Sparkles,
   Sunrise,
@@ -17,6 +19,7 @@ import { AppShell } from "@/components/sunrise/AppShell";
 import { PageHeader, SectionLabel } from "@/components/sunrise/ui";
 import { useTrackerState } from "@/hooks/use-tracker-state";
 import { useScheduleState, type ScheduleStep } from "@/hooks/use-schedule-state";
+import { useWorkoutMode, type WorkoutMode } from "@/hooks/use-workout-mode";
 
 export const Route = createFileRoute("/settings")({
   component: SettingsPage,
@@ -50,9 +53,30 @@ const PRINCIPLES: Array<{ icon: LucideIcon; title: string; body: string }> = [
   },
 ];
 
+const WORKOUT_MODES: Array<{
+  mode: WorkoutMode;
+  icon: LucideIcon;
+  title: string;
+  body: string;
+}> = [
+  {
+    mode: "week",
+    icon: Calendar,
+    title: "Week-by-week",
+    body: "Run one workout for a full week while you learn the machines. Tabs show Week 1–4.",
+  },
+  {
+    mode: "day",
+    icon: Repeat,
+    title: "Day rotation",
+    body: "Cycle A → B → C → D each session. Marking cardio done moves you to the next one automatically. Switch here once you know the machines and want a session-by-session rotation instead.",
+  },
+];
+
 function SettingsPage() {
   const tracker = useTrackerState();
   const schedule = useScheduleState();
+  const { mode, setMode } = useWorkoutMode();
 
   return (
     <AppShell>
@@ -62,6 +86,32 @@ function SettingsPage() {
       />
 
       <div className="px-5">
+        <SectionLabel>Workout setup</SectionLabel>
+        <div className="mt-3 space-y-2.5">
+          {WORKOUT_MODES.map((m) => (
+            <button
+              key={m.mode}
+              onClick={() => setMode(m.mode)}
+              className={`flex w-full items-start gap-3 rounded-2xl border p-4 text-left transition-colors ${
+                mode === m.mode
+                  ? "border-primary bg-accent/50"
+                  : "border-border bg-white shadow-soft"
+              }`}
+            >
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-accent text-primary">
+                <m.icon className="h-4 w-4" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="text-sm font-semibold text-foreground">{m.title}</div>
+                <div className="mt-0.5 text-xs leading-relaxed text-muted-foreground">{m.body}</div>
+              </div>
+              {mode === m.mode && <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-primary" />}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="mt-7 px-5">
         <SectionLabel>Key times</SectionLabel>
         <div className="mt-3 space-y-2.5">
           <TimeRow

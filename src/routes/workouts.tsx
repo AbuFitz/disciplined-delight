@@ -4,6 +4,7 @@ import { CheckCircle2, ChevronRight, ExternalLink, Flame, Play, TrendingUp, X } 
 import { AppShell } from "@/components/sunrise/AppShell";
 import { Callout, PageHeader } from "@/components/sunrise/ui";
 import { useTrackerState } from "@/hooks/use-tracker-state";
+import { useWorkoutMode } from "@/hooks/use-workout-mode";
 import { trainingFitUrl, workouts, type Exercise } from "@/lib/sunrise-data";
 
 export const Route = createFileRoute("/workouts")({
@@ -11,23 +12,40 @@ export const Route = createFileRoute("/workouts")({
 });
 
 function WorkoutsPage() {
-  const [activeWorkout, setActiveWorkout] = useState("a");
   const [openVideo, setOpenVideo] = useState<string | null>(null);
   const tracker = useTrackerState();
-  const current = workouts.find((w) => w.id === activeWorkout)!;
+  const { mode } = useWorkoutMode();
+  const activeWorkout = tracker.activeTab;
+  const currentIndex = workouts.findIndex((w) => w.id === activeWorkout);
+  const current = workouts[currentIndex === -1 ? 0 : currentIndex]!;
+
+  const tabLabel = (index: number, week: string) => (mode === "day" ? `Day ${index + 1}` : week);
+
+  const onToggleCardio = () => {
+    const wasDone = tracker.todayLog.cardioDone;
+    tracker.toggleCardio();
+    if (!wasDone && mode === "day") {
+      const next = workouts[(currentIndex + 1) % workouts.length]!;
+      tracker.setActiveTab(next.id);
+    }
+  };
 
   return (
     <AppShell>
       <PageHeader
         title="Workouts"
-        note="Run each for a full week. From week 5, repeat with +1 rep or a little more weight. No leg day."
+        note={
+          mode === "day"
+            ? "Cycle A → B → C → D each session. Finishing cardio moves you to the next one."
+            : "Run each for a full week. From week 5, repeat with +1 rep or a little more weight. No leg day."
+        }
       />
 
       <div className="grid grid-cols-4 gap-2 px-5">
-        {workouts.map((w) => (
+        {workouts.map((w, i) => (
           <button
             key={w.id}
-            onClick={() => setActiveWorkout(w.id)}
+            onClick={() => tracker.setActiveTab(w.id)}
             className={`rounded-xl border p-2.5 text-center transition-colors ${
               activeWorkout === w.id
                 ? "border-primary bg-primary text-primary-foreground"
@@ -38,7 +56,7 @@ function WorkoutsPage() {
             <div
               className={`mt-0.5 text-[9px] uppercase tracking-wider ${activeWorkout === w.id ? "text-blue-200" : "text-muted-foreground"}`}
             >
-              {w.week}
+              {tabLabel(i, w.week)}
             </div>
           </button>
         ))}
@@ -58,7 +76,8 @@ function WorkoutsPage() {
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-transparent" />
           <div className="absolute inset-x-0 bottom-0 p-4">
             <div className="text-[10px] uppercase tracking-[0.2em] text-blue-200">
-              Workout {current.letter} · {current.week}
+              Workout {current.letter} ·{" "}
+              {tabLabel(currentIndex === -1 ? 0 : currentIndex, current.week)}
             </div>
             <h3 className="mt-1 font-display text-xl font-bold text-white">{current.title}</h3>
             <p className="mt-1 text-xs text-slate-200">{current.focus}</p>
@@ -107,7 +126,7 @@ function WorkoutsPage() {
           </div>
         </div>
         <button
-          onClick={tracker.toggleCardio}
+          onClick={onToggleCardio}
           className={`shrink-0 rounded-full px-3.5 py-2 text-xs font-semibold transition-colors ${
             tracker.todayLog.cardioDone
               ? "bg-primary text-primary-foreground"
@@ -120,8 +139,17 @@ function WorkoutsPage() {
 
       <div className="mx-5 mt-4">
         <Callout icon={TrendingUp}>
-          Next time you run Workout {current.letter}, add one rep to your top set or a little more
-          weight. That's the whole system.
+          {mode === "day" ? (
+            <>
+              Next time you're back on Workout {current.letter}, add one rep to your top set or a
+              little more weight. That's the whole system.
+            </>
+          ) : (
+            <>
+              Next time you run Workout {current.letter}, add one rep to your top set or a little
+              more weight. That's the whole system.
+            </>
+          )}
         </Callout>
       </div>
 
