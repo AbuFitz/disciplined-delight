@@ -1,18 +1,32 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { CheckCircle2, ChevronRight, ExternalLink, Flame, Play, TrendingUp, X } from "lucide-react";
+import {
+  CheckCircle2,
+  ChevronRight,
+  ExternalLink,
+  Flame,
+  Image as ImageIcon,
+  Play,
+  TrendingUp,
+} from "lucide-react";
 import { AppShell } from "@/components/sunrise/AppShell";
-import { Callout, PageHeader } from "@/components/sunrise/ui";
+import { Callout, PageHeader, Sheet } from "@/components/sunrise/ui";
 import { useTrackerState } from "@/hooks/use-tracker-state";
 import { useWorkoutMode } from "@/hooks/use-workout-mode";
-import { trainingFitUrl, workouts, type Exercise } from "@/lib/sunrise-data";
+import {
+  diagramSearchUrl,
+  RESOURCES,
+  workouts,
+  youtubeSearchUrl,
+  type Exercise,
+} from "@/lib/sunrise-data";
 
 export const Route = createFileRoute("/workouts")({
   component: WorkoutsPage,
 });
 
 function WorkoutsPage() {
-  const [openVideo, setOpenVideo] = useState<string | null>(null);
+  const [openAlt, setOpenAlt] = useState<Exercise | null>(null);
   const tracker = useTrackerState();
   const { mode } = useWorkoutMode();
   const activeWorkout = tracker.activeTab;
@@ -83,18 +97,6 @@ function WorkoutsPage() {
             <p className="mt-1 text-xs text-slate-200">{current.focus}</p>
           </div>
         </div>
-        <a
-          href={trainingFitUrl(current.title)}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center justify-between border-t border-border bg-secondary px-4 py-2.5 text-xs font-medium text-foreground transition-colors hover:bg-accent"
-        >
-          <span className="flex items-center gap-1.5">
-            <ExternalLink className="h-3.5 w-3.5 text-primary" />
-            Picture reference on training.fit
-          </span>
-          <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
-        </a>
       </div>
 
       <div className="mt-4 space-y-3 px-5">
@@ -110,7 +112,7 @@ function WorkoutsPage() {
             }
             onToggle={() => tracker.toggleExercise(ex.id)}
             onWeightChange={(w) => tracker.setExerciseWeight(ex.id, w)}
-            onWatch={() => setOpenVideo(ex.youtube)}
+            onOpenAlt={() => setOpenAlt(ex)}
           />
         ))}
       </div>
@@ -153,7 +155,58 @@ function WorkoutsPage() {
         </Callout>
       </div>
 
-      {openVideo && <VideoModal youtubeId={openVideo} onClose={() => setOpenVideo(null)} />}
+      <div className="mx-5 mt-4">
+        <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          More resources
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          {RESOURCES.map((r) => (
+            <a
+              key={r.name}
+              href={r.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center gap-1.5 rounded-xl border border-border bg-white py-2.5 text-xs font-semibold text-foreground shadow-soft"
+            >
+              {r.name}
+              <ExternalLink className="h-3 w-3 text-muted-foreground" />
+            </a>
+          ))}
+        </div>
+      </div>
+
+      <Sheet open={!!openAlt} onClose={() => setOpenAlt(null)}>
+        {openAlt?.alt && (
+          <div className="px-5 pb-2 pt-2">
+            <div className="text-xs font-medium text-muted-foreground">Alt for {openAlt.name}</div>
+            <h3 className="mt-1 font-display text-xl font-bold text-foreground">{openAlt.alt}</h3>
+            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+              Same muscle group, different equipment — swap in if the primary machine or cable
+              station isn't free.
+            </p>
+            <div className="mt-4 flex gap-2">
+              <a
+                href={youtubeSearchUrl(openAlt.alt)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-primary py-2.5 text-xs font-semibold text-primary-foreground"
+              >
+                <Play className="h-3.5 w-3.5" />
+                Watch
+              </a>
+              <a
+                href={diagramSearchUrl(openAlt.alt)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-border py-2.5 text-xs font-semibold text-foreground"
+              >
+                <ImageIcon className="h-3.5 w-3.5" />
+                Diagram
+              </a>
+            </div>
+          </div>
+        )}
+      </Sheet>
     </AppShell>
   );
 }
@@ -165,7 +218,7 @@ function ExerciseCard({
   weight,
   onToggle,
   onWeightChange,
-  onWatch,
+  onOpenAlt,
 }: {
   index: number;
   exercise: Exercise;
@@ -173,15 +226,17 @@ function ExerciseCard({
   weight: string;
   onToggle: () => void;
   onWeightChange: (w: string) => void;
-  onWatch: () => void;
+  onOpenAlt: () => void;
 }) {
   return (
     <div
       className={`overflow-hidden rounded-2xl border shadow-soft transition-colors ${done ? "border-primary/40 bg-accent/40" : "border-border bg-white"}`}
     >
       <div className="flex gap-3 p-3">
-        <button
-          onClick={onWatch}
+        <a
+          href={youtubeSearchUrl(exercise.name)}
+          target="_blank"
+          rel="noopener noreferrer"
           className="group relative h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-slate-900"
         >
           <img
@@ -200,7 +255,7 @@ function ExerciseCard({
           <div className="absolute left-1.5 top-1.5 rounded-md bg-black/60 px-1.5 py-0.5 font-mono text-[9px] text-white">
             {String(index).padStart(2, "0")}
           </div>
-        </button>
+        </a>
 
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-2">
@@ -234,44 +289,29 @@ function ExerciseCard({
               </div>
             )}
             <a
-              href={trainingFitUrl(exercise.name)}
+              href={diagramSearchUrl(exercise.name)}
               target="_blank"
               rel="noopener noreferrer"
               className="ml-auto inline-flex items-center gap-1 text-[10px] font-medium text-primary hover:text-primary/70"
             >
-              <ExternalLink className="h-3 w-3" />
-              Reference
+              <ImageIcon className="h-3 w-3" />
+              Diagram
             </a>
           </div>
         </div>
       </div>
-    </div>
-  );
-}
 
-function VideoModal({ youtubeId, onClose }: { youtubeId: string; onClose: () => void }) {
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4 backdrop-blur-sm"
-      onClick={onClose}
-    >
-      <div className="relative w-full max-w-lg" onClick={(e) => e.stopPropagation()}>
+      {exercise.alt && (
         <button
-          onClick={onClose}
-          className="absolute -top-9 right-0 flex items-center gap-1 text-xs font-medium tracking-wide text-white/80 hover:text-white"
+          onClick={onOpenAlt}
+          className="flex w-full items-center justify-between border-t border-border bg-secondary px-3 py-2 text-left text-[11px] font-medium text-muted-foreground transition-colors hover:bg-accent"
         >
-          CLOSE <X className="h-3.5 w-3.5" />
+          <span>
+            Alt: <span className="text-foreground">{exercise.alt}</span>
+          </span>
+          <ChevronRight className="h-3.5 w-3.5 shrink-0" />
         </button>
-        <div className="aspect-video overflow-hidden rounded-xl">
-          <iframe
-            src={`https://www.youtube.com/embed/${youtubeId}?autoplay=1&rel=0`}
-            title="Exercise form demo"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-            className="h-full w-full"
-          />
-        </div>
-      </div>
+      )}
     </div>
   );
 }

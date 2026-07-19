@@ -22,10 +22,20 @@ import ezCurl from "@/assets/exercises/ez-curl.jpg";
 import tricepDip from "@/assets/exercises/tricep-dip.jpg";
 import cableCrunch from "@/assets/exercises/cable-crunch.jpg";
 
-// training.fit hosts short exercise-guide articles — used as the "picture
-// reference" link on every exercise and workout, alongside a video demo.
-export const trainingFitUrl = (query: string) =>
-  `https://training.fit/?s=${encodeURIComponent(query)}&int=1`;
+// Search links instead of fixed video IDs / deep pages — a specific video can
+// go private or a specific page can 404, a search never breaks.
+export const youtubeSearchUrl = (query: string) =>
+  `https://www.youtube.com/results?search_query=${encodeURIComponent(`${query} shorts`)}`;
+
+export const diagramSearchUrl = (query: string) =>
+  `https://www.google.com/search?tbm=isch&q=${encodeURIComponent(`${query} diagram`)}`;
+
+// General exercise-directory sites — link the homepage/search, not a specific
+// exercise page, since those deep links break as sites reorganize.
+export const RESOURCES = [
+  { name: "MuscleWiki", url: "https://musclewiki.com/" },
+  { name: "ExRx.net", url: "https://exrx.net/Lists/Directory" },
+];
 
 export type Exercise = {
   id: string;
@@ -33,9 +43,10 @@ export type Exercise = {
   scheme: string;
   cue: string;
   image: string;
-  youtube: string;
   weighted: boolean;
   startWeight?: number;
+  /** Machine/cable/DB-only substitute — same muscle group, different equipment. */
+  alt?: string;
 };
 
 export type Workout = {
@@ -67,7 +78,6 @@ export const workouts: Workout[] = [
         scheme: "3 × 10",
         cue: "Handles at nipple line. Pause a beat at the bottom.",
         image: chestPress,
-        youtube: "xUm0BiZCWlQ",
         weighted: true,
         startWeight: 15,
       },
@@ -77,7 +87,6 @@ export const workouts: Workout[] = [
         scheme: "3 × 10",
         cue: "Bench at ~30°. Elbows tucked ~45°, not flared.",
         image: inclinePress,
-        youtube: "8iPEnn-ltC8",
         weighted: true,
         startWeight: 10,
       },
@@ -87,9 +96,9 @@ export const workouts: Workout[] = [
         scheme: "3 × 12",
         cue: "Slight elbow bend, hug a tree. Squeeze in the middle.",
         image: cableFly,
-        youtube: "Iwe6AmxVf7o",
         weighted: true,
         startWeight: 7,
+        alt: "Machine Pec Deck Fly",
       },
       {
         id: "a4",
@@ -97,9 +106,9 @@ export const workouts: Workout[] = [
         scheme: "3 × 12",
         cue: "Elbows pinned to your ribs. Only the forearms move.",
         image: tricepPushdown,
-        youtube: "2-LAMcpzODU",
         weighted: true,
         startWeight: 12,
+        alt: "Cable Overhead Tricep Extension",
       },
       {
         id: "a5",
@@ -107,9 +116,9 @@ export const workouts: Workout[] = [
         scheme: "3 × 12",
         cue: "Full stretch overhead. Keep elbows narrow.",
         image: overheadTricep,
-        youtube: "_gsUck-7M74",
         weighted: true,
         startWeight: 8,
+        alt: "Cable Overhead Tricep Extension",
       },
       {
         id: "a6",
@@ -117,7 +126,6 @@ export const workouts: Workout[] = [
         scheme: "3 × 30–45s",
         cue: "Glutes tight, ribs down, don't let hips sag.",
         image: plank,
-        youtube: "ASdvN_XEl_c",
         weighted: false,
       },
     ],
@@ -138,9 +146,9 @@ export const workouts: Workout[] = [
         scheme: "3 × 10",
         cue: "Bar to upper chest. Chest up, drive elbows down.",
         image: latPulldown,
-        youtube: "CAwf7n6Luuc",
         weighted: true,
         startWeight: 20,
+        alt: "Assisted Pull-Up Machine (more load)",
       },
       {
         id: "b2",
@@ -148,9 +156,9 @@ export const workouts: Workout[] = [
         scheme: "3 × 10",
         cue: "Shoulders back and down. No jerking with the lower back.",
         image: cableRow,
-        youtube: "GZbfZ033f74",
         weighted: true,
         startWeight: 20,
+        alt: "Seated Machine Row",
       },
       {
         id: "b3",
@@ -158,9 +166,9 @@ export const workouts: Workout[] = [
         scheme: "3 × 8",
         cue: "Use the least assistance you can control. (Weight = assistance, so lower is harder.)",
         image: assistedPullup,
-        youtube: "wFj808u2HWQ",
         weighted: true,
         startWeight: 35,
+        alt: "Heavier Lat Pulldown",
       },
       {
         id: "b4",
@@ -168,9 +176,9 @@ export const workouts: Workout[] = [
         scheme: "3 × 12",
         cue: "Elbows still. Full range top to bottom.",
         image: bicepCurl,
-        youtube: "ykJmrZ5v0Oo",
         weighted: true,
         startWeight: 8,
+        alt: "Cable Bicep Curl",
       },
       {
         id: "b5",
@@ -178,9 +186,9 @@ export const workouts: Workout[] = [
         scheme: "3 × 12",
         cue: "Neutral grip. Targets brachialis for thicker arms.",
         image: hammerCurl,
-        youtube: "zC3nLlEvin4",
         weighted: true,
         startWeight: 5,
+        alt: "Dumbbell Hammer Curl",
       },
       {
         id: "b6",
@@ -188,7 +196,6 @@ export const workouts: Workout[] = [
         scheme: "3 × 12",
         cue: "Slow down on the way back — that's the core work.",
         image: legRaise,
-        youtube: "Pr1ieGZ5atk",
         weighted: false,
       },
     ],
@@ -209,9 +216,9 @@ export const workouts: Workout[] = [
         scheme: "3 × 10",
         cue: "Don't lock out hard. Keep tension on the delts.",
         image: shoulderPress,
-        youtube: "Wqq43dKW1TU",
         weighted: true,
         startWeight: 10,
+        alt: "Dumbbell Shoulder Press",
       },
       {
         id: "c2",
@@ -219,9 +226,9 @@ export const workouts: Workout[] = [
         scheme: "3 × 12",
         cue: "Lead with elbows, pinkies slightly up. Light weight.",
         image: lateralRaise,
-        youtube: "3VcKaXpzqRo",
         weighted: true,
         startWeight: 4,
+        alt: "Dumbbell Lateral Raise",
       },
       {
         id: "c3",
@@ -229,7 +236,6 @@ export const workouts: Workout[] = [
         scheme: "3 × 15",
         cue: "Rope to eyes. External rotation at the end.",
         image: facePull,
-        youtube: "rep-qVOkqgk",
         weighted: true,
         startWeight: 9,
       },
@@ -239,9 +245,9 @@ export const workouts: Workout[] = [
         scheme: "3 × 12",
         cue: "No swinging. If it swings, drop the weight.",
         image: ezCurl,
-        youtube: "NyBOJvKn6PU",
         weighted: true,
         startWeight: 10,
+        alt: "Dumbbell Curl",
       },
       {
         id: "c5",
@@ -249,9 +255,9 @@ export const workouts: Workout[] = [
         scheme: "3 × 12",
         cue: "Fully lock out at the bottom to hit the long head.",
         image: tricepDip,
-        youtube: "6kALZikXxLc",
         weighted: true,
         startWeight: 10,
+        alt: "Seated Dumbbell Overhead Tricep Extension",
       },
       {
         id: "c6",
@@ -259,7 +265,6 @@ export const workouts: Workout[] = [
         scheme: "3 × 15",
         cue: "Round the spine, don't hip-hinge. Elbows to thighs.",
         image: cableCrunch,
-        youtube: "9wtVpX5yTsA",
         weighted: false,
       },
     ],
@@ -280,9 +285,9 @@ export const workouts: Workout[] = [
         scheme: "4 × 12",
         cue: "Stop 1 rep short of failure on each set.",
         image: bicepCurl,
-        youtube: "ykJmrZ5v0Oo",
         weighted: true,
         startWeight: 8,
+        alt: "Cable Bicep Curl",
       },
       {
         id: "d2",
@@ -290,9 +295,9 @@ export const workouts: Workout[] = [
         scheme: "4 × 12",
         cue: "Squeeze hard at the bottom for 1 second.",
         image: tricepPushdown,
-        youtube: "2-LAMcpzODU",
         weighted: true,
         startWeight: 12,
+        alt: "Cable Overhead Tricep Extension",
       },
       {
         id: "d3",
@@ -300,7 +305,6 @@ export const workouts: Workout[] = [
         scheme: "2 × 12",
         cue: "Backoff sets — smooth, not heavy.",
         image: chestPress,
-        youtube: "xUm0BiZCWlQ",
         weighted: true,
         startWeight: 15,
       },
@@ -310,9 +314,9 @@ export const workouts: Workout[] = [
         scheme: "2 × 12",
         cue: "Feel the lats, not the biceps.",
         image: latPulldown,
-        youtube: "CAwf7n6Luuc",
         weighted: true,
         startWeight: 20,
+        alt: "Assisted Pull-Up Machine (more load)",
       },
       {
         id: "d5",
@@ -320,9 +324,9 @@ export const workouts: Workout[] = [
         scheme: "2 × 15",
         cue: "Burnout — go light, don't cheat.",
         image: lateralRaise,
-        youtube: "3VcKaXpzqRo",
         weighted: true,
         startWeight: 4,
+        alt: "Dumbbell Lateral Raise",
       },
       {
         id: "d6",
@@ -330,7 +334,6 @@ export const workouts: Workout[] = [
         scheme: "3 rounds",
         cue: "Alternate. 45s plank, 15 crunches.",
         image: plank,
-        youtube: "ASdvN_XEl_c",
         weighted: false,
       },
     ],
