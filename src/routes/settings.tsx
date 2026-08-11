@@ -7,6 +7,7 @@ import {
   CheckCircle2,
   Dumbbell,
   Flame,
+  LogOut,
   Repeat,
   Scale,
   Sparkles,
@@ -17,9 +18,11 @@ import {
 import type { LucideIcon } from "lucide-react";
 import { AppShell } from "@/components/sunrise/AppShell";
 import { PageHeader, SectionLabel } from "@/components/sunrise/ui";
+import { useAuth } from "@/hooks/use-auth";
 import { useTrackerState } from "@/hooks/use-tracker-state";
 import { useScheduleState, type ScheduleStep } from "@/hooks/use-schedule-state";
 import { useWorkoutMode, type WorkoutMode } from "@/hooks/use-workout-mode";
+import { isSupabaseConfigured } from "@/lib/supabase";
 import { WEEKLY_SPLIT } from "@/lib/sunrise-data";
 
 export const Route = createFileRoute("/settings")({
@@ -78,6 +81,7 @@ function SettingsPage() {
   const tracker = useTrackerState();
   const schedule = useScheduleState();
   const { mode, setMode } = useWorkoutMode();
+  const auth = useAuth();
 
   return (
     <AppShell>
@@ -179,6 +183,27 @@ function SettingsPage() {
           ))}
         </div>
       </div>
+
+      {isSupabaseConfigured && auth.user && (
+        <div className="mt-7 px-5">
+          <SectionLabel>Account</SectionLabel>
+          <div className="mt-3 flex items-center gap-3 rounded-2xl border border-border bg-white p-4 shadow-soft">
+            <div className="min-w-0 flex-1">
+              <div className="truncate text-sm font-semibold text-foreground">
+                {auth.user.email}
+              </div>
+              <div className="text-xs text-muted-foreground">Signed in</div>
+            </div>
+            <button
+              onClick={() => auth.signOut()}
+              className="flex shrink-0 items-center gap-1.5 rounded-full border border-slate-200 px-3.5 py-2 text-xs font-semibold text-destructive"
+            >
+              <LogOut className="h-3.5 w-3.5" />
+              Sign out
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="mt-7 px-5 pb-2">
         <SectionLabel>Data</SectionLabel>
