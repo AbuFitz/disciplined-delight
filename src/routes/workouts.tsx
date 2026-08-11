@@ -84,10 +84,10 @@ function WorkoutsPage() {
           <button
             key={w.id}
             onClick={() => tracker.setActiveTab(w.id)}
-            className={`rounded-xl border p-2.5 text-center transition-colors ${
+            className={`rounded-2xl border p-2.5 text-center transition-colors ${
               activeWorkout === w.id
                 ? "border-primary bg-primary text-primary-foreground"
-                : "border-border bg-white text-foreground"
+                : "border-slate-100 bg-white text-foreground shadow-soft"
             }`}
           >
             <div className="font-display text-lg font-bold">{w.letter}</div>
@@ -190,7 +190,7 @@ function WorkoutsPage() {
               href={r.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center justify-center gap-1.5 rounded-xl border border-border bg-white py-2.5 text-xs font-semibold text-foreground shadow-soft"
+              className="flex items-center justify-center gap-1.5 rounded-full border border-slate-200 bg-white py-2.5 text-xs font-semibold text-foreground shadow-soft"
             >
               {r.name}
               <ExternalLink className="h-3 w-3 text-muted-foreground" />
@@ -223,7 +223,7 @@ function WorkoutsPage() {
                 href={youtubeSearchUrl(openAlt.alt)}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-primary py-2.5 text-xs font-semibold text-primary-foreground"
+                className="flex flex-1 items-center justify-center gap-1.5 rounded-full bg-primary py-2.5 text-xs font-semibold text-primary-foreground"
               >
                 <Play className="h-3.5 w-3.5" />
                 Watch
@@ -232,7 +232,7 @@ function WorkoutsPage() {
                 href={diagramSearchUrl(openAlt.alt)}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-border py-2.5 text-xs font-semibold text-foreground"
+                className="flex flex-1 items-center justify-center gap-1.5 rounded-full border border-slate-200 py-2.5 text-xs font-semibold text-foreground"
               >
                 <ImageIcon className="h-3.5 w-3.5" />
                 Diagram

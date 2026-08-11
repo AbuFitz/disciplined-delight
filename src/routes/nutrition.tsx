@@ -64,7 +64,7 @@ function NutritionPage() {
         {MACROS.map((m) => (
           <div
             key={m.key}
-            className="rounded-xl border border-border bg-white px-2 py-2.5 text-center shadow-soft"
+            className="rounded-2xl border border-slate-100 bg-white px-2 py-2.5 text-center shadow-soft"
           >
             <div className="font-display text-sm font-bold text-foreground">{m.val}</div>
             <div className="mt-0.5 text-[9px] uppercase tracking-wider text-muted-foreground">

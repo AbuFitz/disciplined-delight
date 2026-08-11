@@ -24,11 +24,7 @@ export function PageHeader({
 }
 
 export function SectionLabel({ children }: { children: ReactNode }) {
-  return (
-    <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-      {children}
-    </h2>
-  );
+  return <h2 className="text-xs font-bold uppercase tracking-wide text-foreground">{children}</h2>;
 }
 
 export function Callout({

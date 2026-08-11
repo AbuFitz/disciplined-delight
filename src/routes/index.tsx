@@ -103,39 +103,40 @@ function Index() {
 
   return (
     <AppShell>
-      <section className="bg-gradient-dusk px-5 pb-7 pt-6 text-white">
+      <div className="px-5 pt-6">
         <div className="flex items-center gap-1.5">
-          <span className="flex h-5 w-5 items-center justify-center rounded-md bg-white/15 text-[10px] font-bold">
+          <span className="flex h-5 w-5 items-center justify-center rounded-md bg-accent text-[10px] font-bold text-primary">
             NL
           </span>
-          <span className="text-[11px] font-bold uppercase tracking-[0.16em] text-blue-200">
+          <span className="text-[11px] font-bold uppercase tracking-[0.16em] text-primary">
             New Life
           </span>
         </div>
-        <p className="mt-4 text-sm text-blue-200">{greeting?.text ?? "Welcome"}</p>
-        <p className="mt-0.5 text-xs text-blue-300">{greeting?.date ?? " "}</p>
+        <p className="mt-3 text-sm text-muted-foreground">{greeting?.text ?? "Welcome"}</p>
+        <p className="mt-0.5 text-xs text-muted-foreground">{greeting?.date ?? " "}</p>
 
-        <div className="mt-5 flex items-center gap-2 text-xs text-blue-200">
-          <Sunrise className="h-3.5 w-3.5" />
-          {fajr ? `Fajr ${formatStepTime(fajr)}` : "Fajr"}
-          <span className="text-blue-400">·</span>
-          <Dumbbell className="h-3.5 w-3.5" />
-          {gym ? `GymGroup ${formatStepTime(gym)}` : "GymGroup"}
-        </div>
-
-        <Link
-          to="/workouts"
-          className="mt-4 flex items-center justify-between rounded-2xl border border-white/15 bg-white/10 p-4 backdrop-blur transition-colors hover:bg-white/15"
-        >
-          <div>
-            <div className="text-[11px] uppercase tracking-wider text-blue-200">Continue</div>
-            <div className="mt-0.5 font-display text-lg font-bold">
-              Workout {current.letter} — {current.title}
-            </div>
+        <section className="bg-gradient-hero mt-4 rounded-3xl p-5 text-white shadow-elevated">
+          <div className="flex items-center gap-2 text-xs text-blue-100">
+            <Sunrise className="h-3.5 w-3.5" />
+            {fajr ? `Fajr ${formatStepTime(fajr)}` : "Fajr"}
+            <span className="text-blue-300">·</span>
+            <Dumbbell className="h-3.5 w-3.5" />
+            {gym ? `GymGroup ${formatStepTime(gym)}` : "GymGroup"}
           </div>
-          <ArrowRight className="h-5 w-5 shrink-0 text-white" />
-        </Link>
-      </section>
+
+          <Link to="/workouts" className="mt-4 flex items-center justify-between">
+            <div>
+              <span className="rounded-full bg-white/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-blue-100">
+                Continue
+              </span>
+              <div className="mt-2 font-display text-xl font-bold uppercase tracking-tight">
+                Workout {current.letter} — {current.title}
+              </div>
+            </div>
+            <ArrowRight className="h-5 w-5 shrink-0 text-white" />
+          </Link>
+        </section>
+      </div>
 
       {upNext && (
         <div className="px-5 pt-5">
@@ -187,7 +188,7 @@ function Index() {
           {tracker.last7Days.map((d) => (
             <div
               key={d.offset}
-              className={`flex-1 rounded-xl border py-2.5 text-center transition-colors ${
+              className={`flex-1 rounded-2xl border py-2.5 text-center transition-colors ${
                 d.done ? "border-vital bg-vital text-vital-foreground" : "border-border bg-white"
               } ${d.isToday ? "ring-2 ring-primary ring-offset-1" : ""}`}
             >
@@ -220,7 +221,7 @@ function Index() {
           {MACROS.map((m) => (
             <div
               key={m.key}
-              className="rounded-xl border border-border bg-white px-2 py-2.5 text-center shadow-soft"
+              className="rounded-2xl border border-slate-100 bg-white px-2 py-2.5 text-center shadow-soft"
             >
               <div className="font-display text-sm font-bold text-foreground">{m.val}</div>
               <div className="mt-0.5 text-[9px] uppercase tracking-wider text-muted-foreground">
@@ -238,7 +239,7 @@ function Index() {
             {suppsDone}/{SUPPLEMENTS.length}
           </span>
         </div>
-        <div className="mt-3 flex gap-2">
+        <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
           {SUPPLEMENTS.map((s) => {
             const done = !!tracker.todayLog.supplements[s.id];
             return (
@@ -246,18 +247,18 @@ function Index() {
                 key={s.id}
                 onClick={() => tracker.toggleSupplement(s.id)}
                 aria-label={s.name}
-                className={`flex flex-1 flex-col items-center gap-1.5 rounded-xl border p-2.5 transition-colors ${
+                className={`flex shrink-0 items-center gap-1.5 rounded-full border px-3.5 py-2 transition-colors ${
                   done
                     ? "border-primary bg-primary text-primary-foreground"
-                    : "border-border bg-white shadow-soft"
+                    : "border-slate-200 bg-white shadow-soft"
                 }`}
               >
                 {done ? (
-                  <CheckCircle2 className="h-4 w-4" />
+                  <CheckCircle2 className="h-3.5 w-3.5" />
                 ) : (
-                  <Pill className="h-4 w-4 text-primary" />
+                  <Pill className="h-3.5 w-3.5 text-primary" />
                 )}
-                <span className="text-center text-[9px] font-medium leading-tight">{s.short}</span>
+                <span className="text-xs font-semibold">{s.short}</span>
               </button>
             );
           })}

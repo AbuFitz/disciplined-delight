@@ -106,15 +106,8 @@
   --vital: oklch(0.72 0.19 152);
   --vital-foreground: oklch(0.19 0.06 152);
 
-  /* Navy → royal blue fade with a vital-green glow — reserved for hero surfaces */
-  --gradient-dusk: linear-gradient(
-    135deg,
-    #05070d 0%,
-    #0c1730 28%,
-    #16265c 55%,
-    #2563eb 82%,
-    #34d399 120%
-  );
+  /* Deep royal blue — hero banner card only, no near-black stops */
+  --gradient-hero: linear-gradient(to right, #1d4ed8, #2563eb);
   --shadow-soft: 0 4px 20px -2px rgb(37 99 235 / 0.04), 0 2px 6px -1px rgb(15 23 42 / 0.03);
   --shadow-elevated: 0 8px 25px -5px rgb(37 99 235 / 0.35);
 
@@ -178,8 +171,8 @@
 }
 
 @layer components {
-  .bg-gradient-dusk {
-    background-image: var(--gradient-dusk);
+  .bg-gradient-hero {
+    background-image: var(--gradient-hero);
   }
 
   .shadow-soft {
