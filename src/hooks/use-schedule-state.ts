@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
+import { useAuth } from "@/hooks/use-auth";
+import { isSupabaseConfigured, supabase } from "@/lib/supabase";
 
 const STORAGE_KEY = "sunrise-strength-schedule-v2";
 
@@ -113,12 +115,82 @@ export function formatStepTime(step: Pick<ScheduleStep, "startTime" | "endTime" 
   return step.endTime ? `${start}–${to12h(step.endTime)}` : start;
 }
 
+type StepRow = {
+  id: string;
+  key: ScheduleStep["key"] | null;
+  label: string;
+  start_time: string;
+  end_time: string | null;
+  approx: boolean;
+  highlight: boolean;
+  note: string | null;
+  sort_order: number;
+};
+
+const rowToStep = (r: StepRow): ScheduleStep => ({
+  id: r.id,
+  key: r.key ?? undefined,
+  startTime: r.start_time,
+  endTime: r.end_time ?? undefined,
+  approx: r.approx,
+  label: r.label,
+  detail: r.note ?? "",
+  highlight: r.highlight,
+});
+
+const stepToRow = (s: ScheduleStep, userId: string, sortOrder: number) => ({
+  id: s.id,
+  user_id: userId,
+  key: s.key ?? null,
+  label: s.label,
+  start_time: s.startTime,
+  end_time: s.endTime ?? null,
+  approx: !!s.approx,
+  highlight: s.highlight,
+  note: s.detail || null,
+  sort_order: sortOrder,
+});
+
+const patchToRow = (patch: Partial<ScheduleStep>) => {
+  const row: Record<string, unknown> = {};
+  if ("key" in patch) row.key = patch.key ?? null;
+  if ("startTime" in patch) row.start_time = patch.startTime;
+  if ("endTime" in patch) row.end_time = patch.endTime ?? null;
+  if ("approx" in patch) row.approx = !!patch.approx;
+  if ("label" in patch) row.label = patch.label;
+  if ("detail" in patch) row.note = patch.detail || null;
+  if ("highlight" in patch) row.highlight = patch.highlight;
+  return row;
+};
+
 export function useScheduleState() {
+  const { user } = useAuth();
+  const useDb = isSupabaseConfigured && !!user;
   const [steps, setSteps] = useState<ScheduleStep[]>(defaultSteps);
   const [hydrated, setHydrated] = useState(false);
 
-  // Load persisted schedule after mount only — keeps SSR markup deterministic.
   useEffect(() => {
+    if (useDb) {
+      supabase!
+        .from("schedule_steps")
+        .select("*")
+        .eq("user_id", user!.id)
+        .order("sort_order")
+        .then(async ({ data }) => {
+          if (data && data.length > 0) {
+            setSteps((data as StepRow[]).map(rowToStep));
+          } else {
+            const seeded = defaultSteps().map((s) => ({ ...s, id: crypto.randomUUID() }));
+            setSteps(seeded);
+            await supabase!
+              .from("schedule_steps")
+              .insert(seeded.map((s, i) => stepToRow(s, user!.id, i)));
+          }
+          setHydrated(true);
+        });
+      return;
+    }
+
     try {
       const raw = window.localStorage.getItem(STORAGE_KEY);
       if (raw) {
@@ -129,50 +201,100 @@ export function useScheduleState() {
       // corrupt or unavailable storage — fall back to defaults
     }
     setHydrated(true);
-  }, []);
+  }, [useDb, user]);
 
   useEffect(() => {
-    if (!hydrated) return;
+    if (!hydrated || useDb) return;
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(steps));
-  }, [steps, hydrated]);
+  }, [steps, hydrated, useDb]);
 
-  const updateStep = useCallback((id: string, patch: Partial<ScheduleStep>) => {
-    setSteps((prev) => prev.map((s) => (s.id === id ? { ...s, ...patch } : s)));
-  }, []);
+  const updateStep = useCallback(
+    (id: string, patch: Partial<ScheduleStep>) => {
+      setSteps((prev) => prev.map((s) => (s.id === id ? { ...s, ...patch } : s)));
+      if (useDb) supabase!.from("schedule_steps").update(patchToRow(patch)).eq("id", id).then();
+    },
+    [useDb],
+  );
 
-  const updateStepByKey = useCallback((key: ScheduleStep["key"], patch: Partial<ScheduleStep>) => {
-    setSteps((prev) => prev.map((s) => (s.key === key ? { ...s, ...patch } : s)));
-  }, []);
+  const updateStepByKey = useCallback(
+    (key: ScheduleStep["key"], patch: Partial<ScheduleStep>) => {
+      setSteps((prev) => {
+        const target = prev.find((s) => s.key === key);
+        if (target && useDb) {
+          supabase!.from("schedule_steps").update(patchToRow(patch)).eq("id", target.id).then();
+        }
+        return prev.map((s) => (s.key === key ? { ...s, ...patch } : s));
+      });
+    },
+    [useDb],
+  );
 
   const addStep = useCallback(() => {
-    const id = `step-${Date.now()}`;
-    setSteps((prev) => [
-      ...prev,
-      { id, startTime: "12:00", label: "New step", detail: "", highlight: false },
-    ]);
-    return id;
-  }, []);
-
-  const removeStep = useCallback((id: string) => {
-    setSteps((prev) => prev.filter((s) => s.id !== id));
-  }, []);
-
-  const moveStep = useCallback((id: string, dir: -1 | 1) => {
+    const id = useDb ? crypto.randomUUID() : `step-${Date.now()}`;
+    const step: ScheduleStep = {
+      id,
+      startTime: "12:00",
+      label: "New step",
+      detail: "",
+      highlight: false,
+    };
     setSteps((prev) => {
-      const idx = prev.findIndex((s) => s.id === id);
-      const newIdx = idx + dir;
-      if (idx < 0 || newIdx < 0 || newIdx >= prev.length) return prev;
-      const copy = [...prev];
-      const tmp = copy[idx]!;
-      copy[idx] = copy[newIdx]!;
-      copy[newIdx] = tmp;
-      return copy;
+      const next = [...prev, step];
+      if (useDb)
+        supabase!
+          .from("schedule_steps")
+          .insert(stepToRow(step, user!.id, next.length - 1))
+          .then();
+      return next;
     });
-  }, []);
+    return id;
+  }, [useDb, user]);
+
+  const removeStep = useCallback(
+    (id: string) => {
+      setSteps((prev) => prev.filter((s) => s.id !== id));
+      if (useDb) supabase!.from("schedule_steps").delete().eq("id", id).then();
+    },
+    [useDb],
+  );
+
+  const moveStep = useCallback(
+    (id: string, dir: -1 | 1) => {
+      setSteps((prev) => {
+        const idx = prev.findIndex((s) => s.id === id);
+        const newIdx = idx + dir;
+        if (idx < 0 || newIdx < 0 || newIdx >= prev.length) return prev;
+        const copy = [...prev];
+        const a = copy[idx]!;
+        const b = copy[newIdx]!;
+        copy[idx] = b;
+        copy[newIdx] = a;
+        if (useDb) {
+          supabase!.from("schedule_steps").update({ sort_order: newIdx }).eq("id", a.id).then();
+          supabase!.from("schedule_steps").update({ sort_order: idx }).eq("id", b.id).then();
+        }
+        return copy;
+      });
+    },
+    [useDb],
+  );
 
   const resetToDefault = useCallback(() => {
-    setSteps(defaultSteps());
-  }, []);
+    const fresh = defaultSteps().map((s) => (useDb ? { ...s, id: crypto.randomUUID() } : s));
+    setSteps(fresh);
+    if (useDb) {
+      supabase!
+        .from("schedule_steps")
+        .delete()
+        .eq("user_id", user!.id)
+        .then(() => {
+          supabase!
+            .from("schedule_steps")
+            .insert(fresh.map((s, i) => stepToRow(s, user!.id, i)))
+            .then();
+        });
+    }
+  }, [useDb, user]);
 
   const findByKey = useCallback(
     (key: ScheduleStep["key"]) => steps.find((s) => s.key === key),
