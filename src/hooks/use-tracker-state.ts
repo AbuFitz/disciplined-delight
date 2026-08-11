@@ -8,6 +8,9 @@ export type DayLog = {
   exercises: Record<string, ExerciseLog>;
   cardioDone: boolean;
   supplements: Record<string, boolean>;
+  /** Optional daily check-in — powers the adaptive-TDEE estimate on /progress. */
+  bodyWeightKg?: number;
+  caloriesLogged?: number;
 };
 
 type TrackerState = {
@@ -121,6 +124,22 @@ export function useTrackerState() {
     });
   }, []);
 
+  const setBodyWeight = useCallback((kg: number | undefined) => {
+    setState((prev) => {
+      const t = todayISO();
+      const day = prev.logs[t] ?? emptyDay();
+      return { ...prev, logs: { ...prev.logs, [t]: { ...day, bodyWeightKg: kg } } };
+    });
+  }, []);
+
+  const setCaloriesLogged = useCallback((kcal: number | undefined) => {
+    setState((prev) => {
+      const t = todayISO();
+      const day = prev.logs[t] ?? emptyDay();
+      return { ...prev, logs: { ...prev.logs, [t]: { ...day, caloriesLogged: kcal } } };
+    });
+  }, []);
+
   const reset = useCallback(() => {
     setState(defaultState());
   }, []);
@@ -136,18 +155,29 @@ export function useTrackerState() {
     isToday: offset === 0,
   }));
 
+  let currentStreak = 0;
+  for (let o = 0; ; o--) {
+    if (!isDayDone(state.logs[dateAt(o)])) break;
+    currentStreak++;
+  }
+
   return {
     hydrated,
     activeTab: state.activeTab,
     setActiveTab,
     todayLog,
+    /** Every day ever logged, keyed by ISO date — for PR/volume history on /progress. */
+    logs: state.logs,
     toggleExercise,
     setExerciseWeight,
     toggleCardio,
     toggleSupplement,
+    setBodyWeight,
+    setCaloriesLogged,
     reset,
     weekCount,
     totalSessions,
+    currentStreak,
     last7Days,
   };
 }

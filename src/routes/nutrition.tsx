@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { AppShell } from "@/components/sunrise/AppShell";
 import { Callout, PageHeader, SectionLabel, Sheet, ThumbImage } from "@/components/sunrise/ui";
+import { useShoppingChecklist } from "@/hooks/use-shopping-checklist";
 import { useTrackerState } from "@/hooks/use-tracker-state";
 import {
   DAY_PLAN_RULE,
@@ -46,6 +47,7 @@ const TAG_LABELS: Record<DayMealSlot, string> = {
 
 function NutritionPage() {
   const tracker = useTrackerState();
+  const shopping = useShoppingChecklist();
   const [dayId, setDayId] = useState<"a" | "b">("a");
   const [openMeal, setOpenMeal] = useState<DayMeal | null>(null);
   const [openShopping, setOpenShopping] = useState<ShoppingItem | null>(null);
@@ -156,25 +158,60 @@ function NutritionPage() {
       </div>
 
       <div className="mt-6 px-5">
-        <div className="flex items-center gap-1.5">
-          <ShoppingBasket className="h-4 w-4 text-primary" />
-          <SectionLabel>Where to get what — tap for details</SectionLabel>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-1.5">
+            <ShoppingBasket className="h-4 w-4 text-primary" />
+            <SectionLabel>Shopping checklist — tick as you go</SectionLabel>
+          </div>
+          <span className="text-xs font-semibold text-primary">
+            {Object.values(shopping.checked).filter(Boolean).length}/{SHOPPING.length}
+          </span>
         </div>
         <div className="mt-3 divide-y divide-border overflow-hidden rounded-2xl border border-border bg-white shadow-soft">
-          {SHOPPING.map((s) => (
-            <button
-              key={s.id}
-              onClick={() => setOpenShopping(s)}
-              className="flex w-full items-center gap-3 p-3.5 text-left transition-colors hover:bg-secondary"
-            >
-              <div className="min-w-0 flex-1">
-                <div className="truncate text-sm font-semibold text-foreground">{s.item}</div>
-                <div className="truncate text-xs text-primary">{s.where}</div>
+          {SHOPPING.map((s) => {
+            const done = !!shopping.checked[s.id];
+            return (
+              <div
+                key={s.id}
+                className={`flex w-full items-center gap-3 p-3.5 transition-colors ${done ? "bg-secondary/60" : ""}`}
+              >
+                <button
+                  onClick={() => shopping.toggle(s.id)}
+                  aria-label={done ? "Mark not bought" : "Mark bought"}
+                  className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 transition-colors ${
+                    done
+                      ? "border-primary bg-primary text-primary-foreground"
+                      : "border-border bg-white"
+                  }`}
+                >
+                  {done && <CheckCircle2 className="h-4 w-4" />}
+                </button>
+                <button
+                  onClick={() => setOpenShopping(s)}
+                  className="flex min-w-0 flex-1 items-center gap-3 text-left"
+                >
+                  <div className="min-w-0 flex-1">
+                    <div
+                      className={`truncate text-sm font-semibold ${done ? "text-muted-foreground line-through" : "text-foreground"}`}
+                    >
+                      {s.item}
+                    </div>
+                    <div className="truncate text-xs text-primary">{s.where}</div>
+                  </div>
+                  <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+                </button>
               </div>
-              <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
-            </button>
-          ))}
+            );
+          })}
         </div>
+        {Object.values(shopping.checked).some(Boolean) && (
+          <button
+            onClick={shopping.clear}
+            className="mt-2 text-xs font-medium text-muted-foreground underline underline-offset-2"
+          >
+            Clear checklist
+          </button>
+        )}
       </div>
 
       <div className="mx-5 mt-4 space-y-3">

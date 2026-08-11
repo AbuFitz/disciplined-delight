@@ -73,26 +73,26 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Sunrise Strength" },
+      { title: "New Life" },
       {
         name: "description",
         content:
-          "A 4-week upper body training rotation built around GymGroup 6am sessions, Fajr at 3:14am, and slow, honest progression.",
+          "Your gym, nutrition and lifestyle system — machine/cable training, halal nutrition, and honest tracking, built around GymGroup 6am sessions and Fajr at 3:14am.",
       },
-      { name: "author", content: "Sunrise Strength" },
-      { property: "og:title", content: "Sunrise Strength — Your Gym & Lifestyle System" },
+      { name: "author", content: "New Life" },
+      { property: "og:title", content: "New Life — Your Gym & Lifestyle System" },
       {
         property: "og:description",
         content:
-          "A 4-week upper body training rotation built around GymGroup 6am sessions, Fajr at 3:14am, and slow, honest progression.",
+          "Your gym, nutrition and lifestyle system — machine/cable training, halal nutrition, and honest tracking, built around GymGroup 6am sessions and Fajr at 3:14am.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "Sunrise Strength — Your Gym & Lifestyle System" },
+      { name: "twitter:title", content: "New Life — Your Gym & Lifestyle System" },
       {
         name: "twitter:description",
         content:
-          "A 4-week upper body training rotation built around GymGroup 6am sessions, Fajr at 3:14am, and slow, honest progression.",
+          "Your gym, nutrition and lifestyle system — machine/cable training, halal nutrition, and honest tracking, built around GymGroup 6am sessions and Fajr at 3:14am.",
       },
     ],
 
@@ -101,7 +101,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700;800&display=swap",
       },
       {
         rel: "stylesheet",

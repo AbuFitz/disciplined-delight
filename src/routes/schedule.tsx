@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ChevronDown,
   ChevronRight,
@@ -19,45 +19,87 @@ export const Route = createFileRoute("/schedule")({
   component: SchedulePage,
 });
 
+const toMinutes = (hhmm: string) => {
+  const [h = 0, m = 0] = hhmm.split(":").map(Number);
+  return h * 60 + m;
+};
+
+/** ID of the step currently in progress, if any — null on the server/before mount. */
+function useNowStepId(steps: ScheduleStep[]) {
+  const [nowId, setNowId] = useState<string | null>(null);
+  useEffect(() => {
+    const check = () => {
+      const nowMinutes = new Date().getHours() * 60 + new Date().getMinutes();
+      const active = steps.find((s) => {
+        if (s.endTime === undefined) return false;
+        const start = toMinutes(s.startTime);
+        let end = toMinutes(s.endTime);
+        if (end < start) end += 24 * 60;
+        return nowMinutes >= start && nowMinutes < end;
+      });
+      setNowId(active?.id ?? null);
+    };
+    check();
+    const id = setInterval(check, 60_000);
+    return () => clearInterval(id);
+  }, [steps]);
+  return nowId;
+}
+
 function SchedulePage() {
   const schedule = useScheduleState();
   const [editingId, setEditingId] = useState<string | null>(null);
   const editingStep = schedule.steps.find((s) => s.id === editingId) ?? null;
+  const nowStepId = useNowStepId(schedule.steps);
 
   return (
     <AppShell>
       <PageHeader title="Schedule" note="Tap any step to change its time or details." />
 
       <div className="px-5">
-        {schedule.steps.map((s, i) => (
-          <div key={s.id} className="flex gap-3">
-            <div className="flex flex-col items-center pt-4">
-              <div
-                className={`h-2.5 w-2.5 shrink-0 rounded-full ${s.highlight ? "bg-primary" : "bg-border"}`}
-              />
-              {i !== schedule.steps.length - 1 && <div className="my-1 w-px flex-1 bg-border" />}
-            </div>
-            <button
-              onClick={() => setEditingId(s.id)}
-              className={`mb-3 flex min-w-0 flex-1 items-center justify-between gap-2 rounded-2xl border p-3.5 text-left shadow-soft transition-colors active:border-primary/50 ${
-                s.highlight ? "border-primary/25 bg-accent/40" : "border-border bg-white"
-              }`}
-            >
-              <div className="min-w-0">
-                <div className="text-[11px] font-mono font-semibold text-primary">
-                  {formatStepTime(s)}
-                </div>
-                <div className="text-sm font-semibold text-foreground">{s.label}</div>
-                {s.detail && (
-                  <div className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
-                    {s.detail}
-                  </div>
-                )}
+        {schedule.steps.map((s, i) => {
+          const isNow = s.id === nowStepId;
+          return (
+            <div key={s.id} className="flex gap-3">
+              <div className="flex flex-col items-center pt-4">
+                <div
+                  className={`h-2.5 w-2.5 shrink-0 rounded-full ${isNow ? "bg-vital" : s.highlight ? "bg-primary" : "bg-border"}`}
+                />
+                {i !== schedule.steps.length - 1 && <div className="my-1 w-px flex-1 bg-border" />}
               </div>
-              <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
-            </button>
-          </div>
-        ))}
+              <button
+                onClick={() => setEditingId(s.id)}
+                className={`mb-3 flex min-w-0 flex-1 items-center justify-between gap-2 rounded-2xl border p-3.5 text-left shadow-soft transition-colors active:border-primary/50 ${
+                  isNow
+                    ? "border-vital/50 bg-vital/10"
+                    : s.highlight
+                      ? "border-primary/25 bg-accent/40"
+                      : "border-border bg-white"
+                }`}
+              >
+                <div className="min-w-0">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[11px] font-mono font-semibold text-primary">
+                      {formatStepTime(s)}
+                    </span>
+                    {isNow && (
+                      <span className="rounded-full bg-vital px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-vital-foreground">
+                        Now
+                      </span>
+                    )}
+                  </div>
+                  <div className="text-sm font-semibold text-foreground">{s.label}</div>
+                  {s.detail && (
+                    <div className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
+                      {s.detail}
+                    </div>
+                  )}
+                </div>
+                <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+              </button>
+            </div>
+          );
+        })}
 
         <button
           onClick={() => setEditingId(schedule.addStep())}

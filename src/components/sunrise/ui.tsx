@@ -1,9 +1,22 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { UtensilsCrossed, X, type LucideIcon } from "lucide-react";
 
-export function PageHeader({ title, note }: { title: string; note?: string }) {
+export function PageHeader({
+  title,
+  note,
+  eyebrow,
+}: {
+  title: string;
+  note?: string;
+  eyebrow?: string;
+}) {
   return (
     <div className="px-5 pb-5 pt-6">
+      {eyebrow && (
+        <p className="mb-1 text-[11px] font-bold uppercase tracking-[0.16em] text-primary">
+          {eyebrow}
+        </p>
+      )}
       <h1 className="font-display text-2xl font-bold tracking-tight text-foreground">{title}</h1>
       {note && <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{note}</p>}
     </div>

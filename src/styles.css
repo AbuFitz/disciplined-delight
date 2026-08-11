@@ -59,51 +59,67 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+  --color-vital: var(--vital);
+  --color-vital-foreground: var(--vital-foreground);
   --font-family-display: var(--font-display);
   --font-family-body: var(--font-body);
 }
 
 :root {
   --radius: 1rem;
-  --background: oklch(1 0 0);
+  /* Soft UI canvas — cards are pure white and float above this tinted base */
+  --background: oklch(0.965 0.007 264);
   --foreground: oklch(0.19 0.03 264);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.19 0.03 264);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.19 0.03 264);
-  --primary: oklch(0.47 0.19 264);
+  /* Royal blue brand-600 (#2563EB) */
+  --primary: oklch(0.54 0.21 264);
   --primary-foreground: oklch(0.99 0.005 264);
   --secondary: oklch(0.96 0.008 264);
   --secondary-foreground: oklch(0.19 0.03 264);
   --muted: oklch(0.96 0.008 264);
-  --muted-foreground: oklch(0.5 0.03 264);
-  --accent: oklch(0.94 0.03 264);
+  --muted-foreground: oklch(0.51 0.035 264);
+  --accent: oklch(0.94 0.035 264);
   --accent-foreground: oklch(0.3 0.1 264);
   --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: oklch(0.984 0.003 247.858);
-  --border: oklch(0.91 0.01 264);
-  --input: oklch(0.91 0.01 264);
-  --ring: oklch(0.47 0.19 264);
-  --chart-1: oklch(0.47 0.19 264);
+  --border: oklch(0.91 0.012 264);
+  --input: oklch(0.91 0.012 264);
+  --ring: oklch(0.54 0.21 264);
+  --chart-1: oklch(0.54 0.21 264);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
   --chart-4: oklch(0.828 0.189 84.429);
   --chart-5: oklch(0.769 0.188 70.08);
   --sidebar: oklch(1 0 0);
   --sidebar-foreground: oklch(0.19 0.03 264);
-  --sidebar-primary: oklch(0.47 0.19 264);
+  --sidebar-primary: oklch(0.54 0.21 264);
   --sidebar-primary-foreground: oklch(0.99 0.005 264);
   --sidebar-accent: oklch(0.96 0.008 264);
   --sidebar-accent-foreground: oklch(0.19 0.03 264);
-  --sidebar-border: oklch(0.91 0.01 264);
-  --sidebar-ring: oklch(0.47 0.19 264);
+  --sidebar-border: oklch(0.91 0.012 264);
+  --sidebar-ring: oklch(0.54 0.21 264);
 
-  /* Navy → blue fade — reserved for the home hero only, everything else is flat */
-  --gradient-dusk: linear-gradient(135deg, #060910 0%, #0c1730 30%, #16265c 60%, #2054d6 100%);
-  --shadow-soft: 0 2px 10px -4px oklch(0.19 0.03 264 / 0.08);
+  /* Vital green — growth/streaks/progress accent, distinct from the royal-blue primary */
+  --vital: oklch(0.72 0.19 152);
+  --vital-foreground: oklch(0.19 0.06 152);
+
+  /* Navy → royal blue fade with a vital-green glow — reserved for hero surfaces */
+  --gradient-dusk: linear-gradient(
+    135deg,
+    #05070d 0%,
+    #0c1730 28%,
+    #16265c 55%,
+    #2563eb 82%,
+    #34d399 120%
+  );
+  --shadow-soft: 0 4px 20px -2px rgb(37 99 235 / 0.04), 0 2px 6px -1px rgb(15 23 42 / 0.03);
+  --shadow-elevated: 0 8px 25px -5px rgb(37 99 235 / 0.35);
 
   --font-display: "Oswald", sans-serif;
-  --font-body: "Manrope", sans-serif;
+  --font-body: "Inter", sans-serif;
 }
 
 .dark {
@@ -168,5 +184,9 @@
 
   .shadow-soft {
     box-shadow: var(--shadow-soft);
+  }
+
+  .shadow-elevated {
+    box-shadow: var(--shadow-elevated);
   }
 }

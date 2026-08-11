@@ -104,7 +104,15 @@ function Index() {
   return (
     <AppShell>
       <section className="bg-gradient-dusk px-5 pb-7 pt-6 text-white">
-        <p className="text-sm text-blue-200">{greeting?.text ?? "Welcome"}</p>
+        <div className="flex items-center gap-1.5">
+          <span className="flex h-5 w-5 items-center justify-center rounded-md bg-white/15 text-[10px] font-bold">
+            NL
+          </span>
+          <span className="text-[11px] font-bold uppercase tracking-[0.16em] text-blue-200">
+            New Life
+          </span>
+        </div>
+        <p className="mt-4 text-sm text-blue-200">{greeting?.text ?? "Welcome"}</p>
         <p className="mt-0.5 text-xs text-blue-300">{greeting?.date ?? " "}</p>
 
         <div className="mt-5 flex items-center gap-2 text-xs text-blue-200">
@@ -179,14 +187,12 @@ function Index() {
           {tracker.last7Days.map((d) => (
             <div
               key={d.offset}
-              className={`flex-1 rounded-xl border py-2.5 text-center ${
-                d.done
-                  ? "border-primary bg-primary text-primary-foreground"
-                  : "border-border bg-white"
+              className={`flex-1 rounded-xl border py-2.5 text-center transition-colors ${
+                d.done ? "border-vital bg-vital text-vital-foreground" : "border-border bg-white"
               } ${d.isToday ? "ring-2 ring-primary ring-offset-1" : ""}`}
             >
               <div
-                className={`text-[9px] uppercase ${d.done ? "text-blue-200" : "text-muted-foreground"}`}
+                className={`text-[9px] uppercase ${d.done ? "text-vital-foreground/70" : "text-muted-foreground"}`}
               >
                 {d.letter}
               </div>
@@ -197,7 +203,7 @@ function Index() {
 
         {tracker.weekCount === 0 && (
           <div className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground">
-            <Flame className="h-3.5 w-3.5 text-primary" />
+            <Flame className="h-3.5 w-3.5 text-vital" />
             Log a workout or cardio session to start your streak.
           </div>
         )}
