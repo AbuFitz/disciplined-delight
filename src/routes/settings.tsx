@@ -2,13 +2,11 @@ import { createFileRoute } from "@tanstack/react-router";
 import {
   AlarmClock,
   Briefcase,
-  Calendar,
   Camera,
   CheckCircle2,
   Dumbbell,
   Flame,
   LogOut,
-  Repeat,
   Scale,
   Sparkles,
   Sunrise,
@@ -21,7 +19,6 @@ import { PageHeader, SectionLabel } from "@/components/sunrise/ui";
 import { useAuth } from "@/hooks/use-auth";
 import { useTrackerState } from "@/hooks/use-tracker-state";
 import { useScheduleState, type ScheduleStep } from "@/hooks/use-schedule-state";
-import { useWorkoutMode, type WorkoutMode } from "@/hooks/use-workout-mode";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { WEEKLY_SPLIT } from "@/lib/sunrise-data";
 
@@ -33,7 +30,7 @@ const PRINCIPLES: Array<{ icon: LucideIcon; title: string; body: string }> = [
   {
     icon: CheckCircle2,
     title: "Track workouts, not just meals",
-    body: "Even a basic log — 'Workout A, week 1, chest press 3×10 @ 20kg' — shows progress, which is what keeps you going when motivation dips.",
+    body: "Even a basic log — 'Workout A, chest press 30kg for 10/10/9' — shows progress, which is what keeps you going when motivation dips.",
   },
   {
     icon: Flame,
@@ -57,30 +54,9 @@ const PRINCIPLES: Array<{ icon: LucideIcon; title: string; body: string }> = [
   },
 ];
 
-const WORKOUT_MODES: Array<{
-  mode: WorkoutMode;
-  icon: LucideIcon;
-  title: string;
-  body: string;
-}> = [
-  {
-    mode: "week",
-    icon: Calendar,
-    title: "Week-by-week",
-    body: "Run one workout for a full week while you learn the machines. Tabs show Week 1–4.",
-  },
-  {
-    mode: "day",
-    icon: Repeat,
-    title: "Day rotation",
-    body: "Cycle A → B → C → D each session. Marking cardio done moves you to the next one automatically. Switch here once you know the machines and want a session-by-session rotation instead.",
-  },
-];
-
 function SettingsPage() {
   const tracker = useTrackerState();
   const schedule = useScheduleState();
-  const { mode, setMode } = useWorkoutMode();
   const auth = useAuth();
 
   return (
@@ -91,36 +67,31 @@ function SettingsPage() {
       />
 
       <div className="px-5">
-        <SectionLabel>Workout setup</SectionLabel>
-        <div className="mt-3 space-y-2.5">
-          {WORKOUT_MODES.map((m) => (
-            <button
-              key={m.mode}
-              onClick={() => setMode(m.mode)}
-              className={`flex w-full items-start gap-3 rounded-2xl border p-4 text-left transition-colors ${
-                mode === m.mode
-                  ? "border-primary bg-accent/50"
-                  : "border-border bg-white shadow-soft"
-              }`}
-            >
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-accent text-primary">
-                <m.icon className="h-4 w-4" />
+        <SectionLabel>Weekly split</SectionLabel>
+        <div className="mt-3 rounded-2xl border border-border bg-white p-4 shadow-soft">
+          <div className="flex justify-between gap-1">
+            {WEEKLY_SPLIT.map((d) => (
+              <div key={d.day} className="flex flex-1 flex-col items-center gap-1">
+                <span className="text-[9px] uppercase tracking-wider text-muted-foreground">
+                  {d.day}
+                </span>
+                <div
+                  className={`flex h-7 w-7 items-center justify-center rounded-full text-[11px] font-bold ${
+                    d.letter
+                      ? "bg-accent text-primary"
+                      : "border border-dashed border-border text-muted-foreground"
+                  }`}
+                >
+                  {d.letter ?? "·"}
+                </div>
               </div>
-              <div className="min-w-0 flex-1">
-                <div className="text-sm font-semibold text-foreground">{m.title}</div>
-                <div className="mt-0.5 text-xs leading-relaxed text-muted-foreground">{m.body}</div>
-              </div>
-              {mode === m.mode && <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-primary" />}
-            </button>
-          ))}
+            ))}
+          </div>
+          <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
+            All four workouts — A, B, C and D — run every week. Tap the day on Workouts to switch
+            between them.
+          </p>
         </div>
-        <p className="mt-2.5 text-xs text-muted-foreground">
-          Suggested split once you're settled:{" "}
-          {WEEKLY_SPLIT.filter((d) => d.letter)
-            .map((d) => `${d.day} ${d.letter}`)
-            .join(" · ")}{" "}
-          — rest the other days.
-        </p>
       </div>
 
       <div className="mt-7 px-5">

@@ -61,12 +61,13 @@ export type Workout = {
   title: string;
   focus: string;
   image: string;
-  week: string;
   cardioMachine: string;
   cardio: string;
   exercises: Exercise[];
 };
 
+// One recurring training week — A, B, C and D are four sessions run every
+// week (Mon/Tue/Thu/Sat, see WEEKLY_SPLIT below), not four separate weeks.
 export const workouts: Workout[] = [
   {
     id: "a",
@@ -74,15 +75,14 @@ export const workouts: Workout[] = [
     title: "Chest & Triceps",
     focus: "Push day. Machines and cables only. Slow eccentrics, full stretch at the bottom.",
     image: workoutA,
-    week: "Week 1",
     cardioMachine: "Treadmill",
-    cardio: "20 min, incline walk or light jog",
+    cardio: "20 min, easy/moderate incline walk",
     exercises: [
       {
         id: "a1",
         name: "Flat Chest Press Machine",
         scheme: "3 × 8–12",
-        cue: "Handles at nipple line. Pause a beat at the bottom.",
+        cue: "Handles around nipple level. Keep shoulder blades stable and control the eccentric.",
         image: chestPress,
         weighted: true,
         startWeight: 10,
@@ -97,13 +97,12 @@ export const workouts: Workout[] = [
         id: "a2",
         name: "Incline Chest Press Machine",
         scheme: "3 × 8–12",
-        cue: "Machine angle ~30°. Elbows tucked ~45°, not flared.",
+        cue: "~30° incline. Keep elbows roughly 45° from the torso.",
         image: inclinePress,
         weighted: true,
         startWeight: 5,
-        alt: "Smith Machine Incline Press",
         muscle: "Chest — upper",
-        equipment: "Incline press machine or Smith machine",
+        equipment: "Incline press machine",
         description:
           "Targets the upper chest specifically — the part that makes your chest look wider and fuller from the front.",
         rest: "Rest 90–120s",
@@ -128,13 +127,12 @@ export const workouts: Workout[] = [
         id: "a4",
         name: "Rope Tricep Pushdown",
         scheme: "3 × 10–15",
-        cue: "Elbows pinned to your ribs. Only the forearms move.",
+        cue: "Keep elbows fixed against the torso and fully extend the triceps.",
         image: tricepPushdown,
         weighted: true,
         startWeight: 8,
-        alt: "Straight-Bar Pushdown",
         muscle: "Triceps — lateral head",
-        equipment: "Cable stack + rope or straight bar",
+        equipment: "Cable stack + rope",
         description:
           "The bread-and-butter tricep builder. Keep your elbows pinned so the triceps do all the work, not your shoulders.",
         rest: "Rest 60–90s",
@@ -143,7 +141,7 @@ export const workouts: Workout[] = [
         id: "a5",
         name: "Overhead Rope Tricep Extension",
         scheme: "3 × 10–15",
-        cue: "Full stretch overhead. Keep elbows narrow, don't flare.",
+        cue: "Emphasise the stretched position of the long head of the triceps.",
         image: overheadRopeTricepExtension,
         weighted: true,
         startWeight: 5,
@@ -162,9 +160,8 @@ export const workouts: Workout[] = [
     title: "Back & Biceps",
     focus: "Pull day. Machines and cables only. Lead every rep with the elbow, not the hand.",
     image: workoutB,
-    week: "Week 2",
-    cardioMachine: "Stairmaster",
-    cardio: "20 min, steady climb",
+    cardioMachine: "Treadmill",
+    cardio: "20 min, easy/moderate incline walk",
     exercises: [
       {
         id: "b1",
@@ -174,7 +171,6 @@ export const workouts: Workout[] = [
         image: latPulldown,
         weighted: true,
         startWeight: 15,
-        alt: "Close-Grip / V-Bar Pulldown",
         muscle: "Back — lats, width",
         equipment: "Lat pulldown machine",
         description:
@@ -199,13 +195,12 @@ export const workouts: Workout[] = [
       },
       {
         id: "b3",
-        name: "Straight-Arm Rope Pulldown",
+        name: "Straight-Arm Cable/Rope Pulldown",
         scheme: "2 × 12–15",
         cue: "Hinge slightly, keep arms straight — pull with the lats, not the arms.",
         image: straightArmRopePulldown,
         weighted: true,
         startWeight: 5,
-        alt: "Straight-Bar Pulldown",
         muscle: "Lats",
         equipment: "Cable stack + rope, high pulley",
         description:
@@ -214,31 +209,32 @@ export const workouts: Workout[] = [
       },
       {
         id: "b4",
-        name: "Standing Cable Bicep Curl",
-        scheme: "3 × 10–15",
-        cue: "Elbows still. Full range top to bottom.",
-        image: standingCableBicepCurl,
+        name: "Machine Preacher Curl",
+        scheme: "3 × 8–12",
+        cue: "Upper arm pinned to the pad the whole set — no swinging.",
+        image: bicepCurlMachine,
         weighted: true,
         startWeight: 5,
+        alt: "Standing Cable Bicep Curl",
+        altImage: standingCableBicepCurl,
         muscle: "Biceps",
-        equipment: "Low pulley + straight bar or handle",
+        equipment: "Preacher curl machine",
         description:
-          "Constant cable tension through the whole rep, unlike a free-weight curl where tension drops off at the top.",
+          "The primary strict biceps movement — the supported upper arm makes it much easier to maintain clean technique and progressively overload the biceps without swinging the weight up.",
         rest: "Rest 60–90s",
       },
       {
         id: "b5",
         name: "Rope Hammer Curl",
         scheme: "3 × 10–15",
-        cue: "Neutral grip. Targets brachialis for thicker arms.",
+        cue: "Neutral grip, elbows still.",
         image: hammerCurl,
         weighted: true,
         startWeight: 5,
-        alt: "Rope Preacher Curl",
-        muscle: "Biceps + forearms — brachialis",
+        muscle: "Biceps + forearms — brachialis/brachioradialis",
         equipment: "Cable stack + rope, low pulley",
         description:
-          "The neutral grip shifts work onto the brachialis, which pushes the bicep up and makes the arm look thicker from the side.",
+          "Targets the brachialis and brachioradialis, which contribute to overall arm thickness alongside the biceps themselves.",
         rest: "Rest 60–90s",
       },
     ],
@@ -249,9 +245,8 @@ export const workouts: Workout[] = [
     title: "Shoulders & Arms",
     focus: "Delts and arms. Machines and cables only. Light, strict, high volume.",
     image: workoutC,
-    week: "Week 3",
     cardioMachine: "Treadmill",
-    cardio: "20 min, incline walk or light jog",
+    cardio: "20 min, easy/moderate incline walk",
     exercises: [
       {
         id: "c1",
@@ -261,9 +256,8 @@ export const workouts: Workout[] = [
         image: shoulderPressMachine,
         weighted: true,
         startWeight: 5,
-        alt: "Smith Machine Shoulder Press",
         muscle: "Shoulders — front/side delts",
-        equipment: "Shoulder press machine or Smith machine",
+        equipment: "Shoulder press machine",
         description:
           "Builds overall shoulder size and width — a bigger chest looks even bigger sitting on top of developed shoulders.",
         rest: "Rest 90–120s",
@@ -271,31 +265,31 @@ export const workouts: Workout[] = [
       {
         id: "c2",
         name: "Cable Lateral Raise",
-        scheme: "3 × 12–15 each arm",
-        cue: "Lead with the elbow, pinky slightly up. Light weight — do both arms, one side at a time.",
+        scheme: "3 × 12–15 per arm",
+        cue: "Keep these strict and relatively light — lead with the elbow, pinky slightly up.",
         image: cableLateralRaise,
         weighted: true,
         startWeight: 2,
-        alt: "Cross-Body Cable Lateral Raise",
         muscle: "Shoulders — side delts",
         equipment: "Low pulley, single handle",
         description:
-          "The side delt is what actually adds width to your frame. Cable keeps tension on through the whole rep, unlike a dumbbell. Do each arm separately on the single-handle station.",
+          "The side delt is what actually adds width to your frame. Cable keeps tension on through the whole rep, unlike a dumbbell.",
         rest: "Rest 60–90s",
       },
       {
         id: "c3",
-        name: "Cable Face Pulls",
-        scheme: "3 × 12–15",
-        cue: "Rope to eyes. External rotation at the end.",
-        image: facePull,
+        name: "Reverse Pec Deck",
+        scheme: "3 × 12–20",
+        cue: "Sit facing into the pad, sweep the arms back and squeeze the rear delts together.",
+        image: "/exercises/reverse-pec-deck.jpg",
         weighted: true,
-        startWeight: 5,
-        alt: "Cable Reverse Fly",
-        muscle: "Rear delts + upper back",
-        equipment: "Rope attachment, face-height pulley",
+        startWeight: 10,
+        alt: "Cable Face Pull",
+        altImage: facePull,
+        muscle: "Rear delts",
+        equipment: "Reverse pec deck / rear-delt fly machine",
         description:
-          "Balances out all the pressing — keeps your shoulders healthy and stops your posture caving forward.",
+          "The primary rear-delt movement — targets the rear delts more directly than face pulls, and balances out all the pressing work in the programme.",
         rest: "Rest 60–90s",
       },
       {
@@ -320,7 +314,6 @@ export const workouts: Workout[] = [
         image: overheadRopeTricepExtension,
         weighted: true,
         startWeight: 5,
-        alt: "Machine Tricep Extension",
         muscle: "Triceps — long head",
         equipment: "Cable stack + rope, overhead pulley",
         description:
@@ -333,38 +326,35 @@ export const workouts: Workout[] = [
     id: "d",
     letter: "D",
     title: "Arm Specialisation + Upper Maintenance",
-    focus: "Arm-focused finisher. Machines and cables only. Chase the pump.",
+    focus: "Dedicated arm-focused session, plus light back/chest/shoulder maintenance.",
     image: workoutD,
-    week: "Week 4",
-    cardioMachine: "Stairmaster",
-    cardio: "20 min, steady climb",
+    cardioMachine: "Treadmill",
+    cardio: "20 min, easy/moderate incline walk",
     exercises: [
       {
         id: "d1",
-        name: "Bicep Curl Machine or Standing Cable Bicep Curl",
+        name: "Bicep Curl Machine / Standing Cable Curl",
         scheme: "3 × 10–15",
-        cue: "Stop 1 rep short of failure on each set.",
+        cue: "Full range, controlled tempo — whichever's free.",
         image: bicepCurlMachine,
         weighted: true,
         startWeight: 5,
         muscle: "Biceps",
         equipment: "Curl machine or low-pulley cable station",
-        description:
-          "Finisher volume for the arms — go close to failure here since it's the last biceps exposure of the week.",
+        description: "Finisher volume for the arms — the last biceps exposure of the week.",
         rest: "Rest 60–90s",
       },
       {
         id: "d2",
         name: "Rope Hammer Curl",
         scheme: "3 × 10–15",
-        cue: "Neutral grip. Targets brachialis for thicker arms.",
+        cue: "Neutral grip, elbows still.",
         image: hammerCurl,
         weighted: true,
         startWeight: 5,
-        muscle: "Biceps + forearms — brachialis",
+        muscle: "Biceps + forearms — brachialis/brachioradialis",
         equipment: "Cable stack + rope, low pulley",
-        description:
-          "The neutral grip shifts work onto the brachialis, making the arm look thicker from the side.",
+        description: "Targets the brachialis and brachioradialis for overall arm thickness.",
         rest: "Rest 60–90s",
       },
       {
@@ -375,9 +365,8 @@ export const workouts: Workout[] = [
         image: tricepPushdown,
         weighted: true,
         startWeight: 8,
-        alt: "Straight-Bar Pushdown",
         muscle: "Triceps — lateral head",
-        equipment: "Cable stack + rope or straight bar",
+        equipment: "Cable stack + rope",
         description:
           "The bread-and-butter tricep builder. Keep elbows pinned so the triceps do all the work.",
         rest: "Rest 60–90s",
@@ -385,7 +374,7 @@ export const workouts: Workout[] = [
       {
         id: "d4",
         name: "Single-Arm Cable Tricep Extension",
-        scheme: "2 × 12–15 each arm",
+        scheme: "2 × 12–15 per arm",
         cue: "One arm at a time — don't let the stronger arm do more work.",
         image: singleArmCableTricepExtension,
         weighted: true,
@@ -400,11 +389,10 @@ export const workouts: Workout[] = [
         id: "d5",
         name: "Chest Press Machine",
         scheme: "2 × 10–12",
-        cue: "Backoff sets — smooth, not heavy.",
+        cue: "Controlled maintenance sets, not maximal pressing.",
         image: chestPress,
         weighted: true,
         startWeight: 10,
-        alt: "Cable Chest Press",
         muscle: "Chest — mid/lower",
         equipment: "Chest press machine",
         description: "Backoff volume for the chest — smooth reps, not a new max.",
@@ -418,7 +406,6 @@ export const workouts: Workout[] = [
         image: latPulldown,
         weighted: true,
         startWeight: 15,
-        alt: "Close-Grip / V-Bar Pulldown",
         muscle: "Back — lats, width",
         equipment: "Lat pulldown machine",
         description: "Backoff volume for the back — keep it smooth and controlled.",
@@ -427,26 +414,21 @@ export const workouts: Workout[] = [
       {
         id: "d7",
         name: "Cable Lateral Raise",
-        scheme: "2 × 12–15 each arm",
-        cue: "Light weight, lead with the elbows — do both arms, this is backoff volume for the delts.",
+        scheme: "2 × 12–15 per arm",
+        cue: "Light weight, lead with the elbows.",
         image: cableLateralRaise,
         weighted: true,
         startWeight: 2,
         muscle: "Shoulders — side delts",
         equipment: "Low pulley cable station",
-        description:
-          "Extra delt volume to close out the arm day — keep it light and strict, no swinging.",
+        description: "Extra delt volume to close out the arm day — keep it light and strict.",
         rest: "Rest 60–90s",
       },
     ],
   },
 ];
 
-/**
- * Weekday split for once you're in Day-rotation mode. Purely informational —
- * the app still advances A→B→C→D on cardio-complete rather than reading the
- * calendar, but this is the schedule the rotation is designed to line up with.
- */
+/** Fixed weekly schedule — A/B/C/D are four sessions run every week, not four separate weeks. */
 export const WEEKLY_SPLIT = [
   { day: "Mon", letter: "A" },
   { day: "Tue", letter: "B" },

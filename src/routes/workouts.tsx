@@ -7,14 +7,14 @@ import {
   Dumbbell,
   ExternalLink,
   Flame,
+  Gauge,
   Image as ImageIcon,
   Play,
   TrendingUp,
 } from "lucide-react";
 import { AppShell } from "@/components/sunrise/AppShell";
 import { Callout, PageHeader, Sheet, ThumbImage } from "@/components/sunrise/ui";
-import { useTrackerState } from "@/hooks/use-tracker-state";
-import { useWorkoutMode } from "@/hooks/use-workout-mode";
+import { useTrackerState, type DayLog } from "@/hooks/use-tracker-state";
 import {
   diagramSearchUrl,
   RESOURCES,
@@ -28,20 +28,36 @@ export const Route = createFileRoute("/workouts")({
   component: WorkoutsPage,
 });
 
+const LETTER_TO_DAY = Object.fromEntries(
+  WEEKLY_SPLIT.filter((d) => d.letter).map((d) => [d.letter, d.day]),
+) as Record<string, string>;
+
+/** Most recent day (before today) a weight was logged for this exercise. */
+function lastSession(logs: Record<string, DayLog>, exerciseId: string) {
+  const today = new Date().toISOString().slice(0, 10);
+  const dates = Object.keys(logs)
+    .filter((d) => d !== today && logs[d]!.exercises[exerciseId]?.weight)
+    .sort()
+    .reverse();
+  if (dates.length === 0) return null;
+  const date = dates[0]!;
+  const weight = logs[date]!.exercises[exerciseId]!.weight!;
+  const days = Math.round((Date.now() - new Date(date).getTime()) / 86400000);
+  const when = days <= 1 ? "last session" : `${days}d ago`;
+  return { weight, when };
+}
+
 function WorkoutsPage() {
   const [openAlt, setOpenAlt] = useState<Exercise | null>(null);
   const tracker = useTrackerState();
-  const { mode } = useWorkoutMode();
   const activeWorkout = tracker.activeTab;
   const currentIndex = workouts.findIndex((w) => w.id === activeWorkout);
   const current = workouts[currentIndex === -1 ? 0 : currentIndex]!;
 
-  const tabLabel = (index: number, week: string) => (mode === "day" ? `Day ${index + 1}` : week);
-
   const onToggleCardio = () => {
     const wasDone = tracker.todayLog.cardioDone;
     tracker.toggleCardio();
-    if (!wasDone && mode === "day") {
+    if (!wasDone) {
       const next = workouts[(currentIndex + 1) % workouts.length]!;
       tracker.setActiveTab(next.id);
     }
@@ -51,11 +67,7 @@ function WorkoutsPage() {
     <AppShell>
       <PageHeader
         title="Workouts"
-        note={
-          mode === "day"
-            ? "Cycle A → B → C → D each session. Finishing cardio moves you to the next one."
-            : "Run each for a full week. From week 5, repeat with +1 rep or a little more weight. Machines and cables only — no leg day, no ab isolation. Cardio after every session handles fitness and keeps the waist lean."
-        }
+        note="A 4-day upper-body hypertrophy split. Complete all four workouts every week — track every working set and progressively increase reps or resistance over time."
       />
 
       <div className="px-5">
@@ -80,7 +92,7 @@ function WorkoutsPage() {
       </div>
 
       <div className="mt-4 grid grid-cols-4 gap-2 px-5">
-        {workouts.map((w, i) => (
+        {workouts.map((w) => (
           <button
             key={w.id}
             onClick={() => tracker.setActiveTab(w.id)}
@@ -94,7 +106,7 @@ function WorkoutsPage() {
             <div
               className={`mt-0.5 text-[9px] uppercase tracking-wider ${activeWorkout === w.id ? "text-blue-200" : "text-muted-foreground"}`}
             >
-              {tabLabel(i, w.week)}
+              {LETTER_TO_DAY[w.letter]}
             </div>
           </button>
         ))}
@@ -114,8 +126,7 @@ function WorkoutsPage() {
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-transparent" />
           <div className="absolute inset-x-0 bottom-0 p-4">
             <div className="text-[10px] uppercase tracking-[0.2em] text-blue-200">
-              Workout {current.letter} ·{" "}
-              {tabLabel(currentIndex === -1 ? 0 : currentIndex, current.week)}
+              Workout {current.letter} · {LETTER_TO_DAY[current.letter]}
             </div>
             <h3 className="mt-1 font-display text-xl font-bold text-white">{current.title}</h3>
             <p className="mt-1 text-xs text-slate-200">{current.focus}</p>
@@ -134,6 +145,7 @@ function WorkoutsPage() {
               tracker.todayLog.exercises[ex.id]?.weight ??
               (ex.startWeight !== undefined ? String(ex.startWeight) : "")
             }
+            last={lastSession(tracker.logs, ex.id)}
             onToggle={() => tracker.toggleExercise(ex.id)}
             onWeightChange={(w) => tracker.setExerciseWeight(ex.id, w)}
             onOpenAlt={() => setOpenAlt(ex)}
@@ -165,17 +177,25 @@ function WorkoutsPage() {
 
       <div className="mx-5 mt-3">
         <Callout icon={Flame}>
-          Keep it moderate, not maxed out — brisk incline walk or a steady climb, still able to
-          speak in short sentences. Cardio won't build the chest and arms directly, but going too
-          hard for too long eats into the calorie surplus you need to grow.
+          Keep it easy to moderate — you should still be able to speak in short sentences. Overdoing
+          cardio can interfere with recovery and eat into the calorie surplus you need to grow.
         </Callout>
       </div>
 
       <div className="mx-5 mt-4">
         <Callout icon={TrendingUp}>
-          Work the rep range shown on each set. Once every set hits the top of the range for two
-          clean sessions in a row, bump the weight by the smallest increment and drop back to the
-          bottom of the range. That's double progression — the whole system.
+          Keep the same resistance until you hit the top of the rep range with clean technique
+          across every working set — that can take several sessions. Only then increase the weight
+          by the smallest practical increment; reps may fall back toward the bottom of the range,
+          then repeat. Progression doesn't have to happen every session.
+        </Callout>
+      </div>
+
+      <div className="mx-5 mt-4">
+        <Callout icon={Gauge}>
+          Most working sets should finish about 1–3 reps short of technical failure — don't take
+          every set to failure. The last set of safe isolation moves (curls, pushdowns, lateral
+          raises) can occasionally go closer to failure.
         </Callout>
       </div>
 
@@ -250,6 +270,7 @@ function ExerciseCard({
   exercise,
   done,
   weight,
+  last,
   onToggle,
   onWeightChange,
   onOpenAlt,
@@ -258,6 +279,7 @@ function ExerciseCard({
   exercise: Exercise;
   done: boolean;
   weight: string;
+  last: { weight: string; when: string } | null;
   onToggle: () => void;
   onWeightChange: (w: string) => void;
   onOpenAlt: () => void;
@@ -316,6 +338,11 @@ function ExerciseCard({
             )}
           </div>
           <p className="mt-1 text-[11px] leading-snug text-muted-foreground">{exercise.cue}</p>
+          {last && (
+            <p className="mt-1 text-[10px] font-medium text-primary">
+              Last: {last.weight}kg ({last.when})
+            </p>
+          )}
 
           <div className="mt-2 flex items-center gap-2">
             {exercise.weighted && (
