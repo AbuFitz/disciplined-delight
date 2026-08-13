@@ -20,6 +20,7 @@ import hammerCurl from "@/assets/exercises/hammer-curl-photo.png";
 import shoulderPressMachine from "@/assets/exercises/shoulder-press-machine-photo.png";
 import cableLateralRaise from "@/assets/exercises/cable-lateral-raise-photo.png";
 import facePull from "@/assets/exercises/face-pull.jpg";
+import reversePecDeck from "@/assets/exercises/reversePecDeck.png";
 
 // Search links instead of fixed video IDs / deep pages — a specific video can
 // go private or a specific page can 404, a search never breaks.
@@ -281,7 +282,7 @@ export const workouts: Workout[] = [
         name: "Reverse Pec Deck",
         scheme: "3 × 12–20",
         cue: "Sit facing into the pad, sweep the arms back and squeeze the rear delts together.",
-        image: "/exercises/reverse-pec-deck.jpg",
+        image: reversePecDeck,
         weighted: true,
         startWeight: 10,
         alt: "Cable Face Pull",
