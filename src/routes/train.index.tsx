@@ -41,6 +41,12 @@ function TrainPage() {
         sub={`${week.completed} of ${week.planned} planned sessions done this week${week.partial ? `, ${week.partial} partial` : ""}.`}
         actions={
           <>
+            <Button variant="primary" onClick={() => nav({ to: "/train/build" })}>
+              Build me a plan
+            </Button>
+            <Button variant="secondary" onClick={() => nav({ to: "/library" })}>
+              Library
+            </Button>
             <Button variant="secondary" onClick={() => setEditing(blankTemplate(t.items.length))}>
               New workout
             </Button>

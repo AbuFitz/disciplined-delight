@@ -7,6 +7,7 @@ import type { CatalogueExercise, EquipmentId, MuscleId, Pattern, TrackingType } 
 import {
   ADVANCED_ONLY,
   AUTO_AVOID,
+  MAX_EXERCISES,
   PROGRAMMES,
   REPS,
   REST_SECONDS,
@@ -391,6 +392,10 @@ export function generatePlan(input: PlanInput, catalogue: CatalogueExercise[]): 
         secondaryMuscles: best.secondaryMuscles,
         equipment: best.equipment,
       });
+    }
+    while (chosen.length > MAX_EXERCISES[input.experience]) {
+      const worst = [...chosen].sort((a, b) => b.priority - a.priority)[0]!;
+      chosen.splice(chosen.indexOf(worst), 1);
     }
     // Restore the blueprint's order (primary lifts first by authoring).
     chosen.sort(

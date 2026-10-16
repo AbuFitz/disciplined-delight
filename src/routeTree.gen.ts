@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as FoodRouteImport } from './routes/food'
+import { Route as LibraryRouteImport } from './routes/library'
 import { Route as NutritionRouteImport } from './routes/nutrition'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as PlanRouteImport } from './routes/plan'
@@ -25,6 +26,7 @@ import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as AuthForgotRouteImport } from './routes/auth.forgot'
 import { Route as AuthResetRouteImport } from './routes/auth.reset'
 import { Route as TrainIndexRouteImport } from './routes/train.index'
+import { Route as TrainBuildRouteImport } from './routes/train.build'
 import { Route as TrainSessionRouteImport } from './routes/train.session'
 
 const IndexRoute = IndexRouteImport.update({
@@ -35,6 +37,11 @@ const IndexRoute = IndexRouteImport.update({
 const FoodRoute = FoodRouteImport.update({
   id: '/food',
   path: '/food',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LibraryRoute = LibraryRouteImport.update({
+  id: '/library',
+  path: '/library',
   getParentRoute: () => rootRouteImport,
 } as any)
 const NutritionRoute = NutritionRouteImport.update({
@@ -107,6 +114,11 @@ const TrainIndexRoute = TrainIndexRouteImport.update({
   path: '/',
   getParentRoute: () => TrainRoute,
 } as any)
+const TrainBuildRoute = TrainBuildRouteImport.update({
+  id: '/build',
+  path: '/build',
+  getParentRoute: () => TrainRoute,
+} as any)
 const TrainSessionRoute = TrainSessionRouteImport.update({
   id: '/session',
   path: '/session',
@@ -116,6 +128,7 @@ const TrainSessionRoute = TrainSessionRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/food': typeof FoodRoute
+  '/library': typeof LibraryRoute
   '/nutrition': typeof NutritionRoute
   '/onboarding': typeof OnboardingRoute
   '/plan': typeof PlanRoute
@@ -129,12 +142,14 @@ export interface FileRoutesByFullPath {
   '/auth/callback': typeof AuthCallbackRoute
   '/auth/forgot': typeof AuthForgotRoute
   '/auth/reset': typeof AuthResetRoute
+  '/train/build': typeof TrainBuildRoute
   '/train/session': typeof TrainSessionRoute
   '/train/': typeof TrainIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/food': typeof FoodRoute
+  '/library': typeof LibraryRoute
   '/nutrition': typeof NutritionRoute
   '/onboarding': typeof OnboardingRoute
   '/plan': typeof PlanRoute
@@ -147,6 +162,7 @@ export interface FileRoutesByTo {
   '/auth/callback': typeof AuthCallbackRoute
   '/auth/forgot': typeof AuthForgotRoute
   '/auth/reset': typeof AuthResetRoute
+  '/train/build': typeof TrainBuildRoute
   '/train/session': typeof TrainSessionRoute
   '/train': typeof TrainIndexRoute
 }
@@ -154,6 +170,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/food': typeof FoodRoute
+  '/library': typeof LibraryRoute
   '/nutrition': typeof NutritionRoute
   '/onboarding': typeof OnboardingRoute
   '/plan': typeof PlanRoute
@@ -167,6 +184,7 @@ export interface FileRoutesById {
   '/auth/callback': typeof AuthCallbackRoute
   '/auth/forgot': typeof AuthForgotRoute
   '/auth/reset': typeof AuthResetRoute
+  '/train/build': typeof TrainBuildRoute
   '/train/session': typeof TrainSessionRoute
   '/train/': typeof TrainIndexRoute
 }
@@ -175,6 +193,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/food'
+    | '/library'
     | '/nutrition'
     | '/onboarding'
     | '/plan'
@@ -188,12 +207,14 @@ export interface FileRouteTypes {
     | '/auth/callback'
     | '/auth/forgot'
     | '/auth/reset'
+    | '/train/build'
     | '/train/session'
     | '/train/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/food'
+    | '/library'
     | '/nutrition'
     | '/onboarding'
     | '/plan'
@@ -206,12 +227,14 @@ export interface FileRouteTypes {
     | '/auth/callback'
     | '/auth/forgot'
     | '/auth/reset'
+    | '/train/build'
     | '/train/session'
     | '/train'
   id:
     | '__root__'
     | '/'
     | '/food'
+    | '/library'
     | '/nutrition'
     | '/onboarding'
     | '/plan'
@@ -225,6 +248,7 @@ export interface FileRouteTypes {
     | '/auth/callback'
     | '/auth/forgot'
     | '/auth/reset'
+    | '/train/build'
     | '/train/session'
     | '/train/'
   fileRoutesById: FileRoutesById
@@ -232,6 +256,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   FoodRoute: typeof FoodRoute
+  LibraryRoute: typeof LibraryRoute
   NutritionRoute: typeof NutritionRoute
   OnboardingRoute: typeof OnboardingRoute
   PlanRoute: typeof PlanRoute
@@ -261,6 +286,13 @@ declare module '@tanstack/react-router' {
       path: '/food'
       fullPath: '/food'
       preLoaderRoute: typeof FoodRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/library': {
+      id: '/library'
+      path: '/library'
+      fullPath: '/library'
+      preLoaderRoute: typeof LibraryRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/nutrition': {
@@ -361,6 +393,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TrainIndexRouteImport
       parentRoute: typeof TrainRoute
     }
+    '/train/build': {
+      id: '/train/build'
+      path: '/build'
+      fullPath: '/train/build'
+      preLoaderRoute: typeof TrainBuildRouteImport
+      parentRoute: typeof TrainRoute
+    }
     '/train/session': {
       id: '/train/session'
       path: '/session'
@@ -372,11 +411,13 @@ declare module '@tanstack/react-router' {
 }
 
 interface TrainRouteChildren {
+  TrainBuildRoute: typeof TrainBuildRoute
   TrainSessionRoute: typeof TrainSessionRoute
   TrainIndexRoute: typeof TrainIndexRoute
 }
 
 const TrainRouteChildren: TrainRouteChildren = {
+  TrainBuildRoute: TrainBuildRoute,
   TrainSessionRoute: TrainSessionRoute,
   TrainIndexRoute: TrainIndexRoute,
 }
@@ -386,6 +427,7 @@ const TrainRouteWithChildren = TrainRoute._addFileChildren(TrainRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   FoodRoute: FoodRoute,
+  LibraryRoute: LibraryRoute,
   NutritionRoute: NutritionRoute,
   OnboardingRoute: OnboardingRoute,
   PlanRoute: PlanRoute,

@@ -275,10 +275,13 @@ export function setsFor(role: SlotRole, goal: Goal, experience: Experience): num
 
 /** Hard sets per muscle per week: inclusive guard rails used by validation (primary muscles count 1, secondary 0.5). */
 export const WEEKLY_SETS: Record<Experience, { min: number; max: number }> = {
-  new: { min: 4, max: 10 },
-  returning: { min: 4, max: 10 },
-  some: { min: 8, max: 18 },
+  new: { min: 4, max: 14 },
+  returning: { min: 4, max: 14 },
+  some: { min: 8, max: 20 },
 };
+
+/** Beginners and people returning get shorter sessions: fewer exercises, dropped by slot priority. */
+export const MAX_EXERCISES: Record<Experience, number> = { new: 5, returning: 6, some: 8 };
 
 export const TIMING = {
   warmupMinutes: 5,
@@ -289,6 +292,6 @@ export const TIMING = {
 
 /** Names we never pick automatically (they stay browsable). Conservative and reviewable. */
 export const AUTO_AVOID =
-  /behind (the )?neck|good morning|upright row|kipping|snatch|clean|jerk|pistol|muscle[- ]?up|handstand|planche|lever|dislocate|deficit|sissy|archer|one[- ]arm|single[- ]arm pull|bear walk|isometric wipers|jefferson|hercules|fingerboard|sloper|rest \(/i;
+  /behind (the )?neck|good morning|upright row|kipping|snatch|clean|jerk|pistol|muscle[- ]?up|handstand|planche|lever|dislocate|deficit|sissy|archer|one[- ]arm|single[- ]arm pull|bear walk|isometric wipers|jefferson|hercules|fingerboard|sloper|rest \(|devil|vacuum|quadrup|quadrip|clap push|russian push|plank shoulder|glute drive|sky reach/i;
 export const ADVANCED_ONLY =
   /one[- ]leg|single[- ]leg deadlift|weighted dip|hang(ing)? (power|leg)|ring|trx/i;

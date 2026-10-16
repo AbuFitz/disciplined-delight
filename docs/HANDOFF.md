@@ -239,3 +239,17 @@ applying it removes the old caches, and the `new-life` database, owner programme
 and added again. The domain **vayvor.com** is not used anywhere in code or config; no trademark search has been done.
 
 Screenshots: `docs/screenshots/vayvor/`. Earlier folders show the old name and are kept as history.
+
+## Continuation: Phase 2 (catalogue, programmes, plan builder) and design pass
+
+Done and verified locally (unit tests, production build, browser walk-through at 390 px on the dev server):
+- Licence-checked catalogue snapshot (`public/catalogue/v1`), pipeline, quarantine report (`docs/CATALOGUE.md`).
+- Deterministic generator, shortening, substitutes, missed-day rescheduling, validation (`docs/TRAINING-RULES.md`; rules are **draft, unreviewed**).
+- Tracking types (weight/reps, bodyweight, assisted, time, distance) in the session logger; only loaded lifts count toward volume/progression.
+- `/library` (search, filters, favourites, credits/licence, own exercises) and `/train/build` (6-step builder with swap/remove, honest conflicts, accept to templates plus a `plans` record). Existing programmes are never altered unless the person chooses "replace".
+- Design pass: loud solid panels, giant numerals, heavier type and buttons (tokens in `styles.css`, `Panel`, `.stat`, `.loud`).
+- Service worker `nl-v3`: network-first catalogue JSON with an offline copy.
+
+Not done / not verified: desktop/200%-text/light-theme re-sweep of the new screens, real-device checks, catalogue `overrides.json`,
+self-hosted exercise images (hotlinked images need a connection), plan regeneration UI, qualified review of the rules.
+Next: Phase 3 (Body/Mind/Soul/Circle navigation and routine engine).

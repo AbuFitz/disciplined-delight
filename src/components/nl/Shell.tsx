@@ -8,6 +8,7 @@ import {
   Play,
   Settings,
   Utensils,
+  BookOpen,
 } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 import { useCollection } from "@/data/hooks";
@@ -91,7 +92,11 @@ export function Shell({ children }: { children: ReactNode }) {
             <Wordmark className="text-[1.05rem]" />
           </Link>
           <nav aria-label="Primary" className="grid gap-1">
-            {[...PRIMARY, { to: "/plan", label: "Week", icon: CalendarDays }].map((t) => (
+            {[
+              ...PRIMARY,
+              { to: "/plan", label: "Week", icon: CalendarDays },
+              { to: "/library", label: "Library", icon: BookOpen },
+            ].map((t) => (
               <Link
                 key={t.to}
                 to={t.to}

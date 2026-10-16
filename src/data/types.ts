@@ -28,6 +28,10 @@ export const COL = {
   layout: "layout",
   foodDays: "foodDays",
   reminderPrefs: "reminderPrefs",
+  plans: "plans",
+  exercisePrefs: "exercisePrefs",
+  customExercises: "customExercises",
+  equipmentProfile: "equipmentProfile",
 } as const;
 
 export type Profile = {

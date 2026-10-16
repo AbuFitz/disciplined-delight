@@ -6,7 +6,7 @@
  * - Updates wait: the page decides when to activate (never mid-workout).
  */
 // Cache names keep their original "nl-" prefix (internal). Bumped to v2 so the rebranded icons replace cached ones.
-const VERSION = "nl-v2";
+const VERSION = "nl-v3";
 const SHELL = `${VERSION}-shell`;
 const ASSETS = `${VERSION}-assets`;
 
@@ -50,6 +50,23 @@ self.addEventListener("fetch", (event) => {
         } catch {
           const cache = await caches.open(SHELL);
           return (await cache.match(url.pathname)) || (await cache.match("/")) || Response.error();
+        }
+      })(),
+    );
+    return;
+  }
+
+  // The exercise catalogue: network first (so a new snapshot is picked up), cached copy when offline.
+  if (url.pathname.startsWith("/catalogue/")) {
+    event.respondWith(
+      (async () => {
+        const cache = await caches.open(ASSETS);
+        try {
+          const res = await fetch(req);
+          if (res.ok && res.type === "basic") event.waitUntil(cache.put(req, res.clone()));
+          return res;
+        } catch {
+          return (await cache.match(req)) || Response.error();
         }
       })(),
     );
