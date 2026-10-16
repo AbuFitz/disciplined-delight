@@ -378,6 +378,23 @@ function SettingsPage() {
       </Section>
 
       <Section
+        title="Credits & licences"
+        hint="Sources and open-content licences for the exercise library."
+      >
+        <p className="text-sm text-muted-foreground">
+          Every imported exercise and photo keeps its contributor, original source and licence.
+        </p>
+        <div>
+          <Link
+            to="/credits"
+            className="inline-flex min-h-11 items-center rounded-full border border-input px-5 font-medium"
+          >
+            View library credits
+          </Link>
+        </div>
+      </Section>
+
+      <Section
         title="Reminder checklist"
         hint="Supplements, water, food prep. Items from your original app are only a record of what you used to track, not advice."
       >
