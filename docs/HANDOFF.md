@@ -240,16 +240,32 @@ and added again. The domain **vayvor.com** is not used anywhere in code or confi
 
 Screenshots: `docs/screenshots/vayvor/`. Earlier folders show the old name and are kept as history.
 
-## Continuation: Phase 2 (catalogue, programmes, plan builder) and design pass
+## Phase 2: catalogue, programmes and recoverable plan editing
 
-Done and verified locally (unit tests, production build, browser walk-through at 390 px on the dev server):
-- Licence-checked catalogue snapshot (`public/catalogue/v1`), pipeline, quarantine report (`docs/CATALOGUE.md`).
-- Deterministic generator, shortening, substitutes, missed-day rescheduling, validation (`docs/TRAINING-RULES.md`; rules are **draft, unreviewed**).
-- Tracking types (weight/reps, bodyweight, assisted, time, distance) in the session logger; only loaded lifts count toward volume/progression.
-- `/library` (search, filters, favourites, credits/licence, own exercises) and `/train/build` (6-step builder with swap/remove, honest conflicts, accept to templates plus a `plans` record). Existing programmes are never altered unless the person chooses "replace".
-- Design pass: loud solid panels, giant numerals, heavier type and buttons (tokens in `styles.css`, `Panel`, `.stat`, `.loud`).
-- Service worker `nl-v3`: network-first catalogue JSON with an offline copy.
+Done:
+- Licence-checked catalogue snapshot, pipeline and quarantine report. `catalogue/overrides.json` contains 571 persistent human corrections; only the curated generator tier is used automatically, while the wider library remains browsable.
+- Deterministic generator, honest time/equipment gaps, corrected weekly-volume accounting, Sunday/Monday recovery, shortening, substitutes and missed-day handling. The rules remain **draft and unreviewed by a qualified coach** (`docs/TRAINING-RULES.md`).
+- The builder recalculates blockers after every swap/removal, cannot accept empty or invalid sessions, keeps useful fixes on partial previews and never assigns a starting weight.
+- Accept, replace and regenerate are account-scoped atomic operations covering templates, archives, plan records, equipment and sync mutations. A failed write preserves the previous schedule. Logged sessions are not rewritten.
+- Archived workouts have a restore view. Regeneration previews added/removed/changed exercises and requires an explicit choice for existing workouts.
+- Tracking types (weight/reps, bodyweight, assisted, time and distance) work in the session logger; only loaded lifts count toward volume/progression.
+- Service worker `nl-v3` keeps a network-first offline catalogue copy. Exercise photos are still hotlinked and therefore online-only.
 
-Not done / not verified: desktop/200%-text/light-theme re-sweep of the new screens, real-device checks, catalogue `overrides.json`,
-self-hosted exercise images (hotlinked images need a connection), plan regeneration UI, qualified review of the rules.
-Next: Phase 3 (Body/Mind/Soul/Circle navigation and routine engine).
+## Phase 3: connected daily routine system
+
+Done:
+- Primary navigation is Today / Body / Mind / Soul / Circle; Train, Food, Progress, Library and Week remain available as deep links and desktop shortcuts.
+- Body brings together training, food, shopping/budget, progress, the exercise library and the plan builder.
+- The routine engine supports recurring and one-off activities, skip/rest/move, pause/resume, correcting completion, cross-midnight blocks, prayer-relative activities and timezone-local dates. Linked workouts, meals, prayers and Mind entries complete from their real records rather than a duplicate tick.
+- Today has one next action and a combined timeline. Routine editing is available from Today/Week.
+- Mind has private check-ins, reflections, focus entries and history. Soul keeps Salah optional and stores private reflections. Circle is deliberately an honest later-phase placeholder; it contains no fake people, scores or messages.
+- Privacy is explicit in the UI and records: Mind entries are forced to `visibility: "private"`; journal, mood and prayer records are not exposed to Circle.
+
+Current verification (16 October 2026): 196 Vitest tests pass, TypeScript passes, ESLint passes with 23 existing warnings and no errors, and the Vercel-preset production build succeeds. Browser checks on the dev server covered Today, Body, Mind, Soul and Circle at 390 px and Today at 1440 px; no horizontal overflow or console errors were observed. A check-in saved successfully and appeared in private History. Mobile and desktop screenshots showed coherent navigation and usable empty states.
+
+Still required before calling the rebuild complete:
+- Complete the 320/768 px, light-theme, 200%-text, keyboard and reduced-motion sweep, including builders, sheets, long names, errors and all routine editing flows.
+- Verify the service worker catalogue and workout logging offline on the production output. `vite preview` currently looks for a missing `dist/server/server.js`, so the production-preview path itself needs repair or an equivalent Vercel-output runner.
+- Self-host the selected licensed exercise images with attribution and verify every imported image/crop; hotlinked wger images are not universal/offline media.
+- Obtain qualified coach/clinician review of the training rules and curated catalogue. Real Supabase, SMTP, Google sign-in, push, account isolation on the real project, Vercel deployment/domain and real iPhone installation remain external verification dependencies.
+- Circle's actual social functionality remains in its planned later phase.
