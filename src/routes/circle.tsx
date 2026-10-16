@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Heart, Lock, Search, ShieldCheck, UserPlus, Users } from "lucide-react";
+import { Heart, Lock, MessageCircle, Search, ShieldCheck, UserPlus, Users } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import {
@@ -44,7 +44,19 @@ function CirclePage() {
         eyebrow="Circle"
         title="Together"
         sub="Real people, deliberate sharing. Your private records stay private."
-        actions={handle ? <Chip tone="ok">@{handle}</Chip> : undefined}
+        actions={
+          handle ? (
+            <>
+              <Chip tone="ok">@{handle}</Chip>
+              <Link
+                to="/circle/chat"
+                className="inline-flex min-h-11 items-center gap-2 rounded-full border border-input px-4 text-sm font-semibold"
+              >
+                <MessageCircle className="size-4" /> Chat
+              </Link>
+            </>
+          ) : undefined
+        }
       />
       {!ready ? <CircleGate signedIn={!!auth.user} profileReady={!!handle} /> : <CircleLive />}
     </>

@@ -22,4 +22,8 @@ This checks policy and function logic. It is not a substitute for testing agains
 `profiles.test.sql`, `reminders.test.sql` and `circle.test.sql` cover their matching later migrations. Circle's checks
 prove explicit sharing, connection-only feeds, request direction, kudos visibility, block/unblock behaviour, blocked
 direct writes and anonymous denial. Run them against a disposable database after applying migrations through
-`0006_circle.sql`; they create profiles for the three fixed test users from `auth-env.sql`.
+`0007_circle_chat.sql`; they create profiles for the three fixed test users from `auth-env.sql`.
+
+`circle-chat.test.sql` targets `0007_circle_chat.sql` in a fresh disposable database. It covers accepted-connection
+gating, unread/read state, bidirectional messages, tombstones, guessed-thread denial, block shutdown, direct-write
+denial and anonymous denial. Chat is RLS-private but intentionally documented as not end-to-end encrypted.

@@ -80,8 +80,8 @@ the repository's own conventions were followed.
 - Recovery: Settings → Your data → Download original data, or export a backup. `runMigration` only runs once
   (`meta: migration:legacy`).
 - **Database.** Migrations `0001`/`0002` are untouched and unused by the new client (archive, don't drop).
-  `0003_sync.sql` and `0004_push_reminders.sql` are new and **have not been applied to any Supabase project**. Apply them
-  with the Supabase SQL editor or CLI when you want sync. Review them first.
+  Migrations `0003_sync.sql` through `0007_circle_chat.sql` are new and **have not been applied to any Supabase
+  project**. Apply them with the Supabase SQL editor or CLI when you want accounts, sync, Circle and chat. Review them first.
 
 ## Configuration still required (names only)
 
@@ -171,9 +171,9 @@ prayer times are a method's output and may differ from your mosque. Notification
 
 # Continuation: accounts and the VAYVOR rebrand
 
-Status after the second pass. Phases follow the product masterplan (accounts, catalogue and generator, routines,
-circle, chat and games, release). **Only Phase 1 and the rebrand are done.** Phases 2 to 6 have not been started, so
-nothing in them should be treated as built.
+Status after the current pass. Phases follow the product masterplan (accounts, catalogue and generator, routines,
+circle, chat and games, release). Account ownership, the catalogue and generator, connected routines, Circle and
+one-to-one chat are built. Circle games/challenges and the final release pass remain.
 
 ## Security fix on the way
 
@@ -207,7 +207,7 @@ Evidence
   14 of 15 assertions passed; the 15th was a case-sensitive regex in my own test (the heading renders in capitals).
 
 **Not verified**: anything against a real Supabase project; real confirmation and recovery emails; Google sign-in;
-session expiry in the wild; migrations `0005` and `0006`.
+session expiry in the wild; migrations `0005` through `0007`.
 
 ## The Supabase project blocker
 
@@ -215,7 +215,7 @@ The only project the connector can see is "TruetoDetail System" (inactive, a dif
 VAYVOR project and **nothing was applied to it**. Activation needs a decision from you:
 
 1. Create or choose the VAYVOR Supabase project.
-2. Apply `supabase/migrations/0003` to `0006` (review first; `0001`/`0002` are legacy and unused by the new client).
+2. Apply `supabase/migrations/0003` to `0007` (review first; `0001`/`0002` are legacy and unused by the new client).
 3. Set Site URL and Redirect URLs (`<origin>/auth/callback`, `<origin>/auth/reset`) to the real working origin.
 4. Configure custom SMTP and paste `supabase/templates/*` (see its README).
 5. Set `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` on Vercel; add `VITE_AUTH_PROVIDERS=google` only after Google is configured.
@@ -270,10 +270,25 @@ Built:
 - `0006_circle.sql` owns the social tables and security-definer RPCs. All tables have RLS, direct writes are revoked, anonymous calls are denied and guessed post IDs cannot be used for kudos outside an accepted connection.
 - The unconfigured/signed-out interface is an honest setup state, not fake people or activity. The live feed, people search, request actions, share composer and privacy controls appear only for a signed-in account with a completed profile.
 
-Current verification (16 October 2026): 202 Vitest tests pass, TypeScript passes, ESLint passes with 18 fast-refresh-only warnings and no errors, and the Vercel-preset production build succeeds. Browser checks cover every main and legacy route at 320 px and 768 px, the five primary routes at 390 px, and Today at 1440 px; no horizontal overflow or console errors were observed. The complete builder produced a credible 3-day, 30-minute home-dumbbell plan and remained overflow-free at 320, 390 and 768 px; emptying a session disabled acceptance and exposed specific repair actions. Light theme at 320 px and keyboard traversal with a visible 2 px focus outline were also checked. A check-in saved successfully and appeared in private History. Circle's configuration gate was rendered at 390 and 1440 px without overflow or console errors. Mobile and desktop screenshots showed coherent navigation and usable empty states. The local production-preview path now builds Nitro's node-server output before serving it. With that production server stopped, the library retained all 879 exercises and a self-hosted exercise image, and a newly created workout could record and complete a set; after reconnect and reload the completed session appeared exactly once. All 253 allowed exercise images are served from `/catalogue/media/`; `media-manifest.json` retains their original wger URLs, authors, licences, byte sizes and SHA-256 checksums.
+## Phase 5: connection-only chat
+
+Built:
+- Private one-to-one threads exist only between accepted, unblocked Circle connections. There are no stranger inboxes,
+  sample conversations, group chat or attachments.
+- Threads show the latest message and unread count. Conversations support messages up to 1,000 characters, read state,
+  five-second foreground refresh and sender removal with an honest tombstone instead of pretending the record vanished.
+- Blocking closes a thread in both directions immediately. Database reads are participant-only under RLS; all mutations
+  go through authenticated security-definer RPCs and direct writes are revoked.
+- The interface states the actual security model: provider encryption in transit and at rest, but no end-to-end encryption.
+  It explicitly warns against sharing passwords, financial details, medical records or emergency information.
+- `0007_circle_chat.sql` owns the message table and chat RPCs. `circle-chat.test.sql` covers connection gating, unread/read
+  state, bidirectional messages, tombstones, guessed-thread denial, block shutdown, direct-write denial and anonymous denial.
+
+Current verification (16 October 2026): 204 Vitest tests pass, TypeScript passes, ESLint passes with 18 fast-refresh-only warnings and no errors, and the Vercel-preset production build succeeds. Browser checks cover every main and legacy route at 320 px and 768 px, the five primary routes at 390 px, and Today at 1440 px; no horizontal overflow or console errors were observed. The complete builder produced a credible 3-day, 30-minute home-dumbbell plan and remained overflow-free at 320, 390 and 768 px; emptying a session disabled acceptance and exposed specific repair actions. Light theme at 320 px and keyboard traversal with a visible 2 px focus outline were also checked. A check-in saved successfully and appeared in private History. Circle and Chat configuration gates were rendered at 390 and 1440 px without overflow or console errors. Mobile and desktop screenshots showed coherent navigation and usable empty states. The local production-preview path now builds Nitro's node-server output before serving it. With that production server stopped, the library retained all 879 exercises and a self-hosted exercise image, and a newly created workout could record and complete a set; after reconnect and reload the completed session appeared exactly once. All 253 allowed exercise images are served from `/catalogue/media/`; `media-manifest.json` retains their original wger URLs, authors, licences, byte sizes and SHA-256 checksums.
 
 Still required before calling the rebuild complete:
 - Complete the 200%-text and emulated reduced-motion browser sweep, including builders, sheets, long names, errors and all routine editing flows. The global reduced-motion CSS override is present, but this browser surface did not expose motion emulation or text-only zoom.
 - Visually review every imported image/crop and re-run `npm run catalogue:media` after any upstream catalogue refresh; the automated media check verifies presence and provenance, not exercise/image semantic correctness.
 - Obtain qualified coach/clinician review of the training rules and curated catalogue. Real Supabase queued sync and Circle RLS/RPC tests, SMTP, Google sign-in, push, account isolation on the real project, Vercel deployment/domain and real iPhone installation remain external verification dependencies.
-- Phase 5 chat/games and the Phase 6 release pass remain. They must build on real Circle identities/connections rather than simulated users.
+- Phase 5 Circle games/challenges and the Phase 6 release pass remain. Games must build on real Circle
+  identities/connections rather than simulated users.
