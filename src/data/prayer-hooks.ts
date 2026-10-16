@@ -23,11 +23,15 @@ export function usePrayer(now: number) {
   const [error, setError] = useState<string | null>(null);
   const tried = useRef<string>("");
 
-  const needs = !!settings && d.ready && (!lookup(today) || !lookup(addDays(today, 1)));
+  const needs =
+    !!settings &&
+    settings.mode === "aladhan" &&
+    d.ready &&
+    (!lookup(today) || !lookup(addDays(today, 1)));
   const key = settings ? `${settings.version}:${today}` : "";
 
   const refresh = async () => {
-    if (!settings) return;
+    if (!settings || settings.mode !== "aladhan") return;
     setRefreshing(true);
     setError(null);
     try {

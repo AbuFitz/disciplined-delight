@@ -118,7 +118,7 @@ export function ShoppingTab({
         >
           <ChevronLeft className="size-5" />
         </button>
-        <p className="min-w-44 px-2 text-center font-medium tnum">
+        <p className="min-w-0 flex-1 px-2 text-center font-medium tnum">
           {formatDateLong(days[0]!)} – {formatDateLong(days[6]!).split(" ").slice(1).join(" ")}
         </p>
         <button

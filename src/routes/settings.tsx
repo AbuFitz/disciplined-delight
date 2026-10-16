@@ -174,7 +174,7 @@ function SettingsPage() {
             <span className="text-sm text-muted-foreground">From: {t.source}</span>
           )}
         </div>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid gap-3 min-[480px]:grid-cols-2">
           <Field label="Calories per day">
             <NumberField
               label="Calories"

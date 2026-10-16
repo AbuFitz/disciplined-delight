@@ -200,6 +200,7 @@
     font-size: 1rem;
     line-height: 1.45;
     -webkit-font-smoothing: antialiased;
+    overflow-wrap: break-word;
     min-height: 100dvh;
     overscroll-behavior-y: none;
   }
@@ -215,6 +216,13 @@
   a {
     touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
+  }
+  /* A bare `grid` would size its single column to its widest child; keep it shrinkable. */
+  .grid:not([class*="grid-cols"]):not([class*=":grid-cols"]) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  code {
+    overflow-wrap: anywhere;
   }
   :focus-visible {
     outline: 2px solid var(--ring);

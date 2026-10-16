@@ -39,7 +39,9 @@ const addMinutes = (hhmm: string, mins: number) => {
 export function makeLookup(days: StoredPrayerDay[], settings: PrayerSettings | undefined) {
   const byDate = new Map<ISODate, StoredPrayerDay>();
   for (const d of days) {
-    if (d.origin === "manual" || (settings && d.settingsVersion === settings.version))
+    if (d.origin === "manual") byDate.set(d.date, d);
+    // Calculated days are used only in calculated mode, and only for the settings version they came from.
+    else if (settings?.mode !== "manual" && settings && d.settingsVersion === settings.version)
       byDate.set(d.date, d);
   }
   return (date: ISODate): StoredPrayerDay | undefined => {

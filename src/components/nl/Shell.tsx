@@ -161,7 +161,7 @@ export function Shell({ children }: { children: ReactNode }) {
       </div>
 
       {/* Resume bar */}
-      {active && !onSession && (
+      {active && !onSession && loc.pathname !== "/" && (
         <Link
           to="/train/session"
           className={cn(
@@ -195,7 +195,7 @@ export function Shell({ children }: { children: ReactNode }) {
                 to={t.to}
                 aria-current={isActive(t.to) ? "page" : undefined}
                 className={cn(
-                  "flex min-h-[3.75rem] flex-col items-center justify-center gap-0.5 text-[0.68rem] font-medium",
+                  "flex min-h-[3.75rem] min-w-0 flex-col items-center justify-center gap-0.5 overflow-hidden text-ellipsis whitespace-nowrap px-0.5 text-[0.68rem] font-medium",
                   isActive(t.to) ? "text-foreground" : "text-muted-foreground",
                 )}
               >

@@ -2,7 +2,9 @@ import * as Dialog from "@radix-ui/react-dialog";
 import * as AlertDialog from "@radix-ui/react-alert-dialog";
 import { Check, Minus, Plus, X } from "lucide-react";
 import {
+  cloneElement,
   forwardRef,
+  isValidElement,
   useEffect,
   useId,
   useState,
@@ -26,7 +28,7 @@ export const Button = forwardRef<HTMLButtonElement, BtnProps>(function Button(
       ref={ref}
       disabled={disabled || busy}
       className={cn(
-        "inline-flex items-center justify-center gap-2 rounded-full font-medium whitespace-nowrap select-none",
+        "inline-flex max-w-full items-center justify-center gap-2 rounded-full text-center font-medium select-none",
         "transition-[transform,background-color,opacity] duration-150 active:scale-[0.97] disabled:opacity-50 disabled:active:scale-100",
         size === "lg" && "min-h-[3.25rem] px-7 text-base",
         size === "md" && "min-h-11 px-5 text-[0.95rem]",
@@ -187,7 +189,7 @@ export function Chip({
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium",
+        "inline-flex max-w-full items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium",
         tone === "neutral" && "border-line text-muted-foreground",
         tone === "ok" && "border-ok/40 text-ok",
         tone === "warn" && "border-warn/50 text-warn",
@@ -244,15 +246,28 @@ export function Field({
   children: ReactNode;
   htmlFor?: string;
 }) {
+  const auto = useId();
+  const hintId = `${auto}-hint`;
+  // Link the label to its control even when the caller didn't pass an id.
+  const child =
+    !htmlFor &&
+    isValidElement<{ id?: string; "aria-describedby"?: string }>(children) &&
+    !children.props.id
+      ? cloneElement(children, { id: auto, "aria-describedby": hint || error ? hintId : undefined })
+      : children;
   return (
     <div className="grid gap-1.5">
-      <label htmlFor={htmlFor} className="text-sm font-medium">
+      <label htmlFor={htmlFor ?? auto} className="text-sm font-medium">
         {label}
       </label>
-      {children}
-      {hint && !error && <p className="text-xs text-muted-foreground">{hint}</p>}
+      {child}
+      {hint && !error && (
+        <p id={hintId} className="text-xs text-muted-foreground">
+          {hint}
+        </p>
+      )}
       {error && (
-        <p role="alert" className="text-xs text-destructive">
+        <p id={hintId} role="alert" className="text-xs text-destructive">
           {error}
         </p>
       )}
@@ -386,7 +401,7 @@ export function Segmented<T extends string>({
     <div
       role="radiogroup"
       aria-label={label}
-      className="inline-flex rounded-full border border-line bg-surface p-1"
+      className="inline-flex max-w-full flex-wrap rounded-3xl border border-line bg-surface p-1"
     >
       {options.map((o) => (
         <button

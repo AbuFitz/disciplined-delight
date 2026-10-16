@@ -359,7 +359,11 @@ export function TrainingWidget({ today }: Ctx) {
       ) : (
         <>
           <p className="mt-2 font-display text-2xl font-semibold">
-            {planned ? `Workout ${planned.letter}: ${planned.title}` : "Rest day"}
+            {active
+              ? `Workout ${active.templateLetter ?? ""} in progress`.replace("  ", " ")
+              : planned
+                ? `Workout ${planned.letter}: ${planned.title}`
+                : "Rest day"}
           </p>
           <p className="mt-1 text-sm text-muted-foreground">
             {planned

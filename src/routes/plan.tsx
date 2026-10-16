@@ -123,7 +123,7 @@ function PlanPage() {
         >
           <ChevronLeft className="size-5" />
         </button>
-        <p className="min-w-44 px-2 text-center font-medium">
+        <p className="min-w-0 flex-1 px-2 text-center font-medium">
           {formatDateLong(days[0]!)} – {formatDateLong(days[6]!).split(" ").slice(1).join(" ")}
         </p>
         <button
@@ -200,7 +200,9 @@ function PlanPage() {
                           key={i}
                           className="flex min-h-9 flex-wrap items-center gap-x-2 px-2 text-sm text-muted-foreground"
                         >
-                          <span className="tnum w-14 shrink-0">{to12h(minToHHMM(it.time))}</span>
+                          <span className="tnum min-w-14 shrink-0">
+                            {to12h(minToHHMM(it.time))}
+                          </span>
                           <span>{it.label}</span>
                           <span className="eyebrow !text-[0.6rem]">Prayer</span>
                         </li>
@@ -221,7 +223,7 @@ function PlanPage() {
                               it.conflict && "ring-2 ring-warn",
                             )}
                           >
-                            <span className="tnum w-14 shrink-0">
+                            <span className="tnum min-w-14 shrink-0">
                               {it.tpl.time ? to12h(it.tpl.time) : "Any"}
                             </span>
                             <span className="font-medium">Workout {it.tpl.letter}</span>
@@ -234,11 +236,11 @@ function PlanPage() {
                         <button
                           onClick={() => setEdit({ block: it.block, date: d })}
                           className={cn(
-                            "flex min-h-12 w-full items-center gap-2 rounded-2xl border border-line px-3 py-2 text-left text-sm hover:bg-surface-2 lg:flex-col lg:items-start lg:gap-0.5",
+                            "flex min-h-12 w-full flex-wrap items-center gap-2 rounded-2xl border border-line px-3 py-2 text-left text-sm hover:bg-surface-2 lg:flex-col lg:items-start lg:gap-0.5",
                             it.conflict && "border-warn",
                           )}
                         >
-                          <span className="tnum w-14 shrink-0 text-muted-foreground">
+                          <span className="tnum min-w-14 shrink-0 text-muted-foreground">
                             {to12h(minToHHMM(it.occ.startMin))}
                           </span>
                           <span className="min-w-0 max-w-full flex-1 truncate font-medium lg:flex-none">
