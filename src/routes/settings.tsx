@@ -25,6 +25,7 @@ import { COL, type ChecklistItem, type PrayerSettings, type Profile } from "@/da
 import { DataSection } from "@/components/nl/data-section";
 import { AccountSection } from "@/components/nl/account-section";
 import { RemindersSection } from "@/components/nl/reminders-section";
+import { InstallSection } from "@/components/nl/install-section";
 import { getThemePref, setThemePref, type ThemePref } from "@/lib/theme";
 
 export const Route = createFileRoute("/settings")({ component: SettingsPage });
@@ -358,6 +359,10 @@ function SettingsPage() {
           ]}
         />
         <p className="text-xs text-muted-foreground">Saved on this device.</p>
+      </Section>
+
+      <Section title="Install VAYVOR" hint="App-like launch and an offline shell on this device.">
+        <InstallSection />
       </Section>
 
       <Section title="Reminders" hint="Opt in per type. Off by default.">
