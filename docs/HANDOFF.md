@@ -1,4 +1,4 @@
-# New Life rebuild: handoff
+# VAYVOR (formerly New Life): handoff
 
 Branch: `claude/relaxed-ptolemy-4v3qva` (not merged, no pull request opened).
 Commits since the audit baseline `720093e`: `614d10b` audit and domain core, `1de9cdb` shell and daily flows,
@@ -166,3 +166,76 @@ prayer times are a method's output and may differ from your mosque. Notification
 3. **Food → Week plan**: drop Day A/Day B onto days, then **Meals** to add ingredients and prices; **Shopping** builds the list.
 4. **Train → Start now** (or the Next-up panel on a training day) and log your first session.
 5. Optional: add a weigh-in, install to the Home Screen, export a backup, and sign in to link a device for sync.
+
+---
+
+# Continuation: accounts and the VAYVOR rebrand
+
+Status after the second pass. Phases follow the product masterplan (accounts, catalogue and generator, routines,
+circle, chat and games, release). **Only Phase 1 and the rebrand are done.** Phases 2 to 6 have not been started, so
+nothing in them should be treated as built.
+
+## Security fix on the way
+
+Vercel blocked the deploy of `71a2422` on a known XSS advisory in `@tanstack/react-start@1.168.26`
+(CVE-2026-102989). Commit `12fef94` moves to the patched `1.168.61`, aligns `@tanstack/react-router` (1.170.42)
+and `router-plugin` (1.168.43) so one router-core resolves, and adapts one type. The override flag was **not** used.
+Verified by typecheck, tests, lint, the Vercel-preset build and a node-server build serving every route.
+Redeploy from the new head to confirm on Vercel itself; that deploy has not been observed.
+
+## Phase 1: accounts and ownership (done, with the limits below)
+
+Reproduced then fixed: the local store had one database and no account in any key, so a switch of account would have
+shown, queued and synced the previous account's private records. Now every scope is its own IndexedDB
+(`new-life` for guest, `new-life:u:<id>` per account), async work is generation-guarded, `ScopeGate` renders nothing
+while auth and storage disagree, and all sync entry points verify scope, session and database owner.
+
+Built: shared auth store; email/password with confirmation, resend with cooldown, expired-link handling, forgot and
+reset password; Google shown only if listed in `VITE_AUTH_PROVIDERS`; guest route; onboarding with a unique
+case-insensitive handle; profile editing; sign-out with a remove-from-device choice; remembered accounts list;
+one-time guest import (account identity wins). New people start blank, so the owner's programme, meals and the
+provisional 2,760 kcal target are seeded only where the original app's data exists.
+
+Evidence
+
+- 101 vitest tests, including isolation across A to B to A, a mid-sync account switch, guest import and profile merge.
+- Postgres 16 (simulated `auth` schema): profiles 18/18 checks, and a 30-round concurrent handle race with exactly
+  one winner each round. `supabase/tests/profiles.test.sql`.
+- Browser, against a **local simulation** of Supabase Auth and RPC (not real Supabase): account A logs a meal and signs out;
+  guest and account B never see it; B's handle clash (different case) is refused; A signs back in and sees only A's
+  data; a second tab drops A's data when the first signs out; sign-out with removal deletes that account's database.
+  14 of 15 assertions passed; the 15th was a case-sensitive regex in my own test (the heading renders in capitals).
+
+**Not verified**: anything against a real Supabase project; real confirmation and recovery emails; Google sign-in;
+session expiry in the wild; migration `0005`.
+
+## The Supabase project blocker
+
+The only project the connector can see is "TruetoDetail System" (inactive, a different product). It is **not** the
+VAYVOR project and **nothing was applied to it**. Activation needs a decision from you:
+
+1. Create or choose the VAYVOR Supabase project.
+2. Apply `supabase/migrations/0003` to `0005` (review first; `0001`/`0002` are legacy and unused by the new client).
+3. Set Site URL and Redirect URLs (`<origin>/auth/callback`, `<origin>/auth/reset`) to the real working origin.
+4. Configure custom SMTP and paste `supabase/templates/*` (see its README).
+5. Set `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` on Vercel; add `VITE_AUTH_PROVIDERS=google` only after Google is configured.
+
+## Rebrand to VAYVOR
+
+Applied deliberately, not by global replace. Product name, wordmark, page titles and metadata, PWA `name` and
+`short_name`, notification text, download filenames, error copy, email templates, unapplied migration comments and docs now say
+VAYVOR ("VAY-vor"). The wordmark is solid geometric capitals as vector paths: one colour, no font or gradient, legible
+at 52 px wide, with a monogram for icons. See `docs/BRAND.md` (usage, minimum sizes, embroidery guidance to confirm
+with the embroiderer, and the list of identifiers that deliberately did **not** change).
+
+Unchanged on purpose: IndexedDB names, legacy storage keys, `nl-theme`, manifest `id`/`start_url`/`scope`, the
+backup `app` field (both spellings are read), package and repo names, applied migration `0001`. A guard test
+(`src/data/brand.test.ts`) fails if the old visible name returns or an identifier changes.
+
+Verified in a browser on a production build: with the previous service worker installed, the update banner appears,
+applying it removes the old caches, and the `new-life` database, owner programme and title ("VAYVOR") are intact.
+
+**Not verified**: an installed iPhone app. The Home Screen name and icon on iOS only change when the app is removed
+and added again. The domain **vayvor.com** is not used anywhere in code or config; no trademark search has been done.
+
+Screenshots: `docs/screenshots/vayvor/`. Earlier folders show the old name and are kept as history.

@@ -102,7 +102,7 @@ export async function deleteScopeData(scope: Scope): Promise<void> {
   });
 }
 
-/** Names of every New Life database on this device (guest and remembered accounts). */
+/** Names of every VAYVOR database (named "new-life" for continuity) on this device (guest and remembered accounts). */
 export async function listLocalScopes(): Promise<Scope[]> {
   const dbs = (await indexedDB.databases?.()) ?? [];
   const out: Scope[] = [];

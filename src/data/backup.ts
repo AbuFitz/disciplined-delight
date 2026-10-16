@@ -61,7 +61,7 @@ export function downloadText(filename: string, text: string, type = "application
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-export const backupFilename = () => `new-life-backup-${new Date().toISOString().slice(0, 10)}.json`;
+export const backupFilename = () => `vayvor-backup-${new Date().toISOString().slice(0, 10)}.json`;
 
 export const ERASE_GROUPS = {
   training: { label: "Training sessions", cols: ["sessions"] },

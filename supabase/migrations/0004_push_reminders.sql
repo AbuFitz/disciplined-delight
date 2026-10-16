@@ -1,4 +1,4 @@
--- New Life: background reminders via Web Push.
+-- VAYVOR: background reminders via Web Push.
 --
 -- The app computes the next ~48 hours of reminders on the device (prayer, training, food, honouring quiet hours)
 -- and uploads them with replace_reminders(). A scheduled job (the send-reminders edge function, run every minute)

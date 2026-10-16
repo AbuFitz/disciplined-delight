@@ -72,7 +72,7 @@ export function RemindersSection() {
               ? "checking…"
               : !cap.supported
                 ? cap.needsInstall
-                  ? "On iPhone and iPad, add New Life to your Home Screen first, then open it from there."
+                  ? "On iPhone and iPad, add VAYVOR to your Home Screen first, then open it from there."
                   : "Not supported by this browser."
                 : cap.permission === "granted"
                   ? "Allowed"

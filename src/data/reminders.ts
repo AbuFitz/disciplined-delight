@@ -137,7 +137,7 @@ export async function sendTestNotification() {
     throw new Error(
       "The service worker isn't active here (it only runs in the installed or production app).",
     );
-  await reg.showNotification("New Life test", {
+  await reg.showNotification("VAYVOR test", {
     body: "Notifications are working on this device.",
     icon: "/icon-192.png",
     tag: "test",

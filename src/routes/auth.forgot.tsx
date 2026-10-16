@@ -16,7 +16,7 @@ function ForgotPage() {
     return (
       <AuthLayout
         title="Accounts aren't set up here"
-        intro="There's nothing to reset on this copy of New Life."
+        intro="There's nothing to reset on this copy of VAYVOR."
       >
         <Link to="/" className="underline">
           Back

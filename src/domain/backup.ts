@@ -1,9 +1,14 @@
+/**
+ * Format identifier written into backup files. Deliberately unchanged by the VAYVOR rebrand so files from
+ * before and after remain interchangeable; both spellings are accepted when reading.
+ */
 export const BACKUP_APP = "new-life";
+export const BACKUP_APP_ALIASES: readonly string[] = ["new-life", "vayvor"];
 export const BACKUP_SCHEMA = 1;
 
 export type BackupRecord = { id: string; data: unknown; deletedAt?: number | null };
 export type Backup = {
-  app: typeof BACKUP_APP;
+  app: string;
   schema: number;
   exportedAt: string;
   /** Photos are not part of this format yet; see docs. */
@@ -35,7 +40,8 @@ export function parseBackup(
     return { ok: false, error: "That file isn't valid JSON." };
   }
   const b = json as Partial<Backup>;
-  if (!b || b.app !== BACKUP_APP) return { ok: false, error: "That isn't a New Life backup." };
+  if (!b || typeof b.app !== "string" || !BACKUP_APP_ALIASES.includes(b.app))
+    return { ok: false, error: "That isn't a VAYVOR backup." };
   if (typeof b.schema !== "number" || b.schema > BACKUP_SCHEMA) {
     return {
       ok: false,

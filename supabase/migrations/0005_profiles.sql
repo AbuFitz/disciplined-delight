@@ -1,4 +1,4 @@
--- New Life: public identity (handle, display name, avatar, timezone).
+-- VAYVOR: public identity (handle, display name, avatar, timezone).
 --
 -- * Email addresses are never stored here and are never a social identifier.
 -- * The stable identifier everywhere is user_id; the username can change without breaking friendships,
@@ -28,7 +28,7 @@ grant select on public.profiles to authenticated;
 create or replace function public.is_reserved_username(p text)
 returns boolean language sql immutable as $$
   select lower(p) = any (array[
-    'admin','administrator','support','help','newlife','new_life','moderator','mod','system','root',
+    'admin','administrator','support','help','newlife','new_life','vayvor','vayvorhq','moderator','mod','system','root',
     'staff','official','null','undefined','anonymous','everyone','me','you'
   ])
 $$;

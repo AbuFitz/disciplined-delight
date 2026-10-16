@@ -1,4 +1,4 @@
-# New Life — audit and rebuild plan
+# VAYVOR (formerly New Life): audit and rebuild plan
 
 Audited 16 Oct 2026 against the repository at commit `720093e`.
 

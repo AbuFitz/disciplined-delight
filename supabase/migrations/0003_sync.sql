@@ -1,4 +1,4 @@
--- New Life: multi-device sync.
+-- VAYVOR: multi-device sync.
 --
 -- One generic table holds every synced record (training, food, prayer logs, settings, ...), keyed by
 -- (user, collection, id). The app is local-first: this is a backup/sync target, never the only copy.

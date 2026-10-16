@@ -13,6 +13,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { useCollection } from "@/data/hooks";
 import { COL, type Session } from "@/data/types";
 import { SYNC_LABEL, useSyncStatus } from "@/data/sync-status";
+import { Wordmark } from "@/components/brand/Wordmark";
 import { cn } from "@/lib/utils";
 
 const PRIMARY = [
@@ -84,9 +85,10 @@ export function Shell({ children }: { children: ReactNode }) {
         <div>
           <Link
             to="/"
-            className="mb-6 flex min-h-11 items-center px-3 font-display text-2xl font-extrabold uppercase tracking-tight"
+            aria-label="VAYVOR, Today"
+            className="mb-6 flex min-h-11 items-center px-3 text-[1.35rem]"
           >
-            New Life<span className="text-spring">.</span>
+            <Wordmark className="text-[1.05rem]" />
           </Link>
           <nav aria-label="Primary" className="grid gap-1">
             {[...PRIMARY, { to: "/plan", label: "Week", icon: CalendarDays }].map((t) => (
@@ -128,11 +130,8 @@ export function Shell({ children }: { children: ReactNode }) {
       <div className="min-w-0">
         {/* Mobile header */}
         <div className="sticky top-0 z-30 flex items-center justify-between px-4 pb-1 pt-[calc(0.5rem+var(--safe-top))] backdrop-blur-md [background:color-mix(in_oklab,var(--background)_82%,transparent)] lg:hidden">
-          <Link
-            to="/"
-            className="flex min-h-11 items-center font-display text-lg font-extrabold uppercase tracking-tight"
-          >
-            New Life<span className="text-spring">.</span>
+          <Link to="/" aria-label="VAYVOR, Today" className="flex min-h-11 items-center">
+            <Wordmark className="text-[1.05rem]" />
           </Link>
           <div className="flex items-center">
             <Link

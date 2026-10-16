@@ -88,7 +88,7 @@ function WelcomePage() {
     return (
       <AuthLayout
         title="Accounts aren't set up here"
-        intro="This copy of New Life isn't connected to an account service, so everything is saved on this device. You can use all personal features as a guest."
+        intro="This copy of VAYVOR isn't connected to an account service, so everything is saved on this device. You can use all personal features as a guest."
       >
         <Link
           to="/"

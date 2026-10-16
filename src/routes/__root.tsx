@@ -93,17 +93,22 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         content:
           "width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content",
       },
-      { title: "New Life" },
-      { name: "description", content: "A personal system for training, food and salah." },
+      { title: "VAYVOR" },
+      {
+        name: "description",
+        content:
+          "Body, mind, soul, together. Train, eat well, reflect and pray on time, with friends beside you.",
+      },
       { name: "theme-color", content: "#0e1311" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
-      { name: "apple-mobile-web-app-title", content: "New Life" },
+      { name: "apple-mobile-web-app-title", content: "VAYVOR" },
       { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
     ],
 
     links: [
       { rel: "stylesheet", href: appCss },
-      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+      { rel: "icon", href: "/favicon.svg", type: "image/svg+xml" },
+      { rel: "icon", href: "/favicon.ico", sizes: "any" },
       { rel: "manifest", href: "/manifest.webmanifest" },
       { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
     ],
@@ -195,7 +200,7 @@ function Gate() {
         <div className="max-w-md text-center">
           <h1 className="font-display text-2xl font-semibold">Storage isn't available</h1>
           <p className="mt-2 text-muted-foreground">
-            New Life saves to your browser's local database and couldn't open it ({error}). Private
+            VAYVOR saves to your browser's local database and couldn't open it ({error}). Private
             browsing or blocked site data can cause this.
           </p>
         </div>

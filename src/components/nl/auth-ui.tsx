@@ -1,5 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
+import { Wordmark } from "@/components/brand/Wordmark";
+import { BRAND } from "@/lib/brand";
 
 /** Bare layout for account screens (no app navigation). */
 export function AuthLayout({
@@ -15,12 +17,12 @@ export function AuthLayout({
 }) {
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col justify-center px-5 py-10">
-      <Link
-        to="/"
-        className="mb-8 inline-flex min-h-11 items-center font-display text-2xl font-extrabold uppercase tracking-tight"
-      >
-        New Life<span className="text-spring">.</span>
+      <Link to="/" aria-label="VAYVOR, home" className="mb-3 inline-flex min-h-11 items-center">
+        <Wordmark className="text-[1.5rem]" />
       </Link>
+      <p className="eyebrow mb-6" aria-label={`Pronounced ${BRAND.pronunciation}`}>
+        {BRAND.pronunciation} · {BRAND.tagline}
+      </p>
       <h1 className="display-title text-[2.4rem]">{title}</h1>
       {intro && <p className="mt-3 text-muted-foreground">{intro}</p>}
       <div className="mt-7 grid gap-4">{children}</div>

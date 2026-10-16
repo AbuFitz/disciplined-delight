@@ -55,7 +55,7 @@ export function DataSection() {
     if (!backup) return;
     if (safety)
       downloadText(
-        `new-life-before-import-${Date.now()}.json`,
+        `vayvor-before-import-${Date.now()}.json`,
         JSON.stringify(await buildBackup(), null, 2),
       );
     const r = await applyBackup(backup, mode);
@@ -69,7 +69,7 @@ export function DataSection() {
     const recs = await listRecords<{ key: string; raw: string }>("legacyRaw");
     if (recs.length === 0) return void toast("No original-app data was found on this device.");
     downloadText(
-      `new-life-original-app-data.json`,
+      `vayvor-original-app-data.json`,
       JSON.stringify(
         Object.fromEntries(recs.map((r) => [r.data.key, JSON.parse(r.data.raw)])),
         null,

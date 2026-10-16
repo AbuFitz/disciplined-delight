@@ -1,7 +1,7 @@
 {
-  "name": "New Life",
-  "short_name": "New Life",
-  "description": "A personal system for training, food and salah.",
+  "name": "VAYVOR",
+  "short_name": "VAYVOR",
+  "description": "Body, mind, soul, together. Train, eat well, reflect and pray on time, with friends beside you.",
   "id": "/",
   "start_url": "/",
   "scope": "/",
@@ -10,10 +10,24 @@
   "background_color": "#0e1311",
   "theme_color": "#0e1311",
   "lang": "en-GB",
-  "categories": ["health", "fitness", "lifestyle"],
+  "categories": [
+    "health",
+    "fitness",
+    "lifestyle"
+  ],
   "icons": [
-    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
     {
       "src": "/icon-maskable-512.png",
       "sizes": "512x512",
@@ -22,12 +36,35 @@
     }
   ],
   "shortcuts": [
-    { "name": "Train", "url": "/train", "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }] },
+    {
+      "name": "Train",
+      "url": "/train",
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
     {
       "name": "Log a meal",
       "url": "/food",
-      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
     },
-    { "name": "Salah", "url": "/salah", "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }] }
+    {
+      "name": "Salah",
+      "url": "/salah",
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
   ]
 }

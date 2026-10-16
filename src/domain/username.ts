@@ -6,6 +6,8 @@ const RESERVED = new Set([
   "support",
   "help",
   "newlife",
+  "vayvor",
+  "vayvorhq",
   "new_life",
   "moderator",
   "mod",

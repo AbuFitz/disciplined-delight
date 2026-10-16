@@ -76,7 +76,7 @@ function GuestView() {
         <Chip>Guest · this device only</Chip>
       </div>
       <p className="text-sm text-muted-foreground">
-        You're using New Life as a guest. Nothing leaves this device. An account adds backup, other
+        You're using VAYVOR as a guest. Nothing leaves this device. An account adds backup, other
         devices, friends and challenges, and you choose whether to bring your guest data across.
       </p>
       <div className="flex flex-wrap gap-2">

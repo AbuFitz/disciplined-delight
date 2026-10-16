@@ -1,11 +1,12 @@
-/* New Life service worker.
+/* VAYVOR service worker.
  * - Navigations: network first, falling back to the last cached copy of that page, then of "/".
  * - Hashed build assets (/assets/*) and fonts: cache first (they are immutable).
  * - Never caches anything else: no API calls, no cross-origin requests (Supabase, prayer provider),
  *   no authenticated or non-GET responses.
  * - Updates wait: the page decides when to activate (never mid-workout).
  */
-const VERSION = "nl-v1";
+// Cache names keep their original "nl-" prefix (internal). Bumped to v2 so the rebranded icons replace cached ones.
+const VERSION = "nl-v2";
 const SHELL = `${VERSION}-shell`;
 const ASSETS = `${VERSION}-assets`;
 
@@ -74,7 +75,7 @@ self.addEventListener("push", (event) => {
   let d = {};
   try { d = event.data ? event.data.json() : {}; } catch { /* ignore malformed payloads */ }
   event.waitUntil(
-    self.registration.showNotification(d.title || "New Life", {
+    self.registration.showNotification(d.title || "VAYVOR", {
       body: d.body || "",
       tag: d.tag,
       icon: "/icon-192.png",
