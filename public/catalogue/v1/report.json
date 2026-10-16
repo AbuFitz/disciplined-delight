@@ -1,0 +1,59 @@
+{
+  "snapshot": "2026-10-16",
+  "inputEntries": 932,
+  "published": 879,
+  "generatorEligible": 494,
+  "quarantined": 53,
+  "quarantineReasons": {
+    "instructions_missing": 39,
+    "instructions_contain_link": 14
+  },
+  "uniqueNames": 879,
+  "duplicateNames": [],
+  "withImages": 189,
+  "machineEquipment": 50,
+  "equipmentDerived": 50,
+  "byPattern": {
+    "other": 166,
+    "core": 100,
+    "mobility": 100,
+    "push_horizontal": 72,
+    "arms_biceps": 52,
+    "cardio": 47,
+    "shoulder_isolation": 45,
+    "pull_horizontal": 43,
+    "squat": 42,
+    "hinge": 36,
+    "arms_triceps": 35,
+    "pull_vertical": 26,
+    "lunge": 23,
+    "chest_isolation": 20,
+    "calf": 19,
+    "leg_isolation": 18,
+    "push_vertical": 15,
+    "glute": 11,
+    "back_isolation": 9
+  },
+  "byTracking": {
+    "weight_reps": 423,
+    "bodyweight_reps": 298,
+    "time": 134,
+    "distance_time": 21,
+    "assisted_reps": 3
+  },
+  "byLicence": {
+    "CC-BY-SA 4": 755,
+    "CC-BY-SA 3": 104,
+    "CC0": 20
+  },
+  "byCategory": {
+    "Legs": 210,
+    "Back": 162,
+    "Arms": 145,
+    "Abs": 109,
+    "Shoulders": 109,
+    "Chest": 80,
+    "Cardio": 47,
+    "Calves": 17
+  }
+}

@@ -1,0 +1,941 @@
+[
+ {
+  "id": 56,
+  "uuid": "03db11cc-8079-463c-9399-6f346b100ce6",
+  "last_update_global": "2026-04-15T22:23:53.793109+02:00",
+  "category": {
+   "id": 10,
+   "name": "Abs"
+  },
+  "muscles": [
+   {
+    "id": 6,
+    "name": "Rectus abdominis",
+    "name_en": "Abs"
+   }
+  ],
+  "muscles_secondary": [
+   {
+    "id": 14,
+    "name": "Obliquus externus abdominis",
+    "name_en": ""
+   }
+  ],
+  "equipment": [
+   {
+    "id": 4,
+    "name": "Gym mat"
+   }
+  ],
+  "license": {
+   "id": 1,
+   "full_name": " Creative Commons Attribution Share Alike 3",
+   "short_name": "CC-BY-SA 3",
+   "url": "https://creativecommons.org/licenses/by-sa/3.0/deed.en"
+  },
+  "license_author": "andikeller",
+  "images": [],
+  "translations": [
+   {
+    "language": 2,
+    "name": "Abdominal Stabilization",
+    "description": "",
+    "aliases": [],
+    "notes": [],
+    "license": 1,
+    "license_author": "andikeller"
+   }
+  ]
+ },
+ {
+  "id": 73,
+  "uuid": "3717d144-7815-4a97-9a56-956fb889c996",
+  "last_update_global": "2026-10-14T19:49:06.112666+02:00",
+  "category": {
+   "id": 11,
+   "name": "Chest"
+  },
+  "muscles": [
+   {
+    "id": 4,
+    "name": "Pectoralis major",
+    "name_en": "Chest"
+   }
+  ],
+  "muscles_secondary": [
+   {
+    "id": 2,
+    "name": "Anterior deltoid",
+    "name_en": "Shoulders"
+   },
+   {
+    "id": 5,
+    "name": "Triceps brachii",
+    "name_en": "Triceps"
+   }
+  ],
+  "equipment": [
+   {
+    "id": 1,
+    "name": "Barbell"
+   },
+   {
+    "id": 8,
+    "name": "Bench"
+   }
+  ],
+  "license": {
+   "id": 1,
+   "full_name": " Creative Commons Attribution Share Alike 3",
+   "short_name": "CC-BY-SA 3",
+   "url": "https://creativecommons.org/licenses/by-sa/3.0/deed.en"
+  },
+  "license_author": "sistab2",
+  "images": [
+   {
+    "id": 68,
+    "uuid": "08517378-bc36-4f6b-9952-1f45a02d936e",
+    "image": "https://wger.de/media/exercise-images/192/Bench-press-1.png",
+    "is_main": true,
+    "is_ai_generated": false,
+    "license": 1,
+    "license_author": "Everkinetic",
+    "license_object_url": "",
+    "license_derivative_source_url": "",
+    "thumbnails": {
+     "small": "https://wger.de/media/exercise-images/192/Bench-press-1.png.200x200_q85.png",
+     "medium": "https://wger.de/media/exercise-images/192/Bench-press-1.png.400x400_q85.png"
+    }
+   },
+   {
+    "id": 70,
+    "uuid": "41e5c58e-0325-4620-8d96-7372cc4dae8c",
+    "image": "https://wger.de/media/exercise-images/192/Bench-press-2.png",
+    "is_main": false,
+    "is_ai_generated": false,
+    "license": 1,
+    "license_author": "Everkinetic",
+    "license_object_url": "",
+    "license_derivative_source_url": "",
+    "thumbnails": {
+     "small": "https://wger.de/media/exercise-images/192/Bench-press-2.png.200x200_q85.png",
+     "medium": "https://wger.de/media/exercise-images/192/Bench-press-2.png.400x400_q85.png"
+    }
+   }
+  ],
+  "translations": [
+   {
+    "language": 2,
+    "name": "Bench Press",
+    "description": "<p>Lay down on a bench, the bar should be directly above your eyes, the knees are somewhat angled and the feet are firmly on the floor. Concentrate, breath deeply and grab the bar more than shoulder wide. Bring it slowly down till it briefly touches your chest at the height of your nipples. Push the bar up.</p>\n<p>If you train with a high weight it is advisable to have a <em>spotter</em> that can help you up if you can't lift the weight on your own.</p>\n<p>With the width of the grip you can also control which part of the chest is trained more:</p>\n<ul>\n<li>wide grip: outer chest muscles</li>\n<li>narrow grip: inner chest muscles and triceps</li>\n</ul>\n",
+    "aliases": [],
+    "notes": [
+     {
+      "comment": "Don't stretch your arms completly"
+     }
+    ],
+    "license": 1,
+    "license_author": "sistab2"
+   }
+  ]
+ },
+ {
+  "id": 95,
+  "uuid": "bcb7020c-8678-496d-8f4d-aad0e233a5bd",
+  "last_update_global": "2026-10-13T20:00:48.103642+02:00",
+  "category": {
+   "id": 8,
+   "name": "Arms"
+  },
+  "muscles": [
+   {
+    "id": 1,
+    "name": "Biceps brachii",
+    "name_en": "Biceps"
+   }
+  ],
+  "muscles_secondary": [],
+  "equipment": [
+   {
+    "id": 12,
+    "name": "Cable machine"
+   }
+  ],
+  "license": {
+   "id": 1,
+   "full_name": " Creative Commons Attribution Share Alike 3",
+   "short_name": "CC-BY-SA 3",
+   "url": "https://creativecommons.org/licenses/by-sa/3.0/deed.en"
+  },
+  "license_author": "wger.de",
+  "images": [
+   {
+    "id": 19,
+    "uuid": "065f9418-6245-46ae-8e24-b4013ce084e4",
+    "image": "https://wger.de/media/exercise-images/129/Standing-biceps-curl-1.png",
+    "is_main": true,
+    "is_ai_generated": false,
+    "license": 1,
+    "license_author": "Everkinetic",
+    "license_object_url": "",
+    "license_derivative_source_url": "",
+    "thumbnails": {
+     "small": "https://wger.de/media/exercise-images/129/Standing-biceps-curl-1.png.200x200_q85.png",
+     "medium": "https://wger.de/media/exercise-images/129/Standing-biceps-curl-1.png.400x400_q85.png"
+    }
+   },
+   {
+    "id": 20,
+    "uuid": "061cf07e-96a3-4063-8bd5-7abcdb047a99",
+    "image": "https://wger.de/media/exercise-images/129/Standing-biceps-curl-2.png",
+    "is_main": false,
+    "is_ai_generated": false,
+    "license": 1,
+    "license_author": "Everkinetic",
+    "license_object_url": "",
+    "license_derivative_source_url": "",
+    "thumbnails": {
+     "small": "https://wger.de/media/exercise-images/129/Standing-biceps-curl-2.png.200x200_q85.png",
+     "medium": "https://wger.de/media/exercise-images/129/Standing-biceps-curl-2.png.400x400_q85.png"
+    }
+   }
+  ],
+  "translations": [
+   {
+    "language": 2,
+    "name": "Biceps Curl With Cable",
+    "description": "<p>Stand around 30 - 40cm away from the cable, the feet are firmly on the floor. Take the bar and lift the weight with a fast movements. Lower the weight as with the dumbbell curls slowly and controlled.</p>\n",
+    "aliases": [],
+    "notes": [
+     {
+      "comment": "Don't move the elbows during the exercise"
+     }
+    ],
+    "license": 1,
+    "license_author": "wger.de"
+   }
+  ]
+ },
+ {
+  "id": 132,
+  "uuid": "48ee1385-47c5-4821-8b6a-57fac6130776",
+  "last_update_global": "2026-04-15T22:23:56.762986+02:00",
+  "category": {
+   "id": 11,
+   "name": "Chest"
+  },
+  "muscles": [],
+  "muscles_secondary": [],
+  "equipment": [],
+  "license": {
+   "id": 2,
+   "full_name": "Creative Commons Attribution Share Alike 4",
+   "short_name": "CC-BY-SA 4",
+   "url": "https://creativecommons.org/licenses/by-sa/4.0/deed.en"
+  },
+  "license_author": "er0355",
+  "images": [],
+  "translations": [
+   {
+    "language": 2,
+    "name": "Burpees",
+    "description": "<p>Jump, lay down on your chest, do a pushup then jump, repeat</p>\n",
+    "aliases": [],
+    "notes": [],
+    "license": 2,
+    "license_author": "er0355"
+   }
+  ]
+ },
+ {
+  "id": 145,
+  "uuid": "c867836d-2929-4977-b23c-014bc21ec08d",
+  "last_update_global": "2026-07-23T12:36:14.006304+02:00",
+  "category": {
+   "id": 10,
+   "name": "Abs"
+  },
+  "muscles": [
+   {
+    "id": 14,
+    "name": "Obliquus externus abdominis",
+    "name_en": ""
+   }
+  ],
+  "muscles_secondary": [],
+  "equipment": [
+   {
+    "id": 12,
+    "name": "Cable machine"
+   }
+  ],
+  "license": {
+   "id": 1,
+   "full_name": " Creative Commons Attribution Share Alike 3",
+   "short_name": "CC-BY-SA 3",
+   "url": "https://creativecommons.org/licenses/by-sa/3.0/deed.en"
+  },
+  "license_author": "robhoyt",
+  "images": [],
+  "translations": [
+   {
+    "language": 2,
+    "name": "Cable Woodchoppers",
+    "description": "<p>Set cable pulley slightly lower than chest height. Keep body facing forward with hips stable. &nbsp;Grab the pulley handle, fully extend your arms and bring your arms forward and across your body. Hold for 1 second at the end of the movement and slowly return to starting position.</p>\n",
+    "aliases": [],
+    "notes": [],
+    "license": 1,
+    "license_author": "robhoyt"
+   }
+  ]
+ },
+ {
+  "id": 146,
+  "uuid": "0d79f259-3b28-4258-8a08-cffec062a710",
+  "last_update_global": "2026-10-10T18:26:54.384576+02:00",
+  "category": {
+   "id": 14,
+   "name": "Calves"
+  },
+  "muscles": [
+   {
+    "id": 7,
+    "name": "Gastrocnemius",
+    "name_en": "Calves"
+   },
+   {
+    "id": 15,
+    "name": "Soleus",
+    "name_en": ""
+   }
+  ],
+  "muscles_secondary": [],
+  "equipment": [],
+  "license": {
+   "id": 2,
+   "full_name": "Creative Commons Attribution Share Alike 4",
+   "short_name": "CC-BY-SA 4",
+   "url": "https://creativecommons.org/licenses/by-sa/4.0/deed.en"
+  },
+  "license_author": "nate303303",
+  "images": [
+   {
+    "id": 562,
+    "uuid": "8b284904-d072-4381-a256-4c81d8fd9c1f",
+    "image": "https://wger.de/media/exercise-images/146/8b284904-d072-4381-a256-4c81d8fd9c1f.png",
+    "is_main": true,
+    "is_ai_generated": false,
+    "license": 2,
+    "license_author": "",
+    "license_object_url": "",
+    "license_derivative_source_url": "",
+    "thumbnails": {
+     "small": "https://wger.de/media/exercise-images/146/8b284904-d072-4381-a256-4c81d8fd9c1f.png.200x200_q85.jpg",
+     "medium": "https://wger.de/media/exercise-images/146/8b284904-d072-4381-a256-4c81d8fd9c1f.png.400x400_q85.jpg"
+    }
+   }
+  ],
+  "translations": [
+   {
+    "language": 2,
+    "name": "Calf Press Using Leg Press Machine",
+    "description": "<p>Put&nbsp; the balls of your feet on an extended leg press pad.&nbsp; Use your calves to press the weight by flexing your feet/toes into a pointed position, and releasing back into a relaxed position.</p>\n<p>This exercise builds mass and strength in the Gastrocnemius and Soleus muscles as well, if not better, than any calf exercise.</p>\n",
+    "aliases": [],
+    "notes": [],
+    "license": 2,
+    "license_author": "nate303303"
+   }
+  ]
+ },
+ {
+  "id": 355,
+  "uuid": "fff05d7a-f374-4c8a-9885-39f49076918f",
+  "last_update_global": "2026-10-13T21:09:08.662144+02:00",
+  "category": {
+   "id": 12,
+   "name": "Back"
+  },
+  "muscles": [
+   {
+    "id": 12,
+    "name": "Latissimus dorsi",
+    "name_en": "Lats"
+   }
+  ],
+  "muscles_secondary": [],
+  "equipment": [],
+  "license": {
+   "id": 1,
+   "full_name": " Creative Commons Attribution Share Alike 3",
+   "short_name": "CC-BY-SA 3",
+   "url": "https://creativecommons.org/licenses/by-sa/3.0/deed.en"
+  },
+  "license_author": "drthurlow",
+  "images": [],
+  "translations": [
+   {
+    "language": 2,
+    "name": "Lat Pull Down (Straight Back)",
+    "description": "<p>The lat pull down is an exercise used to build the muscles of the back. While the exercise will primarily target the lats, you will also notice a fair amount of bicep and middle back activation.</p>\n",
+    "aliases": [],
+    "notes": [],
+    "license": 1,
+    "license_author": "drthurlow"
+   }
+  ]
+ },
+ {
+  "id": 371,
+  "uuid": "66a42396-c207-44da-bc75-758a89d32404",
+  "last_update_global": "2026-10-10T17:26:13.517367+02:00",
+  "category": {
+   "id": 9,
+   "name": "Legs"
+  },
+  "muscles": [
+   {
+    "id": 11,
+    "name": "Biceps femoris",
+    "name_en": "Hamstrings"
+   },
+   {
+    "id": 7,
+    "name": "Gastrocnemius",
+    "name_en": "Calves"
+   },
+   {
+    "id": 8,
+    "name": "Gluteus maximus",
+    "name_en": "Glutes"
+   },
+   {
+    "id": 10,
+    "name": "Quadriceps femoris",
+    "name_en": "Quads"
+   }
+  ],
+  "muscles_secondary": [],
+  "equipment": [],
+  "license": {
+   "id": 3,
+   "full_name": "Creative Commons Public Domain 1.0",
+   "short_name": "CC0",
+   "url": "http://creativecommons.org/publicdomain/zero/1.0/"
+  },
+  "license_author": "BFad07",
+  "images": [
+   {
+    "id": 573,
+    "uuid": "d2136f96-3a43-4d4c-9944-1919c4ca1ce1",
+    "image": "https://wger.de/media/exercise-images/371/d2136f96-3a43-4d4c-9944-1919c4ca1ce1.webp",
+    "is_main": true,
+    "is_ai_generated": false,
+    "license": 2,
+    "license_author": "",
+    "license_object_url": "",
+    "license_derivative_source_url": "",
+    "thumbnails": {
+     "small": "https://wger.de/media/exercise-images/371/d2136f96-3a43-4d4c-9944-1919c4ca1ce1.webp.200x200_q85.png",
+     "medium": "https://wger.de/media/exercise-images/371/d2136f96-3a43-4d4c-9944-1919c4ca1ce1.webp.400x400_q85.png"
+    }
+   }
+  ],
+  "translations": [
+   {
+    "language": 2,
+    "name": "Leg Press",
+    "description": "<p>The leg press is a weight training exercise in which the individual pushes a weight or resistance away from them using their legs.</p>\n",
+    "aliases": [],
+    "notes": [],
+    "license": 3,
+    "license_author": "BFad07"
+   }
+  ]
+ },
+ {
+  "id": 374,
+  "uuid": "661287d4-d1dc-485c-896b-73f90b000536",
+  "last_update_global": "2026-10-10T19:11:44.590087+02:00",
+  "category": {
+   "id": 9,
+   "name": "Legs"
+  },
+  "muscles": [
+   {
+    "id": 10,
+    "name": "Quadriceps femoris",
+    "name_en": "Quads"
+   }
+  ],
+  "muscles_secondary": [
+   {
+    "id": 8,
+    "name": "Gluteus maximus",
+    "name_en": "Glutes"
+   }
+  ],
+  "equipment": [],
+  "license": {
+   "id": 1,
+   "full_name": " Creative Commons Attribution Share Alike 3",
+   "short_name": "CC-BY-SA 3",
+   "url": "https://creativecommons.org/licenses/by-sa/3.0/deed.en"
+  },
+  "license_author": "wger.de",
+  "images": [],
+  "translations": [
+   {
+    "language": 2,
+    "name": "Leg Presses (wide)",
+    "description": "<p>Sit on the machine and put your feet on the platform, a bit more than shoulder wide. The feet are turned outwards by a few degrees.</p>\n<p>Lower the weight so much, that the knees form a right angle. Push immediately the platform up again, without any pause. When in the lower position, the knees point a bit outwards and the movement should be always fluid.</p>\n",
+    "aliases": [],
+    "notes": [
+     {
+      "comment": "Fluid movements with no pauses at the top or the bottom"
+     },
+     {
+      "comment": "The knees point slightly outwards"
+     }
+    ],
+    "license": 1,
+    "license_author": "wger.de"
+   }
+  ]
+ },
+ {
+  "id": 379,
+  "uuid": "82aec7f9-ee03-4b24-8994-f6bde07c6a41",
+  "last_update_global": "2026-10-13T20:56:16.998887+02:00",
+  "category": {
+   "id": 11,
+   "name": "Chest"
+  },
+  "muscles": [
+   {
+    "id": 4,
+    "name": "Pectoralis major",
+    "name_en": "Chest"
+   }
+  ],
+  "muscles_secondary": [],
+  "equipment": [],
+  "license": {
+   "id": 1,
+   "full_name": " Creative Commons Attribution Share Alike 3",
+   "short_name": "CC-BY-SA 3",
+   "url": "https://creativecommons.org/licenses/by-sa/3.0/deed.en"
+  },
+  "license_author": "tuckerm",
+  "images": [],
+  "translations": [
+   {
+    "language": 2,
+    "name": "Leverage Machine Chest Press",
+    "description": "<p>Be sure to adjust seat height so that the handles are towards the bottom of your pectorals.</p>\n",
+    "aliases": [],
+    "notes": [],
+    "license": 1,
+    "license_author": "tuckerm"
+   }
+  ]
+ },
+ {
+  "id": 458,
+  "uuid": "c9e57bbe-e839-44c6-861d-1c8dd2845e36",
+  "last_update_global": "2026-10-10T17:06:12.972143+02:00",
+  "category": {
+   "id": 10,
+   "name": "Abs"
+  },
+  "muscles": [
+   {
+    "id": 14,
+    "name": "Obliquus externus abdominis",
+    "name_en": ""
+   },
+   {
+    "id": 6,
+    "name": "Rectus abdominis",
+    "name_en": "Abs"
+   }
+  ],
+  "muscles_secondary": [
+   {
+    "id": 1,
+    "name": "Biceps brachii",
+    "name_en": "Biceps"
+   },
+   {
+    "id": 10,
+    "name": "Quadriceps femoris",
+    "name_en": "Quads"
+   },
+   {
+    "id": 5,
+    "name": "Triceps brachii",
+    "name_en": "Triceps"
+   }
+  ],
+  "equipment": [
+   {
+    "id": 7,
+    "name": "none (bodyweight exercise)"
+   }
+  ],
+  "license": {
+   "id": 1,
+   "full_name": " Creative Commons Attribution Share Alike 3",
+   "short_name": "CC-BY-SA 3",
+   "url": "https://creativecommons.org/licenses/by-sa/3.0/deed.en"
+  },
+  "license_author": "YYCfit / BFad07",
+  "images": [
+   {
+    "id": 346,
+    "uuid": "b7bd9c28-9f1d-4647-bd17-ab6a3adf5770",
+    "image": "https://wger.de/media/exercise-images/458/b7bd9c28-9f1d-4647-bd17-ab6a3adf5770.png",
+    "is_main": true,
+    "is_ai_generated": false,
+    "license": 2,
+    "license_author": "utkb",
+    "license_object_url": "",
+    "license_derivative_source_url": "",
+    "thumbnails": {
+     "small": "https://wger.de/media/exercise-images/458/b7bd9c28-9f1d-4647-bd17-ab6a3adf5770.png.200x200_q85.png",
+     "medium": "https://wger.de/media/exercise-images/458/b7bd9c28-9f1d-4647-bd17-ab6a3adf5770.png.400x400_q85.png"
+    }
+   },
+   {
+    "id": 347,
+    "uuid": "902e6836-394e-458b-b94e-101d714294e2",
+    "image": "https://wger.de/media/exercise-images/458/902e6836-394e-458b-b94e-101d714294e2.png",
+    "is_main": false,
+    "is_ai_generated": false,
+    "license": 2,
+    "license_author": "utkb",
+    "license_object_url": "",
+    "license_derivative_source_url": "",
+    "thumbnails": {
+     "small": "https://wger.de/media/exercise-images/458/902e6836-394e-458b-b94e-101d714294e2.png.200x200_q85.png",
+     "medium": "https://wger.de/media/exercise-images/458/902e6836-394e-458b-b94e-101d714294e2.png.400x400_q85.png"
+    }
+   },
+   {
+    "id": 348,
+    "uuid": "d1ca4a79-f299-4e70-a391-3e9526c3b141",
+    "image": "https://wger.de/media/exercise-images/458/d1ca4a79-f299-4e70-a391-3e9526c3b141.png",
+    "is_main": false,
+    "is_ai_generated": false,
+    "license": 2,
+    "license_author": "utkb",
+    "license_object_url": "",
+    "license_derivative_source_url": "",
+    "thumbnails": {
+     "small": "https://wger.de/media/exercise-images/458/d1ca4a79-f299-4e70-a391-3e9526c3b141.png.200x200_q85.png",
+     "medium": "https://wger.de/media/exercise-images/458/d1ca4a79-f299-4e70-a391-3e9526c3b141.png.400x400_q85.png"
+    }
+   },
+   {
+    "id": 349,
+    "uuid": "b180ce8b-a2c2-40da-924f-998d97aebb63",
+    "image": "https://wger.de/media/exercise-images/458/b180ce8b-a2c2-40da-924f-998d97aebb63.png",
+    "is_main": false,
+    "is_ai_generated": false,
+    "license": 2,
+    "license_author": "utkb",
+    "license_object_url": "",
+    "license_derivative_source_url": "",
+    "thumbnails": {
+     "small": "https://wger.de/media/exercise-images/458/b180ce8b-a2c2-40da-924f-998d97aebb63.png.200x200_q85.png",
+     "medium": "https://wger.de/media/exercise-images/458/b180ce8b-a2c2-40da-924f-998d97aebb63.png.400x400_q85.png"
+    }
+   },
+   {
+    "id": 350,
+    "uuid": "167db646-9acb-4426-a383-c7e7dc92e3ec",
+    "image": "https://wger.de/media/exercise-images/458/167db646-9acb-4426-a383-c7e7dc92e3ec.png",
+    "is_main": false,
+    "is_ai_generated": false,
+    "license": 2,
+    "license_author": "utkb",
+    "license_object_url": "",
+    "license_derivative_source_url": "",
+    "thumbnails": {
+     "small": "https://wger.de/media/exercise-images/458/167db646-9acb-4426-a383-c7e7dc92e3ec.png.200x200_q85.png",
+     "medium": "https://wger.de/media/exercise-images/458/167db646-9acb-4426-a383-c7e7dc92e3ec.png.400x400_q85.png"
+    }
+   },
+   {
+    "id": 351,
+    "uuid": "e13f92a4-69ae-4043-ae1f-70f155a53024",
+    "image": "https://wger.de/media/exercise-images/458/e13f92a4-69ae-4043-ae1f-70f155a53024.png",
+    "is_main": false,
+    "is_ai_generated": false,
+    "license": 2,
+    "license_author": "utkb",
+    "license_object_url": "",
+    "license_derivative_source_url": "",
+    "thumbnails": {
+     "small": "https://wger.de/media/exercise-images/458/e13f92a4-69ae-4043-ae1f-70f155a53024.png.200x200_q85.png",
+     "medium": "https://wger.de/media/exercise-images/458/e13f92a4-69ae-4043-ae1f-70f155a53024.png.400x400_q85.png"
+    }
+   },
+   {
+    "id": 352,
+    "uuid": "bce9a15d-d080-4fb0-bc30-f80778b38793",
+    "image": "https://wger.de/media/exercise-images/458/bce9a15d-d080-4fb0-bc30-f80778b38793.png",
+    "is_main": false,
+    "is_ai_generated": false,
+    "license": 2,
+    "license_author": "utkb",
+    "license_object_url": "",
+    "license_derivative_source_url": "",
+    "thumbnails": {
+     "small": "https://wger.de/media/exercise-images/458/bce9a15d-d080-4fb0-bc30-f80778b38793.png.200x200_q85.png",
+     "medium": "https://wger.de/media/exercise-images/458/bce9a15d-d080-4fb0-bc30-f80778b38793.png.400x400_q85.png"
+    }
+   },
+   {
+    "id": 353,
+    "uuid": "2c43d623-5898-4669-b5f8-eb3e1c38cd29",
+    "image": "https://wger.de/media/exercise-images/458/2c43d623-5898-4669-b5f8-eb3e1c38cd29.png",
+    "is_main": false,
+    "is_ai_generated": false,
+    "license": 2,
+    "license_author": "utkb",
+    "license_object_url": "",
+    "license_derivative_source_url": "",
+    "thumbnails": {
+     "small": "https://wger.de/media/exercise-images/458/2c43d623-5898-4669-b5f8-eb3e1c38cd29.png.200x200_q85.png",
+     "medium": "https://wger.de/media/exercise-images/458/2c43d623-5898-4669-b5f8-eb3e1c38cd29.png.400x400_q85.png"
+    }
+   },
+   {
+    "id": 354,
+    "uuid": "122735cf-f940-4de8-aa30-49a1da148319",
+    "image": "https://wger.de/media/exercise-images/458/122735cf-f940-4de8-aa30-49a1da148319.png",
+    "is_main": false,
+    "is_ai_generated": false,
+    "license": 2,
+    "license_author": "utkb",
+    "license_object_url": "",
+    "license_derivative_source_url": "",
+    "thumbnails": {
+     "small": "https://wger.de/media/exercise-images/458/122735cf-f940-4de8-aa30-49a1da148319.png.200x200_q85.png",
+     "medium": "https://wger.de/media/exercise-images/458/122735cf-f940-4de8-aa30-49a1da148319.png.400x400_q85.png"
+    }
+   }
+  ],
+  "translations": [
+   {
+    "language": 2,
+    "name": "Plank",
+    "description": "<p>Get into a position on the floor supporting your weight on your forearms and toes. Arms are bent and directly below the shoulder.</p>\n<p>Keep your body straight at all times and hold this position as long as possible. To increase difficulty an arm or leg can be raised while performing this exercise.</p>\n",
+    "aliases": [],
+    "notes": [
+     {
+      "comment": "Keep your body straight at all times"
+     }
+    ],
+    "license": 1,
+    "license_author": "YYCfit / BFad07"
+   }
+  ]
+ },
+ {
+  "id": 615,
+  "uuid": "a2f5b6ef-b780-49c0-8d96-fdaff23e27ce",
+  "last_update_global": "2026-04-15T22:23:56.765145+02:00",
+  "category": {
+   "id": 9,
+   "name": "Legs"
+  },
+  "muscles": [
+   {
+    "id": 10,
+    "name": "Quadriceps femoris",
+    "name_en": "Quads"
+   }
+  ],
+  "muscles_secondary": [
+   {
+    "id": 8,
+    "name": "Gluteus maximus",
+    "name_en": "Glutes"
+   }
+  ],
+  "equipment": [
+   {
+    "id": 1,
+    "name": "Barbell"
+   }
+  ],
+  "license": {
+   "id": 1,
+   "full_name": " Creative Commons Attribution Share Alike 3",
+   "short_name": "CC-BY-SA 3",
+   "url": "https://creativecommons.org/licenses/by-sa/3.0/deed.en"
+  },
+  "license_author": "wger.de",
+  "images": [],
+  "translations": [
+   {
+    "language": 2,
+    "name": "Squats",
+    "description": "<p>Place a barbell in a rack just below shoulder-height. Dip under the bar to put it behind the neck across the top of the back, and grip the bar with the hands wider than shoulder-width apart. Lift the chest up and squeeze the shoulder blades together to keep the straight back throughout the entire movement. Stand up to bring the bar off the rack and step backwards, then place the feet so that they are a little wider than shoulder-width apart. Sit back into hips and keep the back straight and the chest up, squatting down so the hips are below the knees. From the bottom of the squat, press feet into the ground and push hips forward to return to the top of the standing position.</p>\n",
+    "aliases": [],
+    "notes": [
+     {
+      "comment": "Make a pause at the bottom of 1sec, at the top, 3"
+     },
+     {
+      "comment": "Go down till your thighs are parallel to the floor"
+     }
+    ],
+    "license": 1,
+    "license_author": "wger.de"
+   }
+  ]
+ },
+ {
+  "id": 31,
+  "uuid": "f2733700-aa5d-4df7-bc52-1876ab4fb479",
+  "last_update_global": "2026-10-14T19:40:50.211394+02:00",
+  "category": {
+   "id": 8,
+   "name": "Arms"
+  },
+  "muscles": [],
+  "muscles_secondary": [],
+  "equipment": [
+   {
+    "id": 3,
+    "name": "Dumbbell"
+   }
+  ],
+  "license": {
+   "id": 1,
+   "full_name": " Creative Commons Attribution Share Alike 3",
+   "short_name": "CC-BY-SA 3",
+   "url": "https://creativecommons.org/licenses/by-sa/3.0/deed.en"
+  },
+  "license_author": "GrosseHund",
+  "images": [
+   {
+    "id": 665,
+    "uuid": "92f6451b-f89d-49d6-9531-8970ea420d97",
+    "image": "https://wger.de/media/exercise-images/31/92f6451b-f89d-49d6-9531-8970ea420d97.png",
+    "is_main": true,
+    "is_ai_generated": true,
+    "license": 2,
+    "license_author": "",
+    "license_object_url": "",
+    "license_derivative_source_url": "",
+    "thumbnails": {
+     "small": "https://wger.de/media/exercise-images/31/92f6451b-f89d-49d6-9531-8970ea420d97.png.200x200_q85.png",
+     "medium": "https://wger.de/media/exercise-images/31/92f6451b-f89d-49d6-9531-8970ea420d97.png.400x400_q85.png"
+    }
+   }
+  ],
+  "translations": [
+   {
+    "language": 2,
+    "name": "Axe Hold",
+    "description": "<p>Grab dumbbells and extend arms to side and hold as long as you can</p>\n",
+    "aliases": [],
+    "notes": [],
+    "license": 1,
+    "license_author": "GrosseHund"
+   }
+  ]
+ },
+ {
+  "id": 152,
+  "uuid": "87e6abc5-a701-442a-b4fb-bb2a7598a754",
+  "last_update_global": "2026-07-23T12:24:55.130199+02:00",
+  "category": {
+   "id": 12,
+   "name": "Back"
+  },
+  "muscles": [
+   {
+    "id": 1,
+    "name": "Biceps brachii",
+    "name_en": "Biceps"
+   },
+   {
+    "id": 12,
+    "name": "Latissimus dorsi",
+    "name_en": "Lats"
+   }
+  ],
+  "muscles_secondary": [
+   {
+    "id": 13,
+    "name": "Brachialis",
+    "name_en": ""
+   },
+   {
+    "id": 9,
+    "name": "Trapezius",
+    "name_en": ""
+   }
+  ],
+  "equipment": [
+   {
+    "id": 6,
+    "name": "Pull-up bar"
+   }
+  ],
+  "license": {
+   "id": 3,
+   "full_name": "Creative Commons Public Domain 1.0",
+   "short_name": "CC0",
+   "url": "http://creativecommons.org/publicdomain/zero/1.0/"
+  },
+  "license_author": "BFad07",
+  "images": [
+   {
+    "id": 73,
+    "uuid": "6c1a7459-266d-491a-bd50-7cbaea2bc771",
+    "image": "https://wger.de/media/exercise-images/152/6c1a7459-266d-491a-bd50-7cbaea2bc771.png",
+    "is_main": true,
+    "is_ai_generated": false,
+    "license": 1,
+    "license_author": "Everkinetic",
+    "license_object_url": "",
+    "license_derivative_source_url": "",
+    "thumbnails": {
+     "small": "https://wger.de/media/exercise-images/152/6c1a7459-266d-491a-bd50-7cbaea2bc771.png.200x200_q85.png",
+     "medium": "https://wger.de/media/exercise-images/152/6c1a7459-266d-491a-bd50-7cbaea2bc771.png.400x400_q85.png"
+    }
+   },
+   {
+    "id": 75,
+    "uuid": "b2c5a9f9-8beb-41f7-841c-9664d22a427e",
+    "image": "https://wger.de/media/exercise-images/152/b2c5a9f9-8beb-41f7-841c-9664d22a427e.png",
+    "is_main": false,
+    "is_ai_generated": false,
+    "license": 1,
+    "license_author": "Everkinetic",
+    "license_object_url": "",
+    "license_derivative_source_url": "",
+    "thumbnails": {
+     "small": "https://wger.de/media/exercise-images/152/b2c5a9f9-8beb-41f7-841c-9664d22a427e.png.200x200_q85.png",
+     "medium": "https://wger.de/media/exercise-images/152/b2c5a9f9-8beb-41f7-841c-9664d22a427e.png.400x400_q85.png"
+    }
+   }
+  ],
+  "translations": [
+   {
+    "language": 2,
+    "name": "Chin Up",
+    "description": "<p>The chin-up (also known as a chin or chinup) is a strength training exercise. People frequently do this exercise with the intention of strengthening muscles such as the latissimus dorsi and biceps, which extend the shoulder and flex the elbow, respectively. In this maneuver, the palms are faced towards the body. It is a form of pull-up in which the range of motion is established in relation to a person's chin.</p>\n",
+    "aliases": [],
+    "notes": [],
+    "license": 3,
+    "license_author": "BFad07"
+   }
+  ]
+ }
+]

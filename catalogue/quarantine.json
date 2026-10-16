@@ -1,0 +1,373 @@
+[
+ {
+  "id": "wger:03db11cc-8079-463c-9399-6f346b100ce6",
+  "name": "Abdominal Stabilization",
+  "reasons": [
+   "instructions_missing"
+  ]
+ },
+ {
+  "id": "wger:046b1e8f-4a11-4579-84d1-ac2833b8ed83",
+  "name": "Radio Taiso",
+  "reasons": [
+   "instructions_contain_link"
+  ]
+ },
+ {
+  "id": "wger:046fce45-69f2-46f7-a5b6-79a25a485af1",
+  "name": "Single Leg Extension",
+  "reasons": [
+   "instructions_missing"
+  ]
+ },
+ {
+  "id": "wger:072a9fa8-1028-47b3-b958-d8052c6b8661",
+  "name": "Barbell Lunges Walking",
+  "reasons": [
+   "instructions_missing"
+  ]
+ },
+ {
+  "id": "wger:09349391-375b-42d5-8979-00a5d7196a5b",
+  "name": "Reverse Plank",
+  "reasons": [
+   "instructions_missing"
+  ]
+ },
+ {
+  "id": "wger:18104387-4567-4c1e-8d03-db0b274646dd",
+  "name": "Leg Press on Hackenschmidt Machine",
+  "reasons": [
+   "instructions_missing"
+  ]
+ },
+ {
+  "id": "wger:2500c212-6f14-4a8d-a997-04e9e7c04116",
+  "name": "Overhead Barbell Press",
+  "reasons": [
+   "instructions_contain_link"
+  ]
+ },
+ {
+  "id": "wger:275fb49f-975c-4d6e-9d63-2c86ed740f40",
+  "name": "Incline Bench Press - Barbell",
+  "reasons": [
+   "instructions_missing"
+  ]
+ },
+ {
+  "id": "wger:2affa71f-7308-4448-af57-dc44b424090e",
+  "name": "Dumbell Tate Press",
+  "reasons": [
+   "instructions_contain_link"
+  ]
+ },
+ {
+  "id": "wger:2e7ffff9-e603-4b28-98c8-31d1a6ce8cd9",
+  "name": "Romanian Deadlift",
+  "reasons": [
+   "instructions_contain_link"
+  ]
+ },
+ {
+  "id": "wger:2f1a2707-e7ff-46ac-9112-3e31e6e961ee",
+  "name": "Dumbbell Lunges Standing",
+  "reasons": [
+   "instructions_missing"
+  ]
+ },
+ {
+  "id": "wger:316aca47-6f5b-40b7-b04f-f69e68387354",
+  "name": "Squats on Multipress",
+  "reasons": [
+   "instructions_missing"
+  ]
+ },
+ {
+  "id": "wger:33a55e1a-ff83-4c34-b056-887a121b0978",
+  "name": "Solo Hip Flexor Stretch",
+  "reasons": [
+   "instructions_contain_link"
+  ]
+ },
+ {
+  "id": "wger:36391719-d4ad-4e0f-991f-8eafd5947108",
+  "name": "Ball crunches",
+  "reasons": [
+   "instructions_missing"
+  ]
+ },
+ {
+  "id": "wger:36a309ba-7dd1-43c9-9efc-788c7cd9fbd6",
+  "name": "Wall Drills",
+  "reasons": [
+   "instructions_contain_link"
+  ]
+ },
+ {
+  "id": "wger:440a5184-de58-4a86-a7ba-76ddeafaa855",
+  "name": "Leg Curls (sitting)",
+  "reasons": [
+   "instructions_missing"
+  ]
+ },
+ {
+  "id": "wger:49189e88-40b6-4c0d-a784-0cc3abbb8e75",
+  "name": "Leg Curls (standing)",
+  "reasons": [
+   "instructions_missing"
+  ]
+ },
+ {
+  "id": "wger:4c317795-c301-4081-9f96-6036682f80c1",
+  "name": "Banded Shoulder Drills",
+  "reasons": [
+   "instructions_contain_link"
+  ]
+ },
+ {
+  "id": "wger:4e752292-051a-4043-8f80-a390c23875e6",
+  "name": "Calf raises, one legged",
+  "reasons": [
+   "instructions_missing"
+  ]
+ },
+ {
+  "id": "wger:4f5de647-eb73-4394-84a7-469d02a96de8",
+  "name": "Plank Jacks",
+  "reasons": [
+   "instructions_missing"
+  ]
+ },
+ {
+  "id": "wger:51a80676-92d8-4f91-b51a-4666888e40db",
+  "name": "Wall Pushup",
+  "reasons": [
+   "instructions_missing"
+  ]
+ },
+ {
+  "id": "wger:52dec48d-25a4-4a78-b66b-ad6a773e143a",
+  "name": "Power Clean",
+  "reasons": [
+   "instructions_missing"
+  ]
+ },
+ {
+  "id": "wger:58416166-7a3a-470d-b493-27332799dcdf",
+  "name": "Front Wood Chop",
+  "reasons": [
+   "instructions_missing"
+  ]
+ },
+ {
+  "id": "wger:5912d7ed-6a0e-4b4c-b30a-fc9f3f890fc1",
+  "name": "Shoulder Press, on Machine",
+  "reasons": [
+   "instructions_missing"
+  ]
+ },
+ {
+  "id": "wger:5b4b94ca-f429-4394-9477-c00be8f2bb04",
+  "name": "Front Pull narrow",
+  "reasons": [
+   "instructions_missing"
+  ]
+ },
+ {
+  "id": "wger:5c0824dc-f2fb-4d19-a1e5-7c33219ad51d",
+  "name": "Squat Jumps",
+  "reasons": [
+   "instructions_missing"
+  ]
+ },
+ {
+  "id": "wger:60e9a0c0-5458-46cd-ab41-7d7b85225cf8",
+  "name": "Incline Bench Press - MP",
+  "reasons": [
+   "instructions_missing"
+  ]
+ },
+ {
+  "id": "wger:6199b3c7-3ccb-47fa-89bb-ef7fef12c0e3",
+  "name": "Shrugs on Multipress",
+  "reasons": [
+   "instructions_missing"
+  ]
+ },
+ {
+  "id": "wger:6260e3aa-e46b-4b4b-8ada-58bfd0922d3a",
+  "name": "Front pull wide",
+  "reasons": [
+   "instructions_missing"
+  ]
+ },
+ {
+  "id": "wger:654793c2-e0e3-41fd-a549-0ece0f4378e8",
+  "name": "Run - Treadmill",
+  "reasons": [
+   "instructions_missing"
+  ]
+ },
+ {
+  "id": "wger:6c8b0c67-68af-4473-907e-31fb1e48430c",
+  "name": "Swimming 50m sprints",
+  "reasons": [
+   "instructions_missing"
+  ]
+ },
+ {
+  "id": "wger:7212cc74-656e-47ce-8292-d211676f2ee1",
+  "name": "Side Lying Hip Abduction",
+  "reasons": [
+   "instructions_contain_link"
+  ]
+ },
+ {
+  "id": "wger:7671b16c-5023-4663-b00d-86dd018e024f",
+  "name": "Ring Dips",
+  "reasons": [
+   "instructions_missing"
+  ]
+ },
+ {
+  "id": "wger:7f834f07-fa7b-46b6-8ffa-45930b0602db",
+  "name": "Pull Ups on Machine",
+  "reasons": [
+   "instructions_missing"
+  ]
+ },
+ {
+  "id": "wger:849f2fa6-42f9-4c59-90f6-275c8ada6725",
+  "name": "Rotary Torso Machine",
+  "reasons": [
+   "instructions_missing"
+  ]
+ },
+ {
+  "id": "wger:88dbcc74-0304-4fcf-8a47-92d14a484b0a",
+  "name": "Rowing, Lying on Bench",
+  "reasons": [
+   "instructions_missing"
+  ]
+ },
+ {
+  "id": "wger:8c496646-baa8-4ed3-97b1-702e213fdeca",
+  "name": "Lat Pull Down (Leaning Back)",
+  "reasons": [
+   "instructions_missing"
+  ]
+ },
+ {
+  "id": "wger:90e9f590-7d68-4afb-9f95-8429246ea4aa",
+  "name": "Trunk Rotation With Cable",
+  "reasons": [
+   "instructions_missing"
+  ]
+ },
+ {
+  "id": "wger:919bb48a-42fe-4a11-9078-ea2b5087c49f",
+  "name": "Side Bends on Machine",
+  "reasons": [
+   "instructions_missing"
+  ]
+ },
+ {
+  "id": "wger:91c47c8b-6290-4885-8921-df9aa7958c00",
+  "name": "Landmine press",
+  "reasons": [
+   "instructions_missing"
+  ]
+ },
+ {
+  "id": "wger:a00b852c-0d2b-4b4a-bbc2-ef538f211b6c",
+  "name": "Seated Shoulder Extension Stretch",
+  "reasons": [
+   "instructions_contain_link"
+  ]
+ },
+ {
+  "id": "wger:a6605e9c-887d-45e0-8282-617a8ec5fea2",
+  "name": "Butterfly Reverse",
+  "reasons": [
+   "instructions_missing"
+  ]
+ },
+ {
+  "id": "wger:abdd2b41-0c30-4ec1-8d14-f6dc5deb3561",
+  "name": "Bent-Leg Hamstring Stretch",
+  "reasons": [
+   "instructions_contain_link"
+  ]
+ },
+ {
+  "id": "wger:c8f951dd-94e0-4548-bbed-3b7bc883f7ba",
+  "name": "Snap Down",
+  "reasons": [
+   "instructions_contain_link"
+  ]
+ },
+ {
+  "id": "wger:d847301e-1613-4987-85cd-61d3ff9d7ef8",
+  "name": "V-Bar Pulldown",
+  "reasons": [
+   "instructions_missing"
+  ]
+ },
+ {
+  "id": "wger:dcd81ab4-1e6f-4123-b4a5-3364195faf7b",
+  "name": "Jalon caballero unialteral",
+  "reasons": [
+   "instructions_missing"
+  ]
+ },
+ {
+  "id": "wger:f24cb758-9c0d-42d4-ad9e-6025c527dd13",
+  "name": "Arnold Shoulder Press",
+  "reasons": [
+   "instructions_contain_link"
+  ]
+ },
+ {
+  "id": "wger:f4291da4-09c2-4605-a90c-c926c6a92515",
+  "name": "Arch Hang",
+  "reasons": [
+   "instructions_contain_link"
+  ]
+ },
+ {
+  "id": "wger:f4467e9a-9bb1-4e93-bec6-10a5d7738ffb",
+  "name": "Overhead Press",
+  "reasons": [
+   "instructions_missing"
+  ]
+ },
+ {
+  "id": "wger:f5252c85-04b7-48f0-97cf-711f326a5821",
+  "name": "Schwimmen",
+  "reasons": [
+   "instructions_missing"
+  ]
+ },
+ {
+  "id": "wger:f8d69dd4-3c35-49c7-8cbe-f0132eca4c52",
+  "name": "One Arm Triceps Extensions on Cable",
+  "reasons": [
+   "instructions_missing"
+  ]
+ },
+ {
+  "id": "wger:f9866335-e489-404b-84b5-248fb8512702",
+  "name": "Prisoner Squat",
+  "reasons": [
+   "instructions_contain_link"
+  ]
+ },
+ {
+  "id": "wger:fe328b2b-cc6d-4f12-a2c6-85ce374217c7",
+  "name": "Dumbbells on Scott Machine",
+  "reasons": [
+   "instructions_missing"
+  ]
+ }
+]
