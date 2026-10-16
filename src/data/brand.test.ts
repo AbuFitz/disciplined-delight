@@ -1,4 +1,4 @@
-import { readFileSync, readdirSync, statSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { GUEST_DB, USER_DB_PREFIX } from "./scope";
@@ -12,6 +12,12 @@ const walk = (dir: string): string[] =>
     const p = join(dir, f);
     return statSync(p).isDirectory() ? walk(p) : [p];
   });
+
+const pngDimensions = (file: string) => {
+  const bytes = readFileSync(file);
+  expect(bytes.subarray(0, 8).toString("hex"), file).toBe("89504e470d0a1a0a");
+  return { width: bytes.readUInt32BE(16), height: bytes.readUInt32BE(20) };
+};
 
 describe("VAYVOR rebrand", () => {
   it("shows the new name and pronunciation", () => {
@@ -51,7 +57,31 @@ describe("VAYVOR rebrand", () => {
       name: "VAYVOR",
       short_name: "VAYVOR",
     });
-    expect(m.icons.length).toBeGreaterThanOrEqual(3);
+    expect(m.icons).toEqual([
+      { src: "/icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
+      { src: "/icon-512.png", sizes: "512x512", type: "image/png", purpose: "any" },
+      {
+        src: "/icon-maskable-512.png",
+        sizes: "512x512",
+        type: "image/png",
+        purpose: "maskable",
+      },
+    ]);
+    for (const icon of m.icons as { src: string; sizes: string }[]) {
+      const file = join(root, "public", icon.src.replace(/^\//, ""));
+      expect(existsSync(file), icon.src).toBe(true);
+      const [width, height] = icon.sizes.split("x").map(Number);
+      expect(pngDimensions(file), icon.src).toEqual({ width, height });
+    }
+    expect(pngDimensions(join(root, "public", "apple-touch-icon.png"))).toEqual({
+      width: 180,
+      height: 180,
+    });
+    expect(m.shortcuts.map(({ url }: { url: string }) => url)).toEqual([
+      "/train",
+      "/food",
+      "/salah",
+    ]);
   });
 
   it("storage identifiers are unchanged", () => {
