@@ -2,7 +2,6 @@ import { fileURLToPath } from "node:url";
 import { defineConfig } from "vite";
 import viteReact from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
-import tsConfigPaths from "vite-tsconfig-paths";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import { nitro } from "nitro/vite";
 
@@ -11,6 +10,7 @@ const srcDir = fileURLToPath(new URL("./src", import.meta.url));
 export default defineConfig(({ command }) => ({
   css: { transformer: "lightningcss" },
   resolve: {
+    tsconfigPaths: true,
     alias: { "@": srcDir },
     dedupe: [
       "react",
@@ -35,14 +35,20 @@ export default defineConfig(({ command }) => ({
   },
   plugins: [
     tailwindcss(),
-    tsConfigPaths({ projects: ["./tsconfig.json"] }),
     tanstackStart({
       // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
       server: { entry: "server" },
     }),
     // Nitro (the deploy adapter) only needs to run for production builds — it
     // targets Vercel's Build Output API (writes to .vercel/output).
-    ...(command === "build" ? [nitro({ preset: process.env.NITRO_PRESET ?? "vercel", routeRules: { "/sw.js": { headers: { "cache-control": "no-cache" } } } })] : []),
+    ...(command === "build"
+      ? [
+          nitro({
+            preset: process.env.NITRO_PRESET ?? "vercel",
+            routeRules: { "/sw.js": { headers: { "cache-control": "no-cache" } } },
+          }),
+        ]
+      : []),
     viteReact(),
   ],
 }));
