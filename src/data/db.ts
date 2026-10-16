@@ -250,3 +250,73 @@ export async function clearCollections(cols: string[]) {
   await tx.done;
   notify(cols);
 }
+
+/* ------------------------------ Sync support ------------------------------ */
+export async function getRecord(collection: string, id: string): Promise<StoredRecord | undefined> {
+  return (await getDB()).get("records", [collection, id]);
+}
+
+export async function outboxAll(): Promise<Mutation[]> {
+  return (await getDB()).getAll("outbox");
+}
+
+export async function outboxDelete(seqs: number[]) {
+  const db = await getDB();
+  const tx = db.transaction("outbox", "readwrite");
+  for (const s of seqs) await tx.store.delete(s);
+  await tx.done;
+}
+
+export async function outboxFail(seq: number, error: string) {
+  const db = await getDB();
+  const m = await db.get("outbox", seq);
+  if (m) await db.put("outbox", { ...m, attempts: m.attempts + 1, lastError: error });
+}
+
+export async function setServerRev(collection: string, id: string, serverRev: number) {
+  const db = await getDB();
+  const rec = await db.get("records", [collection, id]);
+  if (rec) await db.put("records", { ...rec, serverRev });
+}
+
+/** Applies a record received from the server. Never queues an outbox entry. */
+export async function applyRemote(
+  collection: string,
+  id: string,
+  data: unknown,
+  serverRev: number,
+  deleted: boolean,
+) {
+  const db = await getDB();
+  const ex = await db.get("records", [collection, id]);
+  await db.put("records", {
+    collection,
+    id,
+    data: data ?? ex?.data ?? null,
+    rev: (ex?.rev ?? 0) + 1,
+    serverRev,
+    updatedAt: Date.now(),
+    deletedAt: deleted ? Date.now() : null,
+  });
+  notify([collection]);
+}
+
+/** Queue a fresh mutation for an existing record (used when resolving a conflict in favour of this device). */
+export async function enqueue(collection: string, id: string, op: "put" | "delete", data: unknown) {
+  const db = await getDB();
+  const rec = await db.get("records", [collection, id]);
+  await db.add("outbox", {
+    mid: newId(),
+    collection,
+    id,
+    op,
+    baseServerRev: rec?.serverRev ?? 0,
+    data,
+    ts: Date.now(),
+    attempts: 0,
+  });
+}
+
+export function onAnyChange(fn: Listener): () => void {
+  return subscribe(ALL, fn);
+}

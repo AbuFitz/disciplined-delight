@@ -26,6 +26,7 @@ export const COL = {
   checklistLogs: "checklistLogs",
   layout: "layout",
   foodDays: "foodDays",
+  reminderPrefs: "reminderPrefs",
 } as const;
 
 export type Profile = {

@@ -1,0 +1,33 @@
+{
+  "name": "New Life",
+  "short_name": "New Life",
+  "description": "A personal system for training, food and salah.",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0e1311",
+  "theme_color": "#0e1311",
+  "lang": "en-GB",
+  "categories": ["health", "fitness", "lifestyle"],
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    {
+      "src": "/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    { "name": "Train", "url": "/train", "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }] },
+    {
+      "name": "Log a meal",
+      "url": "/food",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    { "name": "Salah", "url": "/salah", "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }] }
+  ]
+}

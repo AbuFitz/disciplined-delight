@@ -42,7 +42,7 @@ export default defineConfig(({ command }) => ({
     }),
     // Nitro (the deploy adapter) only needs to run for production builds — it
     // targets Vercel's Build Output API (writes to .vercel/output).
-    ...(command === "build" ? [nitro({ preset: "vercel" })] : []),
+    ...(command === "build" ? [nitro({ preset: process.env.NITRO_PRESET ?? "vercel", routeRules: { "/sw.js": { headers: { "cache-control": "no-cache" } } } })] : []),
     viteReact(),
   ],
 }));

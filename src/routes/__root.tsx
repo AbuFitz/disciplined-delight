@@ -10,6 +10,9 @@ import {
 import type { ReactNode } from "react";
 
 import { Shell } from "@/components/nl/Shell";
+import { UpdateBanner } from "@/components/nl/UpdateBanner";
+import { registerServiceWorker } from "@/lib/pwa";
+import { useSyncRunner } from "@/data/sync-runner";
 import { Toaster } from "@/components/ui/sonner";
 import { DataProvider, useData } from "@/data/hooks";
 import { THEME_BOOT, applyTheme, getThemePref } from "@/lib/theme";
@@ -93,6 +96,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     links: [
       { rel: "stylesheet", href: appCss },
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+      { rel: "manifest", href: "/manifest.webmanifest" },
+      { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
     ],
   }),
   shellComponent: RootShell,
@@ -131,8 +136,10 @@ function RootComponent() {
 
 function Gate() {
   const { ready, error } = useData();
+  useSyncRunner();
   useEffect(() => {
     applyTheme(getThemePref());
+    registerServiceWorker();
   }, []);
   if (error) {
     return (
@@ -149,6 +156,7 @@ function Gate() {
   }
   return (
     <Shell>
+      <UpdateBanner />
       {ready ? <Outlet /> : <div aria-busy className="h-64 animate-pulse rounded-3xl bg-surface" />}
     </Shell>
   );
