@@ -56,7 +56,11 @@ export function suggestNext(
     };
   }
   if (allTop && !sameWeight) {
-    return { kind: "hold", weightKg: base, reason: "Sets were at different weights; repeat one weight across all sets." };
+    return {
+      kind: "hold",
+      weightKg: base,
+      reason: "Sets were at different weights; repeat one weight across all sets.",
+    };
   }
   const short = recorded.filter((s) => s.reps! < rx.repMax).length;
   return {

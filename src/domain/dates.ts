@@ -30,7 +30,14 @@ function parts(instant: Date | number, tz: string) {
   for (const p of fmt(tz).formatToParts(instant)) {
     if (p.type !== "literal") out[p.type] = Number(p.value);
   }
-  return out as { year: number; month: number; day: number; hour: number; minute: number; second: number };
+  return out as {
+    year: number;
+    month: number;
+    day: number;
+    hour: number;
+    minute: number;
+    second: number;
+  };
 }
 
 const pad = (n: number, w = 2) => String(n).padStart(w, "0");
@@ -107,19 +114,31 @@ export function daysBetween(a: ISODate, b: ISODate): number {
 
 export const WEEKDAY_SHORT = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as const;
 export const WEEKDAY_LONG = [
-  "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday",
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+  "Sunday",
 ] as const;
 
 export function formatDateLong(date: ISODate): string {
   const [y, m, d] = date.split("-").map(Number) as [number, number, number];
   return new Intl.DateTimeFormat("en-GB", {
-    weekday: "long", day: "numeric", month: "long", timeZone: "UTC",
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    timeZone: "UTC",
   }).format(new Date(Date.UTC(y, m - 1, d)));
 }
 
 export function formatClock(instant: number, tz = DEFAULT_TZ): string {
   return new Intl.DateTimeFormat("en-GB", {
-    hour: "2-digit", minute: "2-digit", hourCycle: "h23", timeZone: tz,
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+    timeZone: tz,
   }).format(instant);
 }
 

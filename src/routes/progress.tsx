@@ -1,318 +1,600 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo } from "react";
-import { Area, AreaChart, Bar, BarChart, ResponsiveContainer, XAxis } from "recharts";
-import { Flame, Pill, Scale, Sparkles, Trophy } from "lucide-react";
-import { AppShell } from "@/components/sunrise/AppShell";
-import { Callout, PageHeader, SectionLabel } from "@/components/sunrise/ui";
-import { useTrackerState, type DayLog } from "@/hooks/use-tracker-state";
-import { SUPPLEMENTS, workouts } from "@/lib/sunrise-data";
-import { calculateAdaptiveTDEE, type TDEELog } from "@/lib/algorithms";
+import { Trash2 } from "lucide-react";
+import { useMemo, useState } from "react";
+import {
+  CartesianGrid,
+  Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+  Bar,
+  BarChart,
+  ReferenceLine,
+} from "recharts";
+import { toast } from "sonner";
+import { WeighInSheet } from "@/components/nl/today";
+import {
+  Button,
+  EmptyState,
+  Eyebrow,
+  PageHeader,
+  Panel,
+  Row,
+  Segmented,
+  Select,
+  Skeleton,
+} from "@/components/nl/ui";
+import { deleteWeighIn } from "@/data/actions";
+import { useCollection, useProfile, useToday } from "@/data/hooks";
+import { weekTraining } from "@/data/selectors";
+import {
+  COL,
+  type FoodDay,
+  type LegacyDayLog,
+  type Purchase,
+  type Session,
+  type WeighIn,
+  type WorkoutTemplate,
+} from "@/data/types";
+import { addDays, formatDateLong, startOfWeek, weekDates, type ISODate } from "@/domain/dates";
+import { formatGBP } from "@/domain/money";
+import type { MealLog } from "@/domain/nutrition";
+import { estimateMaintenance, type TdeeDay } from "@/domain/tdee";
+import { linearTrend } from "@/domain/trend";
 
-export const Route = createFileRoute("/progress")({
-  component: ProgressPage,
-});
+export const Route = createFileRoute("/progress")({ component: ProgressPage });
 
-const EXERCISE_INDEX = new Map(workouts.flatMap((w) => w.exercises.map((e) => [e.id, e])));
-
-const dateAt = (offset: number) => {
-  const d = new Date();
-  d.setDate(d.getDate() + offset);
-  return d.toISOString().slice(0, 10);
-};
-
-const shortLabel = (offset: number) => {
-  const d = new Date();
-  d.setDate(d.getDate() + offset);
-  return d.toLocaleDateString("en-GB", { weekday: "short" }).slice(0, 2);
-};
-
-const relativeDate = (iso: string) => {
-  const days = Math.round((Date.now() - new Date(iso).getTime()) / 86400000);
-  if (days <= 0) return "Today";
-  if (days === 1) return "Yesterday";
-  if (days < 14) return `${days}d ago`;
-  return new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
-};
-
-type PR = { exerciseId: string; weight: number; date: string };
-
-function computePRs(logs: Record<string, DayLog>): PR[] {
-  const best: Record<string, PR> = {};
-  for (const [date, day] of Object.entries(logs)) {
-    for (const [exerciseId, entry] of Object.entries(day.exercises)) {
-      if (!entry.done || !entry.weight) continue;
-      const weight = parseFloat(entry.weight);
-      if (!Number.isFinite(weight)) continue;
-      if (!best[exerciseId] || weight > best[exerciseId]!.weight) {
-        best[exerciseId] = { exerciseId, weight, date };
-      }
-    }
-  }
-  return Object.values(best).sort((a, b) => (a.date < b.date ? 1 : -1));
-}
+type Range = "4" | "12" | "all";
+const axis = { stroke: "var(--muted-foreground)", fontSize: 11 };
 
 function ProgressPage() {
-  const tracker = useTrackerState();
+  const today = useToday();
+  const { profile } = useProfile();
+  const [range, setRange] = useState<Range>("12");
+  const [wOpen, setWOpen] = useState(false);
+  const [exName, setExName] = useState("");
+  const w = useCollection<WeighIn>(COL.weighIns);
+  const sess = useCollection<Session>(COL.sessions);
+  const tpl = useCollection<WorkoutTemplate>(COL.templates);
+  const logs = useCollection<MealLog>(COL.mealLogs);
+  const fd = useCollection<FoodDay>(COL.foodDays);
+  const legacy = useCollection<LegacyDayLog>(COL.legacyDays);
+  const purchases = useCollection<Purchase>(COL.purchases);
 
-  const prs = useMemo(() => computePRs(tracker.logs), [tracker.logs]);
+  const start: ISODate | null =
+    range === "all" ? null : addDays(startOfWeek(today), -(Number(range) - 1) * 7);
+  const inRange = (d: ISODate) => !start || d >= start;
 
-  const weightSeries = useMemo(
-    () =>
-      Array.from({ length: 14 }, (_, i) => {
-        const offset = i - 13;
-        const day = tracker.logs[dateAt(offset)];
-        return { label: shortLabel(offset), weight: day?.bodyWeightKg };
-      }).filter((d) => d.weight !== undefined) as { label: string; weight: number }[],
-    [tracker.logs],
+  const weights = useMemo(
+    () => w.items.filter((x) => inRange(x.date)).sort((a, b) => a.date.localeCompare(b.date)),
+    [w.items, start],
   );
+  const trend = linearTrend(weights.map((x) => ({ date: x.date, value: x.kg })));
+
+  const done = sess.items.filter((s) => s.status === "completed" || s.status === "ended-early");
+  const weekBars = useMemo(() => {
+    const n = range === "all" ? 12 : Number(range);
+    return Array.from({ length: n }, (_, i) => {
+      const d = addDays(startOfWeek(today), -(n - 1 - i) * 7);
+      const wk = weekDates(d);
+      const inWk = done.filter((s) => wk.includes(s.date));
+      return {
+        week: d.slice(5),
+        completed: inWk.filter((s) => s.status === "completed").length,
+        partial: inWk.filter((s) => s.status === "ended-early").length,
+      };
+    });
+  }, [done, range, today]);
+  const planned = tpl.items.filter((t) => !t.archivedAt && t.weekday != null).length;
+
+  const exerciseNames = useMemo(
+    () =>
+      [
+        ...new Set(
+          done.flatMap((s) =>
+            s.exercises
+              .filter((e) => e.sets.some((x) => x.completed && x.kind === "working"))
+              .map((e) => e.name),
+          ),
+        ),
+      ].sort(),
+    [done],
+  );
+  const exName2 = exName || exerciseNames[0] || "";
+  const exSeries = useMemo(
+    () =>
+      done
+        .filter((s) => inRange(s.date))
+        .sort((a, b) => a.startedAt - b.startedAt)
+        .flatMap((s) => {
+          const e = s.exercises.find((x) => x.name === exName2);
+          if (!e) return [];
+          const ws = e.sets.filter(
+            (x) => x.kind === "working" && x.completed && x.weightKg != null,
+          );
+          if (!ws.length) return [];
+          return [
+            {
+              date: s.date,
+              top: Math.max(...ws.map((x) => x.weightKg!)),
+              volume: Math.round(ws.reduce((a, x) => a + x.weightKg! * (x.reps ?? 0), 0)),
+            },
+          ];
+        }),
+    [done, exName2, start],
+  );
+
+  // Nutrition coverage: days with at least one log vs days in window.
+  const food = useMemo(() => {
+    const firstLog = logs.items.map((l) => l.date).sort()[0];
+    // Count only from the first day anything was logged, so pre-use days aren't shown as gaps.
+    const first = firstLog ? (start && start > firstLog ? start : firstLog) : today;
+    const days: ISODate[] = [];
+    for (let d = first; d <= today; d = addDays(d, 1)) days.push(d);
+    const by = new Map<ISODate, number>();
+    logs.items.forEach((l) => by.set(l.date, (by.get(l.date) ?? 0) + l.macros.kcal));
+    const loggedDays = days.filter((d) => by.has(d));
+    const complete = days.filter((d) => fd.items.some((f) => f.date === d && f.complete));
+    const avg = complete.length
+      ? Math.round(complete.reduce((s, d) => s + (by.get(d) ?? 0), 0) / complete.length)
+      : null;
+    return {
+      days: days.length,
+      logged: loggedDays.length,
+      complete: complete.length,
+      avg,
+      by,
+      all: days,
+    };
+  }, [logs.items, fd.items, start, today]);
 
   const tdee = useMemo(() => {
-    const entries = Object.entries(tracker.logs)
-      .filter(([, day]) => day.bodyWeightKg !== undefined && day.caloriesLogged !== undefined)
-      .sort(([a], [b]) => (a < b ? -1 : 1))
-      .map(
-        ([date, day]): TDEELog => ({
-          date,
-          weightKg: day.bodyWeightKg!,
-          caloriesLogged: day.caloriesLogged!,
-        }),
-      );
-    return { estimate: calculateAdaptiveTDEE(entries), sampleSize: entries.length };
-  }, [tracker.logs]);
+    const dates = new Set<ISODate>([
+      ...w.items.map((x) => x.date),
+      ...logs.items.map((l) => l.date),
+    ]);
+    const by = new Map<ISODate, number>();
+    logs.items.forEach((l) => by.set(l.date, (by.get(l.date) ?? 0) + l.macros.kcal));
+    const rows: TdeeDay[] = [...dates].map((d) => ({
+      date: d,
+      kcal: by.get(d),
+      kcalComplete: fd.items.some((f) => f.date === d && f.complete),
+      weightKg: w.items.find((x) => x.date === d)?.kg,
+    }));
+    return estimateMaintenance(rows);
+  }, [w.items, logs.items, fd.items]);
 
-  const activity = useMemo(
-    () =>
-      Array.from({ length: 14 }, (_, i) => {
-        const offset = i - 13;
-        const day = tracker.logs[dateAt(offset)];
-        const exercisesDone = day ? Object.values(day.exercises).filter((e) => e.done).length : 0;
-        return { label: shortLabel(offset), exercises: exercisesDone };
-      }),
-    [tracker.logs],
-  );
+  const wk = weekTraining(tpl.items, sess.items, today);
+  const wkDates = weekDates(today);
+  const spent = purchases.items
+    .filter((p) => wkDates.includes(p.date))
+    .reduce((s, p) => s + p.totalPence, 0);
+  const foodWeek = wkDates.filter((d) => food.by.has(d)).length;
 
-  const adherence = useMemo(() => {
-    let checked = 0;
-    for (let o = -6; o <= 0; o++) {
-      const day = tracker.logs[dateAt(o)];
-      if (!day) continue;
-      checked += Object.values(day.supplements).filter(Boolean).length;
-    }
-    const possible = 7 * SUPPLEMENTS.length;
-    return possible === 0 ? 0 : Math.round((checked / possible) * 100);
-  }, [tracker.logs]);
+  if (!w.ready || !sess.ready || !profile) return <Skeleton className="h-72" />;
+
+  const chartData = weights.map((x) => ({
+    date: x.date.slice(5),
+    kg: x.kg,
+    trend: trend
+      ? Math.round(
+          (trend.intercept +
+            (trend.slopePerWeek / 7) *
+              Math.round((new Date(x.date).getTime() - new Date(trend.x0).getTime()) / 86400000)) *
+            10,
+        ) / 10
+      : undefined,
+  }));
 
   return (
-    <AppShell>
+    <>
       <PageHeader
-        eyebrow="Ultimate tracking"
-        title="Progress"
-        note="Every rep, weight and streak you've logged — pulled straight from your history, nothing made up."
+        eyebrow="Progress"
+        title="What the records show"
+        sub="Only real observations appear here. Gaps stay gaps."
+        actions={
+          <Segmented
+            label="Date range"
+            value={range}
+            onChange={setRange}
+            options={[
+              { value: "4", label: "4 weeks" },
+              { value: "12", label: "12 weeks" },
+              { value: "all", label: "All" },
+            ]}
+          />
+        }
       />
 
-      <div className="px-5">
-        <div className="grid grid-cols-3 gap-2.5">
-          <div className="rounded-2xl border border-vital/40 bg-vital/10 p-3.5 text-center">
-            <div className="font-display text-2xl font-bold text-vital-foreground">
-              {tracker.currentStreak}
+      <div className="grid gap-5 lg:grid-cols-2">
+        <Panel className="lg:col-span-2" aria-label="Bodyweight">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <Eyebrow>Bodyweight</Eyebrow>
+              <p className="mt-1 text-sm text-muted-foreground tnum">
+                {weights.length} weigh-ins in range
+                {profile.goal.targetWeightKg ? ` · goal ${profile.goal.targetWeightKg} kg` : ""}
+              </p>
             </div>
-            <div className="mt-0.5 text-[9px] uppercase tracking-wider text-vital-foreground/70">
-              Day streak
+            <Button variant="secondary" size="sm" onClick={() => setWOpen(true)}>
+              Log weight
+            </Button>
+          </div>
+          {weights.length === 0 ? (
+            <div className="mt-4">
+              <EmptyState
+                title="No weigh-ins in this range"
+                body="Log your weight when you can. There's no need to do it daily."
+              />
             </div>
-          </div>
-          <div className="rounded-2xl border border-border bg-white p-3.5 text-center shadow-soft">
-            <div className="font-display text-2xl font-bold text-primary">
-              {tracker.totalSessions}
-            </div>
-            <div className="mt-0.5 text-[9px] uppercase tracking-wider text-muted-foreground">
-              Sessions
-            </div>
-          </div>
-          <div className="rounded-2xl border border-border bg-white p-3.5 text-center shadow-soft">
-            <div className="font-display text-2xl font-bold text-primary">{prs.length}</div>
-            <div className="mt-0.5 text-[9px] uppercase tracking-wider text-muted-foreground">
-              PRs logged
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="mt-6 px-5">
-        <div className="flex items-center gap-1.5">
-          <Scale className="h-4 w-4 text-primary" />
-          <SectionLabel>Daily check-in</SectionLabel>
-        </div>
-        <div className="mt-3 flex gap-2.5">
-          <label className="flex-1 rounded-2xl border border-border bg-white p-3.5 shadow-soft">
-            <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
-              Body weight (kg)
-            </span>
-            <input
-              type="number"
-              inputMode="decimal"
-              step="0.1"
-              placeholder="—"
-              defaultValue={tracker.todayLog.bodyWeightKg ?? ""}
-              onBlur={(e) =>
-                tracker.setBodyWeight(e.target.value ? parseFloat(e.target.value) : undefined)
-              }
-              className="mt-1 w-full bg-transparent font-display text-lg font-bold text-foreground focus:outline-none"
-            />
-          </label>
-          <label className="flex-1 rounded-2xl border border-border bg-white p-3.5 shadow-soft">
-            <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
-              Calories logged
-            </span>
-            <input
-              type="number"
-              inputMode="numeric"
-              step="10"
-              placeholder="—"
-              defaultValue={tracker.todayLog.caloriesLogged ?? ""}
-              onBlur={(e) =>
-                tracker.setCaloriesLogged(e.target.value ? parseInt(e.target.value, 10) : undefined)
-              }
-              className="mt-1 w-full bg-transparent font-display text-lg font-bold text-foreground focus:outline-none"
-            />
-          </label>
-        </div>
-
-        {weightSeries.length >= 2 && (
-          <div className="mt-3 rounded-2xl border border-border bg-white p-3 pt-4 shadow-soft">
-            <ResponsiveContainer width="100%" height={110}>
-              <AreaChart data={weightSeries} margin={{ top: 4, right: 4, left: 4, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="weightGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#2563eb" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="#2563eb" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <XAxis
-                  dataKey="label"
-                  tick={{ fontSize: 9, fill: "var(--muted-foreground)" }}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <Area
-                  type="monotone"
-                  dataKey="weight"
-                  stroke="#2563eb"
-                  strokeWidth={2.5}
-                  fill="url(#weightGrad)"
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-        )}
-
-        <div className="mt-3 rounded-2xl border border-border bg-white p-4 shadow-soft">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-foreground">Adaptive TDEE estimate</span>
-            <span className="font-display text-lg font-bold text-primary">
-              {tdee.estimate.toLocaleString()} kcal
-            </span>
-          </div>
-          <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
-            {tdee.sampleSize >= 14
-              ? `Based on your last ${tdee.sampleSize} days of logged weight + calories.`
-              : `Showing the 2,760 kcal baseline — log weight and calories for ${14 - tdee.sampleSize} more day${14 - tdee.sampleSize === 1 ? "" : "s"} to get a real estimate from your own data.`}
-          </p>
-        </div>
-      </div>
-
-      <div className="mt-6 px-5">
-        <div className="flex items-center gap-1.5">
-          <Sparkles className="h-4 w-4 text-primary" />
-          <SectionLabel>Activity — last 14 days</SectionLabel>
-        </div>
-        <div className="mt-3 rounded-2xl border border-border bg-white p-3 pt-4 shadow-soft">
-          {activity.every((d) => d.exercises === 0) ? (
-            <p className="px-2 py-8 text-center text-xs text-muted-foreground">
-              Log an exercise to start seeing your activity here.
-            </p>
           ) : (
-            <ResponsiveContainer width="100%" height={140}>
-              <BarChart data={activity} margin={{ top: 4, right: 4, left: 4, bottom: 0 }}>
-                <XAxis
-                  dataKey="label"
-                  tick={{ fontSize: 9, fill: "var(--muted-foreground)" }}
-                  axisLine={false}
-                  tickLine={false}
-                  interval={1}
+            <>
+              <div
+                className="mt-4 h-56"
+                role="img"
+                aria-label={`Weight chart of ${weights.length} weigh-ins from ${weights[0]!.date} to ${weights[weights.length - 1]!.date}, between ${Math.min(...weights.map((x) => x.kg))} and ${Math.max(...weights.map((x) => x.kg))} kilograms`}
+              >
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={chartData} margin={{ left: -18, right: 8, top: 8 }}>
+                    <CartesianGrid stroke="var(--line)" vertical={false} />
+                    <XAxis dataKey="date" {...axis} tickLine={false} minTickGap={24} />
+                    <YAxis
+                      domain={[(m: number) => Math.floor(m - 1), (m: number) => Math.ceil(m + 1)]}
+                      allowDecimals={false}
+                      {...axis}
+                      tickLine={false}
+                      axisLine={false}
+                      unit=" kg"
+                      width={56}
+                    />
+                    <Tooltip
+                      contentStyle={{
+                        background: "var(--popover)",
+                        border: "1px solid var(--line)",
+                        borderRadius: 12,
+                        color: "var(--foreground)",
+                      }}
+                      formatter={(v: number) => [`${v} kg`]}
+                    />
+                    {profile.goal.targetWeightKg && (
+                      <ReferenceLine
+                        y={profile.goal.targetWeightKg}
+                        stroke="var(--warm)"
+                        strokeDasharray="4 4"
+                      />
+                    )}
+                    <Line
+                      type="monotone"
+                      dataKey="kg"
+                      stroke="var(--spring)"
+                      strokeWidth={2}
+                      dot={{ r: 3 }}
+                      connectNulls={false}
+                      name="Weigh-in"
+                    />
+                    {trend && (
+                      <Line
+                        type="linear"
+                        dataKey="trend"
+                        stroke="var(--chart-3)"
+                        strokeWidth={1.5}
+                        strokeDasharray="5 4"
+                        dot={false}
+                        name="Trend"
+                      />
+                    )}
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+              <p className="mt-2 text-sm text-muted-foreground tnum">
+                {trend
+                  ? `Trend about ${trend.slopePerWeek >= 0 ? "+" : ""}${trend.slopePerWeek.toFixed(2)} kg per week, fitted to ${trend.n} weigh-ins over ${trend.spanDays} days. Day-to-day changes are normal.`
+                  : "A trend line appears once there are at least 6 weigh-ins spread over 2 weeks."}
+              </p>
+              <details className="mt-2">
+                <summary className="min-h-11 cursor-pointer py-2 text-sm">Weigh-ins list</summary>
+                <ul>
+                  {[...weights].reverse().map((x) => (
+                    <Row as="li" key={x.id} className="justify-between">
+                      <div>
+                        <p className="tnum font-medium">{x.kg.toFixed(1)} kg</p>
+                        <p className="text-sm text-muted-foreground">
+                          {formatDateLong(x.date)}
+                          {x.source === "legacy" ? " · from original app" : ""}
+                        </p>
+                      </div>
+                      <button
+                        aria-label={`Delete weigh-in ${x.date}`}
+                        className="inline-flex size-11 shrink-0 items-center justify-center rounded-full hover:bg-surface-2"
+                        onClick={async () => {
+                          await deleteWeighIn(x.id);
+                          toast("Weigh-in removed");
+                        }}
+                      >
+                        <Trash2 className="size-4" />
+                      </button>
+                    </Row>
+                  ))}
+                </ul>
+              </details>
+            </>
+          )}
+        </Panel>
+
+        <Panel aria-label="Training">
+          <Eyebrow>Training frequency</Eyebrow>
+          <p className="mt-1 text-sm text-muted-foreground tnum">
+            This week: {wk.completed} of {wk.planned} planned sessions
+            {wk.partial ? `, ${wk.partial} partial` : ""}.
+          </p>
+          <div
+            className="mt-3 h-44"
+            role="img"
+            aria-label={`Sessions per week over the last ${weekBars.length} weeks`}
+          >
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={weekBars} margin={{ left: -24, right: 4 }}>
+                <CartesianGrid stroke="var(--line)" vertical={false} />
+                <XAxis dataKey="week" {...axis} tickLine={false} />
+                <YAxis allowDecimals={false} {...axis} tickLine={false} axisLine={false} />
+                <Tooltip
+                  contentStyle={{
+                    background: "var(--popover)",
+                    border: "1px solid var(--line)",
+                    borderRadius: 12,
+                  }}
                 />
-                <Bar dataKey="exercises" fill="#2054d6" radius={[4, 4, 0, 0]} maxBarSize={18} />
+                {planned > 0 && (
+                  <ReferenceLine
+                    y={planned}
+                    stroke="var(--muted-foreground)"
+                    strokeDasharray="3 3"
+                  />
+                )}
+                <Bar
+                  dataKey="completed"
+                  stackId="a"
+                  fill="var(--spring)"
+                  name="Completed"
+                  radius={[4, 4, 0, 0]}
+                />
+                <Bar
+                  dataKey="partial"
+                  stackId="a"
+                  fill="var(--warm)"
+                  name="Partial"
+                  radius={[4, 4, 0, 0]}
+                />
               </BarChart>
             </ResponsiveContainer>
-          )}
-        </div>
-        <p className="mt-1.5 text-[11px] text-muted-foreground">
-          Exercises marked done per day — a proxy for how much work you put in.
-        </p>
-      </div>
-
-      <div className="mt-6 px-5">
-        <div className="flex items-center gap-1.5">
-          <Trophy className="h-4 w-4 text-primary" />
-          <SectionLabel>Personal records</SectionLabel>
-        </div>
-        {prs.length === 0 ? (
-          <div className="mt-3">
-            <Callout icon={Trophy}>
-              Log a weight and mark an exercise done on Workouts — your first PR shows up here
-              automatically.
-            </Callout>
           </div>
-        ) : (
-          <div className="mt-3 divide-y divide-border overflow-hidden rounded-2xl border border-border bg-white shadow-soft">
-            {prs.map((pr) => {
-              const exercise = EXERCISE_INDEX.get(pr.exerciseId);
-              return (
-                <div key={pr.exerciseId} className="flex items-center gap-3 p-3.5">
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-accent text-primary">
-                    <Trophy className="h-4 w-4" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="truncate text-sm font-semibold text-foreground">
-                      {exercise?.name ?? pr.exerciseId}
-                    </div>
-                    <div className="text-xs text-muted-foreground">{relativeDate(pr.date)}</div>
-                  </div>
-                  <div className="shrink-0 font-mono text-sm font-bold text-primary">
-                    {pr.weight}kg
-                  </div>
+          <p className="text-xs text-muted-foreground">
+            Dashed line = planned sessions per week. Cardio isn't counted as a lifting session.
+          </p>
+        </Panel>
+
+        <Panel aria-label="Exercise performance">
+          <Eyebrow>Exercise performance</Eyebrow>
+          {exerciseNames.length === 0 ? (
+            <div className="mt-3">
+              <EmptyState
+                title="No recorded sets yet"
+                body="Per-set weight and reps start with your first session in this app. Original-app weights are listed below."
+              />
+            </div>
+          ) : (
+            <>
+              <div className="mt-2">
+                <Select
+                  aria-label="Exercise"
+                  value={exName2}
+                  onChange={(e) => setExName(e.target.value)}
+                >
+                  {exerciseNames.map((n) => (
+                    <option key={n}>{n}</option>
+                  ))}
+                </Select>
+              </div>
+              {exSeries.length < 2 ? (
+                <p className="mt-3 text-sm text-muted-foreground">
+                  Needs at least two sessions with this exercise in range to compare.
+                </p>
+              ) : (
+                <div
+                  className="mt-3 h-44"
+                  role="img"
+                  aria-label={`Top working weight for ${exName2} by session`}
+                >
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart
+                      data={exSeries.map((x) => ({ ...x, date: x.date.slice(5) }))}
+                      margin={{ left: -18, right: 8 }}
+                    >
+                      <CartesianGrid stroke="var(--line)" vertical={false} />
+                      <XAxis dataKey="date" {...axis} tickLine={false} />
+                      <YAxis
+                        {...axis}
+                        tickLine={false}
+                        axisLine={false}
+                        unit=" kg"
+                        width={52}
+                        domain={[(m: number) => Math.floor(m - 2), (m: number) => Math.ceil(m + 2)]}
+                      />
+                      <Tooltip
+                        contentStyle={{
+                          background: "var(--popover)",
+                          border: "1px solid var(--line)",
+                          borderRadius: 12,
+                        }}
+                      />
+                      <Line
+                        dataKey="top"
+                        name="Top weight (kg)"
+                        stroke="var(--spring)"
+                        strokeWidth={2}
+                        dot={{ r: 3 }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
                 </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
+              )}
+              {exSeries.length > 0 && (
+                <p className="mt-2 text-sm text-muted-foreground tnum">
+                  Latest: {exSeries[exSeries.length - 1]!.top} kg top set ·{" "}
+                  {exSeries[exSeries.length - 1]!.volume.toLocaleString("en-GB")} kg logged volume.
+                </p>
+              )}
+            </>
+          )}
+        </Panel>
 
-      <div className="mt-6 px-5 pb-2">
-        <div className="flex items-center gap-1.5">
-          <Pill className="h-4 w-4 text-primary" />
-          <SectionLabel>Supplement adherence — last 7 days</SectionLabel>
-        </div>
-        <div className="mt-3 rounded-2xl border border-border bg-white p-4 shadow-soft">
-          <div className="flex items-center justify-between">
-            <span className="font-display text-2xl font-bold text-foreground">{adherence}%</span>
-            <span className="text-xs text-muted-foreground">of daily supplements taken</span>
-          </div>
-          <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-secondary">
-            <div
-              className="h-full rounded-full bg-vital transition-all"
-              style={{ width: `${adherence}%` }}
-            />
-          </div>
-        </div>
-        {adherence < 60 && (
-          <div className="mt-3">
-            <Callout icon={Flame}>
-              Keep the pot next to the kettle — adherence tends to drop first when the bottles are
-              out of sight.
-            </Callout>
-          </div>
-        )}
+        <Panel aria-label="Nutrition coverage">
+          <Eyebrow>Food logging</Eyebrow>
+          {logs.items.length === 0 ? (
+            <p className="mt-2 font-display text-2xl font-semibold">No food logged yet</p>
+          ) : (
+            <p className="mt-2 font-display text-3xl font-semibold tnum">
+              {food.logged}
+              <span className="text-lg text-muted-foreground">
+                {" "}
+                of {food.days} days have food logged
+              </span>
+            </p>
+          )}
+          <ul className="mt-3 flex flex-wrap gap-1" aria-label="Days with food logged">
+            {food.all.slice(-42).map((d) => (
+              <li
+                key={d}
+                title={`${d}: ${food.by.has(d) ? "logged" : "nothing logged"}`}
+                className={`size-4 rounded ${food.by.has(d) ? "bg-spring" : "border border-line"}`}
+              >
+                <span className="sr-only">
+                  {d}: {food.by.has(d) ? "logged" : "nothing logged"}
+                </span>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-3 text-sm text-muted-foreground tnum">
+            {food.avg != null
+              ? `Average on ${food.complete} fully-logged days: ${food.avg.toLocaleString("en-GB")} kcal.`
+              : "No days are marked fully logged yet, so there's no average. Days without logs are unknown, not zero."}
+          </p>
+        </Panel>
+
+        <Panel aria-label="Maintenance estimate">
+          <Eyebrow>Maintenance estimate</Eyebrow>
+          {tdee.ok ? (
+            <>
+              <p className="mt-2 font-display text-3xl font-semibold tnum">
+                about {tdee.maintenanceKcal.toLocaleString("en-GB")} kcal
+              </p>
+              <p className="text-sm text-muted-foreground tnum">
+                Likely between {tdee.rangeKcal[0].toLocaleString("en-GB")} and{" "}
+                {tdee.rangeKcal[1].toLocaleString("en-GB")}. Based on {tdee.loggedDays} fully-logged
+                days over {tdee.windowDays} days; weight trend{" "}
+                {tdee.weightSlopeKgPerWeek >= 0 ? "+" : ""}
+                {tdee.weightSlopeKgPerWeek} kg/week.
+              </p>
+              <p className="mt-2 text-sm">
+                This is information only. Your target changes only if you change it in Settings.
+              </p>
+            </>
+          ) : (
+            <>
+              <p className="mt-2 font-display text-2xl font-semibold">Not enough data</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {tdee.reason} An estimate also needs weigh-ins across at least two weeks.
+              </p>
+            </>
+          )}
+        </Panel>
+
+        <Panel tone="green" className="lg:col-span-2" aria-label="Weekly review">
+          <Eyebrow className="!text-foreground/70">This week so far</Eyebrow>
+          <ul className="mt-3 grid gap-2 md:grid-cols-2">
+            <li>
+              Training:{" "}
+              <strong className="tnum">
+                {wk.completed}/{wk.planned}
+              </strong>{" "}
+              planned sessions completed{wk.partial ? `, ${wk.partial} partial` : ""}.
+            </li>
+            <li>
+              Food: logged on <strong className="tnum">{foodWeek}</strong> of{" "}
+              {Math.min(7, wkDates.filter((d) => d <= today).length)} days so far.
+            </li>
+            <li>
+              Spending: <strong className="tnum">{formatGBP(spent)}</strong>
+              {profile.budgetPencePerWeek != null
+                ? ` of ${formatGBP(profile.budgetPencePerWeek)} budget (recorded purchases)`
+                : " recorded. Set a weekly budget in Settings to compare."}
+            </li>
+            <li>
+              Weigh-ins this week:{" "}
+              <strong className="tnum">
+                {w.items.filter((x) => wkDates.includes(x.date)).length}
+              </strong>
+              .
+            </li>
+          </ul>
+          <p className="mt-3 text-sm text-foreground/80">
+            {wk.planned - wk.completed - wk.partial > 0
+              ? `${wk.planned - wk.completed - wk.partial} planned session${wk.planned - wk.completed - wk.partial > 1 ? "s" : ""} still open. Keep, move or skip them from Train.`
+              : "All planned sessions are accounted for."}
+            {foodWeek === 0 ? " No food logged yet this week." : ""}
+          </p>
+        </Panel>
+
+        <Panel className="lg:col-span-2" aria-label="Original app history">
+          <Eyebrow>From your original app</Eyebrow>
+          {legacy.items.length === 0 ? (
+            <p className="mt-2 text-sm text-muted-foreground">
+              No records were found from the original app on this browser.
+            </p>
+          ) : (
+            <>
+              <p className="mt-2 text-sm text-muted-foreground">
+                {legacy.items.length} days kept exactly as recorded: one weight and a done flag per
+                exercise. They were not turned into sets or reps, so they don't affect volume or
+                personal bests. Dates came from the original app's own date logic.
+              </p>
+              <details className="mt-2">
+                <summary className="min-h-11 cursor-pointer py-2 text-sm">Show days</summary>
+                <ul>
+                  {[...legacy.items]
+                    .sort((a, b) => b.date.localeCompare(a.date))
+                    .map((d) => (
+                      <Row as="li" key={d.date} className="items-start">
+                        <div>
+                          <p className="font-medium">{formatDateLong(d.date)}</p>
+                          <p className="text-sm text-muted-foreground tnum">
+                            {Object.entries(d.exercises)
+                              .filter(([, e]) => e.done || e.weight)
+                              .map(
+                                ([k, e]) =>
+                                  `${k.toUpperCase()}${e.weight ? ` ${e.weight} kg` : ""}${e.done ? " ✓" : ""}`,
+                              )
+                              .join(" · ") || "No exercises"}
+                            {d.cardioDone ? " · cardio" : ""}
+                            {d.bodyWeightKg ? ` · ${d.bodyWeightKg} kg` : ""}
+                          </p>
+                        </div>
+                      </Row>
+                    ))}
+                </ul>
+              </details>
+            </>
+          )}
+        </Panel>
       </div>
-    </AppShell>
+      <WeighInSheet
+        open={wOpen}
+        onOpenChange={setWOpen}
+        date={today}
+        initial={weights[weights.length - 1]?.kg}
+      />
+    </>
   );
 }

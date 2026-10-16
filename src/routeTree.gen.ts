@@ -10,15 +10,26 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as WorkoutsRouteImport } from './routes/workouts'
+import { Route as TrainRouteImport } from './routes/train'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ScheduleRouteImport } from './routes/schedule'
+import { Route as SalahRouteImport } from './routes/salah'
 import { Route as ProgressRouteImport } from './routes/progress'
+import { Route as PlanRouteImport } from './routes/plan'
 import { Route as NutritionRouteImport } from './routes/nutrition'
+import { Route as FoodRouteImport } from './routes/food'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as TrainIndexRouteImport } from './routes/train.index'
+import { Route as TrainSessionRouteImport } from './routes/train.session'
 
 const WorkoutsRoute = WorkoutsRouteImport.update({
   id: '/workouts',
   path: '/workouts',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TrainRoute = TrainRouteImport.update({
+  id: '/train',
+  path: '/train',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SettingsRoute = SettingsRouteImport.update({
@@ -31,9 +42,19 @@ const ScheduleRoute = ScheduleRouteImport.update({
   path: '/schedule',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SalahRoute = SalahRouteImport.update({
+  id: '/salah',
+  path: '/salah',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProgressRoute = ProgressRouteImport.update({
   id: '/progress',
   path: '/progress',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlanRoute = PlanRouteImport.update({
+  id: '/plan',
+  path: '/plan',
   getParentRoute: () => rootRouteImport,
 } as any)
 const NutritionRoute = NutritionRouteImport.update({
@@ -41,64 +62,123 @@ const NutritionRoute = NutritionRouteImport.update({
   path: '/nutrition',
   getParentRoute: () => rootRouteImport,
 } as any)
+const FoodRoute = FoodRouteImport.update({
+  id: '/food',
+  path: '/food',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TrainIndexRoute = TrainIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => TrainRoute,
+} as any)
+const TrainSessionRoute = TrainSessionRouteImport.update({
+  id: '/session',
+  path: '/session',
+  getParentRoute: () => TrainRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/food': typeof FoodRoute
   '/nutrition': typeof NutritionRoute
+  '/plan': typeof PlanRoute
   '/progress': typeof ProgressRoute
+  '/salah': typeof SalahRoute
   '/schedule': typeof ScheduleRoute
   '/settings': typeof SettingsRoute
+  '/train': typeof TrainRouteWithChildren
   '/workouts': typeof WorkoutsRoute
+  '/train/session': typeof TrainSessionRoute
+  '/train/': typeof TrainIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/food': typeof FoodRoute
   '/nutrition': typeof NutritionRoute
+  '/plan': typeof PlanRoute
   '/progress': typeof ProgressRoute
+  '/salah': typeof SalahRoute
   '/schedule': typeof ScheduleRoute
   '/settings': typeof SettingsRoute
   '/workouts': typeof WorkoutsRoute
+  '/train/session': typeof TrainSessionRoute
+  '/train': typeof TrainIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/food': typeof FoodRoute
   '/nutrition': typeof NutritionRoute
+  '/plan': typeof PlanRoute
   '/progress': typeof ProgressRoute
+  '/salah': typeof SalahRoute
   '/schedule': typeof ScheduleRoute
   '/settings': typeof SettingsRoute
+  '/train': typeof TrainRouteWithChildren
   '/workouts': typeof WorkoutsRoute
+  '/train/session': typeof TrainSessionRoute
+  '/train/': typeof TrainIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/food'
     | '/nutrition'
+    | '/plan'
     | '/progress'
+    | '/salah'
+    | '/schedule'
+    | '/settings'
+    | '/train'
+    | '/workouts'
+    | '/train/session'
+    | '/train/'
+  fileRoutesByTo: FileRoutesByTo
+  to:
+    | '/'
+    | '/food'
+    | '/nutrition'
+    | '/plan'
+    | '/progress'
+    | '/salah'
     | '/schedule'
     | '/settings'
     | '/workouts'
-  fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/nutrition' | '/progress' | '/schedule' | '/settings' | '/workouts'
+    | '/train/session'
+    | '/train'
   id:
     | '__root__'
     | '/'
+    | '/food'
     | '/nutrition'
+    | '/plan'
     | '/progress'
+    | '/salah'
     | '/schedule'
     | '/settings'
+    | '/train'
     | '/workouts'
+    | '/train/session'
+    | '/train/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  FoodRoute: typeof FoodRoute
   NutritionRoute: typeof NutritionRoute
+  PlanRoute: typeof PlanRoute
   ProgressRoute: typeof ProgressRoute
+  SalahRoute: typeof SalahRoute
   ScheduleRoute: typeof ScheduleRoute
   SettingsRoute: typeof SettingsRoute
+  TrainRoute: typeof TrainRouteWithChildren
   WorkoutsRoute: typeof WorkoutsRoute
 }
 
@@ -109,6 +189,13 @@ declare module '@tanstack/react-router' {
       path: '/workouts'
       fullPath: '/workouts'
       preLoaderRoute: typeof WorkoutsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/train': {
+      id: '/train'
+      path: '/train'
+      fullPath: '/train'
+      preLoaderRoute: typeof TrainRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/settings': {
@@ -125,11 +212,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ScheduleRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/salah': {
+      id: '/salah'
+      path: '/salah'
+      fullPath: '/salah'
+      preLoaderRoute: typeof SalahRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/progress': {
       id: '/progress'
       path: '/progress'
       fullPath: '/progress'
       preLoaderRoute: typeof ProgressRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/plan': {
+      id: '/plan'
+      path: '/plan'
+      fullPath: '/plan'
+      preLoaderRoute: typeof PlanRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/nutrition': {
@@ -139,6 +240,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof NutritionRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/food': {
+      id: '/food'
+      path: '/food'
+      fullPath: '/food'
+      preLoaderRoute: typeof FoodRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -146,15 +254,45 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/train/': {
+      id: '/train/'
+      path: '/'
+      fullPath: '/train/'
+      preLoaderRoute: typeof TrainIndexRouteImport
+      parentRoute: typeof TrainRoute
+    }
+    '/train/session': {
+      id: '/train/session'
+      path: '/session'
+      fullPath: '/train/session'
+      preLoaderRoute: typeof TrainSessionRouteImport
+      parentRoute: typeof TrainRoute
+    }
   }
 }
 
+interface TrainRouteChildren {
+  TrainSessionRoute: typeof TrainSessionRoute
+  TrainIndexRoute: typeof TrainIndexRoute
+}
+
+const TrainRouteChildren: TrainRouteChildren = {
+  TrainSessionRoute: TrainSessionRoute,
+  TrainIndexRoute: TrainIndexRoute,
+}
+
+const TrainRouteWithChildren = TrainRoute._addFileChildren(TrainRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  FoodRoute: FoodRoute,
   NutritionRoute: NutritionRoute,
+  PlanRoute: PlanRoute,
   ProgressRoute: ProgressRoute,
+  SalahRoute: SalahRoute,
   ScheduleRoute: ScheduleRoute,
   SettingsRoute: SettingsRoute,
+  TrainRoute: TrainRouteWithChildren,
   WorkoutsRoute: WorkoutsRoute,
 }
 export const routeTree = rootRouteImport

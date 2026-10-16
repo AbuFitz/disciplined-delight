@@ -18,5 +18,7 @@ const errorMiddleware = createMiddleware().server(async ({ next }) => {
 });
 
 export const startInstance = createStart(() => ({
+  // The app reads from the on-device database, so route components render on the client.
+  defaultSsr: false,
   requestMiddleware: [errorMiddleware],
 }));

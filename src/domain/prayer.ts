@@ -4,7 +4,12 @@ export const PRAYERS = ["fajr", "dhuhr", "asr", "maghrib", "isha"] as const;
 export type PrayerName = (typeof PRAYERS)[number];
 
 export const PRAYER_LABEL: Record<PrayerName | "sunrise", string> = {
-  fajr: "Fajr", sunrise: "Sunrise", dhuhr: "Dhuhr", asr: "Asr", maghrib: "Maghrib", isha: "Isha",
+  fajr: "Fajr",
+  sunrise: "Sunrise",
+  dhuhr: "Dhuhr",
+  asr: "Asr",
+  maghrib: "Maghrib",
+  isha: "Isha",
 };
 
 /** Start times are authoritative timings; iqamah/jamaat times are separate. */
@@ -43,11 +48,21 @@ export function nextPrayer(
   const tomorrow = addDays(today, 1);
   const tm = lookup(tomorrow);
   if (!tm) return { status: "unavailable", reason: "Tomorrow's prayer times aren't loaded yet." };
-  return { status: "ok", prayer: "fajr", at: prayerInstant(tm, "fajr", tz), date: tomorrow, isTomorrow: true };
+  return {
+    status: "ok",
+    prayer: "fajr",
+    at: prayerInstant(tm, "fajr", tz),
+    date: tomorrow,
+    isTomorrow: true,
+  };
 }
 
 /** The most recent prayer whose start has passed (for "current prayer" UI). */
-export function currentPrayer(now: number, lookup: (d: ISODate) => PrayerDay | undefined, tz = DEFAULT_TZ) {
+export function currentPrayer(
+  now: number,
+  lookup: (d: ISODate) => PrayerDay | undefined,
+  tz = DEFAULT_TZ,
+) {
   const today = localDate(now, tz);
   const t = lookup(today);
   if (!t) return null;
@@ -87,6 +102,11 @@ export function aladhanUrl(s: AladhanSettings, year: number, month: number): str
   return `https://api.aladhan.com/v1/calendarByCity/${year}/${month}?${q}`;
 }
 
+type AladhanRow = {
+  date?: { gregorian?: { date?: string } };
+  timings?: Record<string, unknown>;
+};
+
 const hhmm = (v: unknown): string | null => {
   if (typeof v !== "string") return null;
   const m = v.match(/^(\d{1,2}):(\d{2})/);
@@ -98,13 +118,17 @@ export function parseAladhanCalendar(json: unknown, sourceId: string): PrayerDay
   const data = (json as { code?: number; data?: unknown[] })?.data;
   if (!Array.isArray(data)) throw new Error("Unexpected prayer-time response");
   const out: PrayerDay[] = [];
-  for (const row of data as any[]) {
+  for (const row of data as AladhanRow[]) {
     const g: string | undefined = row?.date?.gregorian?.date; // DD-MM-YYYY
     const t = row?.timings;
     if (!g || !t) continue;
     const [dd, mm, yyyy] = g.split("-");
     const start = {
-      fajr: hhmm(t.Fajr), dhuhr: hhmm(t.Dhuhr), asr: hhmm(t.Asr), maghrib: hhmm(t.Maghrib), isha: hhmm(t.Isha),
+      fajr: hhmm(t.Fajr),
+      dhuhr: hhmm(t.Dhuhr),
+      asr: hhmm(t.Asr),
+      maghrib: hhmm(t.Maghrib),
+      isha: hhmm(t.Isha),
       sunrise: hhmm(t.Sunrise),
     };
     if (!start.fajr || !start.dhuhr || !start.asr || !start.maghrib || !start.isha) continue;

@@ -1,268 +1,457 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { Archive, Plus } from "lucide-react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import {
-  AlarmClock,
-  Briefcase,
-  Camera,
-  CheckCircle2,
-  Dumbbell,
-  Flame,
-  LogOut,
-  Scale,
-  Sparkles,
-  Sunrise,
-  Trash2,
-  UtensilsCrossed,
-} from "lucide-react";
-import type { LucideIcon } from "lucide-react";
-import { AppShell } from "@/components/sunrise/AppShell";
-import { PageHeader, SectionLabel } from "@/components/sunrise/ui";
-import { useAuth } from "@/hooks/use-auth";
-import { useTrackerState } from "@/hooks/use-tracker-state";
-import { useScheduleState, type ScheduleStep } from "@/hooks/use-schedule-state";
-import { isSupabaseConfigured } from "@/lib/supabase";
-import { WEEKLY_SPLIT } from "@/lib/sunrise-data";
+  Button,
+  Chip,
+  ConfirmDialog,
+  Field,
+  NumberField,
+  PageHeader,
+  Row,
+  Segmented,
+  Select,
+  Sheet,
+  Skeleton,
+  Switch,
+  TextArea,
+  TextInput,
+} from "@/components/nl/ui";
+import { saveProfile } from "@/data/actions";
+import { newId, put } from "@/data/db";
+import { useCollection, useProfile } from "@/data/hooks";
+import { COL, type ChecklistItem, type PrayerSettings, type Profile } from "@/data/types";
+import { getThemePref, setThemePref, type ThemePref } from "@/lib/theme";
 
-export const Route = createFileRoute("/settings")({
-  component: SettingsPage,
-});
+export const Route = createFileRoute("/settings")({ component: SettingsPage });
 
-const PRINCIPLES: Array<{ icon: LucideIcon; title: string; body: string }> = [
-  {
-    icon: CheckCircle2,
-    title: "Track workouts, not just meals",
-    body: "Even a basic log — 'Workout A, chest press 30kg for 10/10/9' — shows progress, which is what keeps you going when motivation dips.",
-  },
-  {
-    icon: Flame,
-    title: "Non-negotiable minimum",
-    body: "If you're exhausted, still show up and do the treadmill or Stairmaster for 20 min. Something beats nothing.",
-  },
-  {
-    icon: Sparkles,
-    title: "The first 2 weeks are the hardest",
-    body: "After that, 5am stops feeling brutal — your body adjusts its rhythm around Fajr and the gym.",
-  },
-  {
-    icon: Scale,
-    title: "Weigh in weekly, not daily",
-    body: "Same day, same time — e.g. Sunday morning. Daily is too noisy to be useful.",
-  },
-  {
-    icon: Camera,
-    title: "Progress photo, same weekly slot",
-    body: "Pair it with your weigh-in so you have a visual record alongside the number.",
-  },
-];
-
-function SettingsPage() {
-  const tracker = useTrackerState();
-  const schedule = useScheduleState();
-  const auth = useAuth();
-
+function Section({
+  title,
+  hint,
+  children,
+}: {
+  title: string;
+  hint?: string;
+  children: React.ReactNode;
+}) {
   return (
-    <AppShell>
-      <PageHeader
-        title="Settings"
-        note="Change what's changed — Fajr time, gym time, work hours."
-      />
-
-      <div className="px-5">
-        <SectionLabel>Weekly split</SectionLabel>
-        <div className="mt-3 rounded-2xl border border-border bg-white p-4 shadow-soft">
-          <div className="flex justify-between gap-1">
-            {WEEKLY_SPLIT.map((d) => (
-              <div key={d.day} className="flex flex-1 flex-col items-center gap-1">
-                <span className="text-[9px] uppercase tracking-wider text-muted-foreground">
-                  {d.day}
-                </span>
-                <div
-                  className={`flex h-7 w-7 items-center justify-center rounded-full text-[11px] font-bold ${
-                    d.letter
-                      ? "bg-accent text-primary"
-                      : "border border-dashed border-border text-muted-foreground"
-                  }`}
-                >
-                  {d.letter ?? "·"}
-                </div>
-              </div>
-            ))}
-          </div>
-          <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
-            All four workouts — A, B, C and D — run every week. Tap the day on Workouts to switch
-            between them.
-          </p>
-        </div>
+    <section className="border-t border-line py-8 first:border-t-0 md:grid md:grid-cols-[16rem_1fr] md:gap-10">
+      <div className="mb-4 md:mb-0">
+        <h2 className="font-display text-2xl font-semibold">{title}</h2>
+        {hint && <p className="mt-1 text-sm text-muted-foreground">{hint}</p>}
       </div>
-
-      <div className="mt-7 px-5">
-        <SectionLabel>Key times</SectionLabel>
-        <div className="mt-3 space-y-2.5">
-          <TimeRow
-            icon={Sunrise}
-            label="Fajr"
-            step={schedule.findByKey("fajr")}
-            onSave={(p) => schedule.updateStepByKey("fajr", p)}
-          />
-          <TimeRow
-            icon={AlarmClock}
-            label="Wake / alarm"
-            step={schedule.findByKey("wake")}
-            onSave={(p) => schedule.updateStepByKey("wake", p)}
-          />
-          <TimeRow
-            icon={Dumbbell}
-            label="Gym session"
-            step={schedule.findByKey("gym")}
-            onSave={(p) => schedule.updateStepByKey("gym", p)}
-            showEnd
-          />
-          <TimeRow
-            icon={Briefcase}
-            label="Work"
-            step={schedule.findByKey("work")}
-            onSave={(p) => schedule.updateStepByKey("work", p)}
-            showEnd
-          />
-          <TimeRow
-            icon={UtensilsCrossed}
-            label="Dinner"
-            step={schedule.findByKey("dinner")}
-            onSave={(p) => schedule.updateStepByKey("dinner", p)}
-          />
-        </div>
-        <p className="mt-2.5 text-xs text-muted-foreground">
-          Need to edit a full step, add one, or remove one? Head to Schedule and tap it.
-        </p>
-      </div>
-
-      <div className="mt-7 space-y-2.5 px-5">
-        <SectionLabel>Habits worth remembering</SectionLabel>
-        <div className="mt-3 space-y-2.5">
-          {PRINCIPLES.map((p) => (
-            <div
-              key={p.title}
-              className="flex gap-3 rounded-2xl border border-border bg-white p-4 shadow-soft"
-            >
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-accent text-primary">
-                <p.icon className="h-4 w-4" />
-              </div>
-              <div className="min-w-0">
-                <div className="text-sm font-semibold text-foreground">{p.title}</div>
-                <div className="mt-0.5 text-xs leading-relaxed text-muted-foreground">{p.body}</div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {isSupabaseConfigured && auth.user && (
-        <div className="mt-7 px-5">
-          <SectionLabel>Account</SectionLabel>
-          <div className="mt-3 flex items-center gap-3 rounded-2xl border border-border bg-white p-4 shadow-soft">
-            <div className="min-w-0 flex-1">
-              <div className="truncate text-sm font-semibold text-foreground">
-                {auth.user.email}
-              </div>
-              <div className="text-xs text-muted-foreground">Signed in</div>
-            </div>
-            <button
-              onClick={() => auth.signOut()}
-              className="flex shrink-0 items-center gap-1.5 rounded-full border border-slate-200 px-3.5 py-2 text-xs font-semibold text-destructive"
-            >
-              <LogOut className="h-3.5 w-3.5" />
-              Sign out
-            </button>
-          </div>
-        </div>
-      )}
-
-      <div className="mt-7 px-5 pb-2">
-        <SectionLabel>Data</SectionLabel>
-        <div className="mt-3 space-y-2.5">
-          <button
-            onClick={() => {
-              if (
-                confirm("Reset all workout, cardio and supplement tracking? This can't be undone.")
-              )
-                tracker.reset();
-            }}
-            className="flex w-full items-center gap-3 rounded-2xl border border-border bg-white p-4 text-left shadow-soft"
-          >
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-destructive/10 text-destructive">
-              <Trash2 className="h-4 w-4" />
-            </div>
-            <div>
-              <div className="text-sm font-semibold text-foreground">Reset tracked data</div>
-              <div className="text-xs text-muted-foreground">
-                Clears workout, cardio and supplement history
-              </div>
-            </div>
-          </button>
-
-          <button
-            onClick={() => {
-              if (confirm("Reset the Schedule page back to the default timeline?"))
-                schedule.resetToDefault();
-            }}
-            className="flex w-full items-center gap-3 rounded-2xl border border-border bg-white p-4 text-left shadow-soft"
-          >
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-destructive/10 text-destructive">
-              <Trash2 className="h-4 w-4" />
-            </div>
-            <div>
-              <div className="text-sm font-semibold text-foreground">Reset schedule</div>
-              <div className="text-xs text-muted-foreground">
-                Restores the default Fajr-to-lights-out timeline
-              </div>
-            </div>
-          </button>
-        </div>
-      </div>
-    </AppShell>
+      <div className="grid max-w-xl gap-4">{children}</div>
+    </section>
   );
 }
 
-function TimeRow({
-  icon: Icon,
-  label,
-  step,
-  onSave,
-  showEnd,
-}: {
-  icon: LucideIcon;
-  label: string;
-  step: ScheduleStep | undefined;
-  onSave: (patch: Partial<ScheduleStep>) => void;
-  showEnd?: boolean;
-}) {
-  if (!step) return null;
+function SettingsPage() {
+  const { profile, ready } = useProfile();
+  const prayer = useCollection<PrayerSettings>(COL.prayerSettings).items[0];
+  const checklist = useCollection<ChecklistItem>(COL.checklist);
+  const [d, setD] = useState<Profile | null>(null);
+  const [theme, setTheme] = useState<ThemePref>("dark");
+  const [item, setItem] = useState<Partial<ChecklistItem> | null>(null);
+  const [archive, setArchive] = useState<ChecklistItem | null>(null);
+  useEffect(() => {
+    if (profile && !d) setD(profile);
+  }, [profile, d]);
+  useEffect(() => setTheme(getThemePref()), []);
+  if (!ready || !d || !profile) return <Skeleton className="h-72" />;
+
+  const dirtyGoals =
+    JSON.stringify([d.name, d.goal, d.allergies, d.dietaryNotes]) !==
+    JSON.stringify([profile.name, profile.goal, profile.allergies, profile.dietaryNotes]);
+  const dirtyTargets = JSON.stringify(d.targets) !== JSON.stringify(profile.targets);
+  const t = d.targets;
+  const setT = (p: Partial<Profile["targets"]>) => setD({ ...d, targets: { ...d.targets, ...p } });
+
   return (
-    <div className="rounded-2xl border border-border bg-white p-3.5 shadow-soft">
-      <div className="flex items-center gap-3">
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-accent text-primary">
-          <Icon className="h-4 w-4" />
+    <>
+      <PageHeader
+        eyebrow="Settings"
+        title="Make it yours"
+        sub="Nothing here is required. Skip what you don't need and come back later."
+      />
+
+      <Section title="You and your goal" hint="Used for wording and chart reference lines only.">
+        <Field label="Name (optional)" htmlFor="s-name">
+          <TextInput
+            id="s-name"
+            value={d.name}
+            onChange={(e) => setD({ ...d, name: e.target.value })}
+          />
+        </Field>
+        <Field label="Goal" htmlFor="s-goal">
+          <Select
+            id="s-goal"
+            value={d.goal.kind}
+            onChange={(e) =>
+              setD({ ...d, goal: { ...d.goal, kind: e.target.value as Profile["goal"]["kind"] } })
+            }
+          >
+            <option value="gain-weight">Gain weight gradually</option>
+            <option value="strength">Get stronger</option>
+            <option value="maintain">Maintain</option>
+            <option value="lose-weight">Lose weight</option>
+            <option value="custom">Something else</option>
+          </Select>
+        </Field>
+        <Field
+          label="Target weight (optional)"
+          hint="Your own goal. The app doesn't set one for you."
+        >
+          <NumberField
+            label="Target weight"
+            unit="kg"
+            step={0.5}
+            decimals={1}
+            value={d.goal.targetWeightKg}
+            onChange={(v) => setD({ ...d, goal: { ...d.goal, targetWeightKg: v } })}
+          />
+        </Field>
+        <Field label="Allergies" htmlFor="s-all" hint="Kept private on this device.">
+          <TextArea
+            id="s-all"
+            className="min-h-20"
+            value={d.allergies ?? ""}
+            onChange={(e) => setD({ ...d, allergies: e.target.value })}
+            placeholder="None, or list them"
+          />
+        </Field>
+        <Field
+          label="Dietary notes"
+          htmlFor="s-diet"
+          hint="Halal preference, medical or clinician advice you follow."
+        >
+          <TextArea
+            id="s-diet"
+            className="min-h-20"
+            value={d.dietaryNotes ?? ""}
+            onChange={(e) => setD({ ...d, dietaryNotes: e.target.value })}
+            placeholder="e.g. Halal only"
+          />
+        </Field>
+        <div>
+          <Button
+            variant="primary"
+            disabled={!dirtyGoals}
+            onClick={async () => {
+              await saveProfile({
+                name: d.name.trim(),
+                goal: d.goal,
+                allergies: d.allergies,
+                dietaryNotes: d.dietaryNotes,
+                setup: { ...profile.setup, goals: true },
+              });
+              toast.success("Saved");
+            }}
+          >
+            Save
+          </Button>
         </div>
-        <div className="min-w-0 flex-1 text-sm font-semibold text-foreground">{label}</div>
-      </div>
-      <div className={`mt-2.5 flex items-center gap-1.5 ${showEnd ? "" : "justify-end"}`}>
-        <input
-          type="time"
-          value={step.startTime}
-          onChange={(e) => onSave({ startTime: e.target.value })}
-          className={`rounded-lg border border-border bg-secondary px-2 py-1.5 text-sm font-semibold text-foreground focus:border-primary focus:outline-none ${showEnd ? "flex-1" : ""}`}
-        />
-        {showEnd && step.endTime !== undefined && (
-          <>
-            <span className="shrink-0 text-xs text-muted-foreground">–</span>
-            <input
-              type="time"
-              value={step.endTime}
-              onChange={(e) => onSave({ endTime: e.target.value })}
-              className="flex-1 rounded-lg border border-border bg-secondary px-2 py-1.5 text-sm font-semibold text-foreground focus:border-primary focus:outline-none"
+      </Section>
+
+      <Section
+        title="Nutrition targets"
+        hint="Gradual weight gain is usually measured over weeks. If you follow advice from a clinician or dietitian, use their numbers."
+      >
+        <div className="flex flex-wrap items-center gap-2">
+          <Chip
+            tone={t.status === "confirmed" ? "ok" : t.status === "provisional" ? "warn" : "neutral"}
+          >
+            {t.status === "confirmed"
+              ? "Confirmed by you"
+              : t.status === "provisional"
+                ? "Carried over, not confirmed"
+                : "Not set"}
+          </Chip>
+          {t.status === "provisional" && (
+            <span className="text-sm text-muted-foreground">From: {t.source}</span>
+          )}
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Calories per day">
+            <NumberField
+              label="Calories"
+              unit="kcal"
+              step={50}
+              decimals={0}
+              value={t.kcal}
+              onChange={(v) => setT({ kcal: v })}
             />
-          </>
-        )}
-      </div>
-    </div>
+          </Field>
+          <Field label="Protein per day">
+            <NumberField
+              label="Protein"
+              unit="g"
+              step={5}
+              decimals={0}
+              value={t.protein}
+              onChange={(v) => setT({ protein: v })}
+            />
+          </Field>
+          <Field label="Carbs range (low)">
+            <NumberField
+              label="Carbs low"
+              unit="g"
+              stepper={false}
+              value={t.carbsRange?.[0]}
+              onChange={(v) =>
+                setT({
+                  carbsRange:
+                    v != null && t.carbsRange
+                      ? [v, t.carbsRange[1]]
+                      : v != null
+                        ? [v, v]
+                        : undefined,
+                })
+              }
+            />
+          </Field>
+          <Field label="Carbs range (high)">
+            <NumberField
+              label="Carbs high"
+              unit="g"
+              stepper={false}
+              value={t.carbsRange?.[1]}
+              onChange={(v) =>
+                setT({
+                  carbsRange:
+                    v != null && t.carbsRange
+                      ? [t.carbsRange[0], v]
+                      : v != null
+                        ? [v, v]
+                        : undefined,
+                })
+              }
+            />
+          </Field>
+          <Field label="Fat range (low)">
+            <NumberField
+              label="Fat low"
+              unit="g"
+              stepper={false}
+              value={t.fatRange?.[0]}
+              onChange={(v) =>
+                setT({
+                  fatRange:
+                    v != null && t.fatRange ? [v, t.fatRange[1]] : v != null ? [v, v] : undefined,
+                })
+              }
+            />
+          </Field>
+          <Field label="Fat range (high)">
+            <NumberField
+              label="Fat high"
+              unit="g"
+              stepper={false}
+              value={t.fatRange?.[1]}
+              onChange={(v) =>
+                setT({
+                  fatRange:
+                    v != null && t.fatRange ? [t.fatRange[0], v] : v != null ? [v, v] : undefined,
+                })
+              }
+            />
+          </Field>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            variant="primary"
+            onClick={async () => {
+              await saveProfile({
+                targets: { ...t, status: "confirmed", source: "Set by you" },
+                setup: { ...profile.setup, food: true },
+              });
+              toast.success("Targets confirmed");
+            }}
+            disabled={!dirtyTargets && t.status === "confirmed"}
+          >
+            {t.status === "confirmed" ? "Save targets" : "Confirm these targets"}
+          </Button>
+          <Button
+            variant="ghost"
+            onClick={async () => {
+              await saveProfile({ targets: { status: "unset" } });
+              setD({ ...d, targets: { status: "unset" } });
+              toast("Targets cleared");
+            }}
+          >
+            Clear
+          </Button>
+        </div>
+        <p className="text-xs text-muted-foreground">
+          The maintenance estimate in Progress is information only. It never changes these numbers.
+        </p>
+      </Section>
+
+      <Section title="Food budget" hint="Used for the weekly budget on Today and in Food.">
+        <Field label="Weekly food budget">
+          <NumberField
+            label="Weekly budget"
+            unit="£"
+            step={5}
+            decimals={2}
+            value={d.budgetPencePerWeek != null ? d.budgetPencePerWeek / 100 : undefined}
+            onChange={(v) =>
+              setD({ ...d, budgetPencePerWeek: v != null ? Math.round(v * 100) : undefined })
+            }
+          />
+        </Field>
+        <div>
+          <Button
+            variant="secondary"
+            onClick={async () => {
+              await saveProfile({ budgetPencePerWeek: d.budgetPencePerWeek });
+              toast.success("Budget saved");
+            }}
+          >
+            Save budget
+          </Button>
+        </div>
+      </Section>
+
+      <Section title="Prayer" hint="Times come from your chosen source.">
+        <p className="text-sm text-muted-foreground">
+          {prayer
+            ? `${prayer.mode === "manual" ? "Manual times" : "Calculated times"} for ${prayer.locality}.`
+            : "Not set up yet."}
+        </p>
+        <div>
+          <Link
+            to="/salah"
+            className="inline-flex min-h-11 items-center rounded-full border border-input px-5 font-medium"
+          >
+            {prayer ? "Open Salah settings" : "Set up Salah"}
+          </Link>
+        </div>
+      </Section>
+
+      <Section title="Training">
+        <Switch
+          label="Keep the screen on during a session"
+          hint="Only where your browser supports it. Sessions work without it."
+          checked={!!profile.wakeLock}
+          onChange={async (v) => {
+            await saveProfile({ wakeLock: v });
+          }}
+        />
+      </Section>
+
+      <Section title="Appearance">
+        <Segmented
+          label="Theme"
+          value={theme}
+          onChange={(v) => {
+            setTheme(v);
+            setThemePref(v);
+          }}
+          options={[
+            { value: "dark", label: "Dark" },
+            { value: "light", label: "Light" },
+            { value: "system", label: "Match device" },
+          ]}
+        />
+        <p className="text-xs text-muted-foreground">Saved on this device.</p>
+      </Section>
+
+      <Section
+        title="Reminder checklist"
+        hint="Supplements, water, food prep. Items from your original app are only a record of what you used to track, not advice."
+      >
+        <ul>
+          {checklist.items
+            .filter((i) => !i.archivedAt)
+            .sort((a, b) => a.order - b.order)
+            .map((i) => (
+              <Row as="li" key={i.id} className="justify-between">
+                <button className="min-w-0 text-left" onClick={() => setItem(i)}>
+                  <p className="font-medium">{i.label}</p>
+                  <p className="line-clamp-1 text-sm text-muted-foreground">
+                    {i.fromLegacy ? "From original app. " : ""}
+                    {i.detail}
+                  </p>
+                </button>
+                <button
+                  aria-label={`Archive ${i.label}`}
+                  className="inline-flex size-11 shrink-0 items-center justify-center rounded-full hover:bg-surface-2"
+                  onClick={() => setArchive(i)}
+                >
+                  <Archive className="size-4" />
+                </button>
+              </Row>
+            ))}
+        </ul>
+        <div>
+          <Button variant="secondary" onClick={() => setItem({ label: "", detail: "" })}>
+            <Plus className="size-4" />
+            Add reminder
+          </Button>
+        </div>
+      </Section>
+
+      <Sheet
+        open={!!item}
+        onOpenChange={(o) => !o && setItem(null)}
+        title={item?.id ? "Edit reminder" : "New reminder"}
+        footer={
+          <Button
+            variant="primary"
+            size="lg"
+            className="w-full"
+            disabled={!item?.label?.trim()}
+            onClick={async () => {
+              const id = item!.id ?? newId();
+              const order = item!.order ?? checklist.items.length;
+              await put(COL.checklist, id, {
+                ...item,
+                id,
+                order,
+                label: item!.label!.trim(),
+              } as ChecklistItem);
+              setItem(null);
+              toast.success("Saved");
+            }}
+          >
+            Save reminder
+          </Button>
+        }
+      >
+        <div className="grid gap-4 pb-2">
+          <Field label="Label" htmlFor="ck-l">
+            <TextInput
+              id="ck-l"
+              value={item?.label ?? ""}
+              onChange={(e) => setItem({ ...item, label: e.target.value })}
+            />
+          </Field>
+          <Field label="Details (optional)" htmlFor="ck-d">
+            <TextInput
+              id="ck-d"
+              value={item?.detail ?? ""}
+              onChange={(e) => setItem({ ...item, detail: e.target.value })}
+            />
+          </Field>
+        </div>
+      </Sheet>
+      <ConfirmDialog
+        open={!!archive}
+        onOpenChange={(o) => !o && setArchive(null)}
+        tone="primary"
+        title={`Archive "${archive?.label}"?`}
+        confirmLabel="Archive"
+        body="It disappears from Today. Past ticks are kept."
+        onConfirm={async () => {
+          await put(COL.checklist, archive!.id, {
+            ...archive!,
+            archivedAt: new Date().toISOString(),
+          });
+          setArchive(null);
+          toast("Archived");
+        }}
+      />
+    </>
   );
 }

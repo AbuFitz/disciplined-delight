@@ -81,12 +81,21 @@ export const newId = () => crypto.randomUUID();
 
 export type WriteOptions = { track?: boolean };
 
-export async function put<T>(collection: string, id: string, data: T, opts: WriteOptions = {}): Promise<StoredRecord<T>> {
+export async function put<T>(
+  collection: string,
+  id: string,
+  data: T,
+  opts: WriteOptions = {},
+): Promise<StoredRecord<T>> {
   const db = await getDB();
   const tx = db.transaction(["records", "outbox"], "readwrite");
-  const existing = (await tx.objectStore("records").get([collection, id])) as StoredRecord<T> | undefined;
+  const existing = (await tx.objectStore("records").get([collection, id])) as
+    | StoredRecord<T>
+    | undefined;
   const rec: StoredRecord<T> = {
-    collection, id, data,
+    collection,
+    id,
+    data,
     rev: (existing?.rev ?? 0) + 1,
     serverRev: existing?.serverRev,
     updatedAt: Date.now(),
@@ -95,8 +104,14 @@ export async function put<T>(collection: string, id: string, data: T, opts: Writ
   await tx.objectStore("records").put(rec as StoredRecord);
   if (opts.track !== false) {
     await tx.objectStore("outbox").add({
-      mid: newId(), collection, id, op: "put", baseServerRev: existing?.serverRev ?? 0,
-      data, ts: rec.updatedAt, attempts: 0,
+      mid: newId(),
+      collection,
+      id,
+      op: "put",
+      baseServerRev: existing?.serverRev ?? 0,
+      data,
+      ts: rec.updatedAt,
+      attempts: 0,
     });
   }
   await tx.done;
@@ -105,16 +120,34 @@ export async function put<T>(collection: string, id: string, data: T, opts: Writ
 }
 
 /** Soft delete (tombstone) so deletes can sync and be undone. */
-export async function remove(collection: string, id: string, opts: WriteOptions = {}): Promise<void> {
+export async function remove(
+  collection: string,
+  id: string,
+  opts: WriteOptions = {},
+): Promise<void> {
   const db = await getDB();
   const tx = db.transaction(["records", "outbox"], "readwrite");
   const existing = await tx.objectStore("records").get([collection, id]);
-  if (!existing) { await tx.done; return; }
-  const rec: StoredRecord = { ...existing, rev: existing.rev + 1, deletedAt: Date.now(), updatedAt: Date.now() };
+  if (!existing) {
+    await tx.done;
+    return;
+  }
+  const rec: StoredRecord = {
+    ...existing,
+    rev: existing.rev + 1,
+    deletedAt: Date.now(),
+    updatedAt: Date.now(),
+  };
   await tx.objectStore("records").put(rec);
   if (opts.track !== false) {
     await tx.objectStore("outbox").add({
-      mid: newId(), collection, id, op: "delete", baseServerRev: existing.serverRev ?? 0, ts: rec.updatedAt, attempts: 0,
+      mid: newId(),
+      collection,
+      id,
+      op: "delete",
+      baseServerRev: existing.serverRev ?? 0,
+      ts: rec.updatedAt,
+      attempts: 0,
     });
   }
   await tx.done;
@@ -133,12 +166,16 @@ export async function get<T>(collection: string, id: string): Promise<T | undefi
 }
 
 export async function list<T>(collection: string, includeDeleted = false): Promise<T[]> {
-  const all = (await (await getDB()).getAllFromIndex("records", "byCollection", collection)) as StoredRecord<T>[];
+  const all = (await (
+    await getDB()
+  ).getAllFromIndex("records", "byCollection", collection)) as StoredRecord<T>[];
   return all.filter((r) => includeDeleted || !r.deletedAt).map((r) => r.data);
 }
 
 export async function listRecords<T>(collection: string): Promise<StoredRecord<T>[]> {
-  return (await (await getDB()).getAllFromIndex("records", "byCollection", collection)) as StoredRecord<T>[];
+  return (await (
+    await getDB()
+  ).getAllFromIndex("records", "byCollection", collection)) as StoredRecord<T>[];
 }
 
 export async function getMeta<T>(key: string): Promise<T | undefined> {
@@ -155,20 +192,35 @@ export async function bulkPut(
 ): Promise<{ written: number; skipped: number }> {
   const db = await getDB();
   const tx = db.transaction(["records", "outbox"], "readwrite");
-  let written = 0, skipped = 0;
+  let written = 0,
+    skipped = 0;
   const cols = new Set<string>();
   for (const it of items) {
     const ex = await tx.objectStore("records").get([it.collection, it.id]);
-    if (ex && !ex.deletedAt && !opts.overwrite) { skipped++; continue; }
+    if (ex && !ex.deletedAt && !opts.overwrite) {
+      skipped++;
+      continue;
+    }
     const rec: StoredRecord = {
-      collection: it.collection, id: it.id, data: it.data,
-      rev: (ex?.rev ?? 0) + 1, serverRev: ex?.serverRev, updatedAt: Date.now(), deletedAt: null,
+      collection: it.collection,
+      id: it.id,
+      data: it.data,
+      rev: (ex?.rev ?? 0) + 1,
+      serverRev: ex?.serverRev,
+      updatedAt: Date.now(),
+      deletedAt: null,
     };
     await tx.objectStore("records").put(rec);
     if (opts.track !== false) {
       await tx.objectStore("outbox").add({
-        mid: newId(), collection: it.collection, id: it.id, op: "put",
-        baseServerRev: ex?.serverRev ?? 0, data: it.data, ts: rec.updatedAt, attempts: 0,
+        mid: newId(),
+        collection: it.collection,
+        id: it.id,
+        op: "put",
+        baseServerRev: ex?.serverRev ?? 0,
+        data: it.data,
+        ts: rec.updatedAt,
+        attempts: 0,
       });
     }
     cols.add(it.collection);

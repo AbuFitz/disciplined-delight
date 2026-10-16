@@ -7,8 +7,14 @@ const mk = (n: number, f: (i: number) => Partial<TdeeDay>): TdeeDay[] =>
 
 describe("maintenance estimate", () => {
   it("says not enough data for short or sparse history", () => {
-    expect(estimateMaintenance(mk(14, () => ({ kcal: 2800, kcalComplete: true, weightKg: 65 }))).ok).toBe(false);
-    expect(estimateMaintenance(mk(30, (i) => (i % 5 === 0 ? { kcal: 2800, kcalComplete: true, weightKg: 65 } : {}))).ok).toBe(false);
+    expect(
+      estimateMaintenance(mk(14, () => ({ kcal: 2800, kcalComplete: true, weightKg: 65 }))).ok,
+    ).toBe(false);
+    expect(
+      estimateMaintenance(
+        mk(30, (i) => (i % 5 === 0 ? { kcal: 2800, kcalComplete: true, weightKg: 65 } : {})),
+      ).ok,
+    ).toBe(false);
   });
   it("never falls back to the old 2,760 target", () => {
     const r = estimateMaintenance([]);
@@ -16,7 +22,9 @@ describe("maintenance estimate", () => {
   });
   it("estimates maintenance from intake minus weight trend, with a range", () => {
     // 3000 kcal/day, +0.1 kg/week → surplus ~110 kcal/day → maintenance ~2890
-    const r = estimateMaintenance(mk(28, (i) => ({ kcal: 3000, kcalComplete: true, weightKg: 65 + (i / 7) * 0.1 })));
+    const r = estimateMaintenance(
+      mk(28, (i) => ({ kcal: 3000, kcalComplete: true, weightKg: 65 + (i / 7) * 0.1 })),
+    );
     expect(r.ok).toBe(true);
     if (r.ok) {
       expect(r.maintenanceKcal).toBeGreaterThan(2850);
@@ -25,7 +33,9 @@ describe("maintenance estimate", () => {
     }
   });
   it("ignores partially logged days", () => {
-    const r = estimateMaintenance(mk(28, (i) => ({ kcal: 900, kcalComplete: i % 2 === 0 ? false : true, weightKg: 65 })));
+    const r = estimateMaintenance(
+      mk(28, (i) => ({ kcal: 900, kcalComplete: i % 2 === 0 ? false : true, weightKg: 65 })),
+    );
     expect(r.ok).toBe(false);
   });
 });

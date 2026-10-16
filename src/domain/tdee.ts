@@ -20,8 +20,12 @@ function slope(points: { x: number; y: number }[]) {
   const n = points.length;
   const mx = points.reduce((s, p) => s + p.x, 0) / n;
   const my = points.reduce((s, p) => s + p.y, 0) / n;
-  let num = 0, den = 0;
-  for (const p of points) { num += (p.x - mx) * (p.y - my); den += (p.x - mx) ** 2; }
+  let num = 0,
+    den = 0;
+  for (const p of points) {
+    num += (p.x - mx) * (p.y - my);
+    den += (p.x - mx) ** 2;
+  }
   return den === 0 ? 0 : num / den;
 }
 
@@ -37,14 +41,22 @@ export function estimateMaintenance(days: TdeeDay[], minWindow = 21): TdeeResult
   const start = sorted[0]!.date;
   const end = sorted[sorted.length - 1]!.date;
   const windowDays = daysBetween(start, end) + 1;
-  if (windowDays < minWindow) return { ok: false, reason: `Needs at least ${minWindow} days of history (have ${windowDays}).` };
+  if (windowDays < minWindow)
+    return {
+      ok: false,
+      reason: `Needs at least ${minWindow} days of history (have ${windowDays}).`,
+    };
 
   const intake = sorted.filter((d) => d.kcal != null && d.kcalComplete);
   if (intake.length / windowDays < 0.7) {
-    return { ok: false, reason: `Food is fully logged on ${intake.length} of ${windowDays} days; needs at least 70%.` };
+    return {
+      ok: false,
+      reason: `Food is fully logged on ${intake.length} of ${windowDays} days; needs at least 70%.`,
+    };
   }
   const weights = sorted.filter((d) => d.weightKg != null);
-  if (weights.length < 6) return { ok: false, reason: `Needs at least 6 weigh-ins (have ${weights.length}).` };
+  if (weights.length < 6)
+    return { ok: false, reason: `Needs at least 6 weigh-ins (have ${weights.length}).` };
   const wSpan = daysBetween(weights[0]!.date, weights[weights.length - 1]!.date);
   if (wSpan < 14) return { ok: false, reason: "Weigh-ins need to span at least 14 days." };
 
@@ -57,8 +69,13 @@ export function estimateMaintenance(days: TdeeDay[], minWindow = 21): TdeeResult
   // +/-5% intake logging error.
   const mean = pts.reduce((s, p) => s + p.y, 0) / pts.length;
   const intercept = mean - kgPerDay * (pts.reduce((s, p) => s + p.x, 0) / pts.length);
-  const resid = Math.sqrt(pts.reduce((s, p) => s + (p.y - (intercept + kgPerDay * p.x)) ** 2, 0) / Math.max(1, pts.length - 2));
-  const sx = Math.sqrt(pts.reduce((s, p) => s + (p.x - pts.reduce((a, q) => a + q.x, 0) / pts.length) ** 2, 0));
+  const resid = Math.sqrt(
+    pts.reduce((s, p) => s + (p.y - (intercept + kgPerDay * p.x)) ** 2, 0) /
+      Math.max(1, pts.length - 2),
+  );
+  const sx = Math.sqrt(
+    pts.reduce((s, p) => s + (p.x - pts.reduce((a, q) => a + q.x, 0) / pts.length) ** 2, 0),
+  );
   const slopeErr = sx === 0 ? 0 : resid / sx;
   const err = slopeErr * KCAL_PER_KG + meanIntake * 0.05;
 

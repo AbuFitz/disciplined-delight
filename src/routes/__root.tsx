@@ -9,7 +9,11 @@ import {
 } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 
-import { AuthGate } from "@/components/sunrise/AuthGate";
+import { Shell } from "@/components/nl/Shell";
+import { Toaster } from "@/components/ui/sonner";
+import { DataProvider, useData } from "@/data/hooks";
+import { THEME_BOOT, applyTheme, getThemePref } from "@/lib/theme";
+import { useEffect } from "react";
 import appCss from "../styles.css?url";
 
 function NotFoundComponent() {
@@ -73,41 +77,21 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
+      {
+        name: "viewport",
+        content:
+          "width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content",
+      },
       { title: "New Life" },
-      {
-        name: "description",
-        content:
-          "Your gym, nutrition and lifestyle system — machine/cable training, halal nutrition, and honest tracking, built around GymGroup 6am sessions and Fajr at 3:14am.",
-      },
-      { name: "author", content: "New Life" },
-      { property: "og:title", content: "New Life — Your Gym & Lifestyle System" },
-      {
-        property: "og:description",
-        content:
-          "Your gym, nutrition and lifestyle system — machine/cable training, halal nutrition, and honest tracking, built around GymGroup 6am sessions and Fajr at 3:14am.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "New Life — Your Gym & Lifestyle System" },
-      {
-        name: "twitter:description",
-        content:
-          "Your gym, nutrition and lifestyle system — machine/cable training, halal nutrition, and honest tracking, built around GymGroup 6am sessions and Fajr at 3:14am.",
-      },
+      { name: "description", content: "A personal system for training, food and salah." },
+      { name: "theme-color", content: "#0e1311" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-title", content: "New Life" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
     ],
 
     links: [
-      { rel: "preconnect", href: "https://fonts.googleapis.com" },
-      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-      {
-        rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700;800&display=swap",
-      },
-      {
-        rel: "stylesheet",
-        href: appCss,
-      },
+      { rel: "stylesheet", href: appCss },
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
     ],
   }),
@@ -119,8 +103,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en-GB" data-theme="dark" suppressHydrationWarning>
       <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_BOOT }} />
         <HeadContent />
       </head>
       <body>
@@ -136,10 +121,35 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthGate>
-        {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-        <Outlet />
-      </AuthGate>
+      <DataProvider>
+        <Gate />
+        <Toaster position="top-center" />
+      </DataProvider>
     </QueryClientProvider>
+  );
+}
+
+function Gate() {
+  const { ready, error } = useData();
+  useEffect(() => {
+    applyTheme(getThemePref());
+  }, []);
+  if (error) {
+    return (
+      <div className="flex min-h-dvh items-center justify-center px-6">
+        <div className="max-w-md text-center">
+          <h1 className="font-display text-2xl font-semibold">Storage isn't available</h1>
+          <p className="mt-2 text-muted-foreground">
+            New Life saves to your browser's local database and couldn't open it ({error}). Private
+            browsing or blocked site data can cause this.
+          </p>
+        </div>
+      </div>
+    );
+  }
+  return (
+    <Shell>
+      {ready ? <Outlet /> : <div aria-busy className="h-64 animate-pulse rounded-3xl bg-surface" />}
+    </Shell>
   );
 }

@@ -25,12 +25,17 @@ export const COL = {
   checklist: "checklist",
   checklistLogs: "checklistLogs",
   layout: "layout",
+  foodDays: "foodDays",
 } as const;
 
 export type Profile = {
   name: string;
   timezone: string;
-  goal: { kind: "gain-weight" | "maintain" | "lose-weight" | "strength" | "custom"; targetWeightKg?: number; note?: string };
+  goal: {
+    kind: "gain-weight" | "maintain" | "lose-weight" | "strength" | "custom";
+    targetWeightKg?: number;
+    note?: string;
+  };
   /** Nutrition targets. "provisional" = carried over from the original app, not newly validated. */
   targets: {
     status: "unset" | "provisional" | "confirmed";
@@ -94,6 +99,8 @@ export type SessionExercise = {
   prescription: { sets: number; repMin: number; repMax: number; schemeText: string };
   equipment?: string;
   incrementKg?: number;
+  restSeconds?: number;
+  alternative?: string;
   cue?: string;
   sets: SessionSet[];
   note?: string;
@@ -154,10 +161,28 @@ export type MealPlanEntry = {
   mealLogId?: string;
 };
 
-export type Batch = { id: string; recipeId: string; yield: number; cookDate: string; servingsUsed?: number };
+export type Batch = {
+  id: string;
+  recipeId: string;
+  yield: number;
+  cookDate: string;
+  servingsUsed?: number;
+};
 
-export type PantryItem = { ingredientId: string; amount: number; unit: "g" | "kg" | "ml" | "l" | "count"; updatedAt: number };
-export type Purchase = { id: string; date: string; shop?: string; totalPence: number; note?: string; items?: { ingredientId?: string; name: string; pence?: number }[] };
+export type PantryItem = {
+  ingredientId: string;
+  amount: number;
+  unit: "g" | "kg" | "ml" | "l" | "count";
+  updatedAt: number;
+};
+export type Purchase = {
+  id: string;
+  date: string;
+  shop?: string;
+  totalPence: number;
+  note?: string;
+  items?: { ingredientId?: string; name: string; pence?: number }[];
+};
 
 export type PrayerSettings = {
   id: "main";
@@ -204,12 +229,48 @@ export type RoutineBlock = {
   order: number;
 };
 
-export type RoutineException = { id: string; blockId: string; date: string; kind: "skip" | "move"; start?: string; end?: string };
+export type RoutineException = {
+  id: string;
+  blockId: string;
+  date: string;
+  kind: "skip" | "move";
+  start?: string;
+  end?: string;
+};
 
-export type WeighIn = { id: string; date: string; kg: number; source: "user" | "legacy"; measuredAt?: number; note?: string };
+export type WeighIn = {
+  id: string;
+  date: string;
+  kg: number;
+  source: "user" | "legacy";
+  measuredAt?: number;
+  note?: string;
+};
 
-export type ChecklistItem = { id: string; label: string; detail?: string; time?: string; fromLegacy?: boolean; archivedAt?: string | null; order: number };
+export type ChecklistItem = {
+  id: string;
+  label: string;
+  detail?: string;
+  time?: string;
+  fromLegacy?: boolean;
+  archivedAt?: string | null;
+  order: number;
+};
 export type ChecklistLog = { id: string; date: string; itemId: string; done: boolean };
 
-export type WidgetId = "next-action" | "prayer" | "food" | "training" | "weight" | "budget" | "timeline" | "checklist";
-export type TodayLayout = { id: "today"; widgets: { id: WidgetId; visible: boolean; size: "compact" | "expanded" }[] };
+export type WidgetId =
+  | "next-action"
+  | "prayer"
+  | "food"
+  | "training"
+  | "weight"
+  | "budget"
+  | "timeline"
+  | "checklist";
+export type TodayLayout = {
+  id: "today";
+  widgets: { id: WidgetId; visible: boolean; size: "compact" | "expanded" }[];
+};
+
+/** Marks a day as fully food-logged, so intake isn't misread as a partial day. */
+export type FoodDay = { id: string; date: string; complete: boolean };

@@ -1,14 +1,41 @@
 import { describe, expect, it } from "vitest";
-import { intakeSummary, recipeCost, recipeNutrition, type Ingredient, type Recipe } from "./nutrition";
+import {
+  intakeSummary,
+  recipeCost,
+  recipeNutrition,
+  type Ingredient,
+  type Recipe,
+} from "./nutrition";
 import { budgetSummary, buildShoppingList, requirements } from "./shopping";
 
-const rice: Ingredient = { id: "rice", name: "Rice", state: "dry", perAmount: 100, perUnit: "g",
-  macros: { kcal: 350, protein: 7, carbs: 78, fat: 1 }, provenance: "label",
-  pack: { amount: 2, unit: "kg", pricePence: 300, recordedOn: "2026-10-16" } };
-const chicken: Ingredient = { id: "chicken", name: "Chicken", state: "raw", perAmount: 100, perUnit: "g",
-  macros: { kcal: 110, protein: 23, carbs: 0, fat: 2 }, provenance: "label" }; // no price
-const bowl: Recipe = { id: "r", name: "Bowl", yield: 2, lines: [
-  { ingredientId: "rice", amount: 200, unit: "g" }, { ingredientId: "chicken", amount: 300, unit: "g" }] };
+const rice: Ingredient = {
+  id: "rice",
+  name: "Rice",
+  state: "dry",
+  perAmount: 100,
+  perUnit: "g",
+  macros: { kcal: 350, protein: 7, carbs: 78, fat: 1 },
+  provenance: "label",
+  pack: { amount: 2, unit: "kg", pricePence: 300, recordedOn: "2026-10-16" },
+};
+const chicken: Ingredient = {
+  id: "chicken",
+  name: "Chicken",
+  state: "raw",
+  perAmount: 100,
+  perUnit: "g",
+  macros: { kcal: 110, protein: 23, carbs: 0, fat: 2 },
+  provenance: "label",
+}; // no price
+const bowl: Recipe = {
+  id: "r",
+  name: "Bowl",
+  yield: 2,
+  lines: [
+    { ingredientId: "rice", amount: 200, unit: "g" },
+    { ingredientId: "chicken", amount: 300, unit: "g" },
+  ],
+};
 const map = new Map([rice, chicken].map((i) => [i.id, i]));
 
 describe("recipes", () => {
@@ -18,12 +45,24 @@ describe("recipes", () => {
     expect(n.perServing.kcal).toBe((700 + 330) / 2);
   });
   it("flags partial data instead of inventing it", () => {
-    const n = recipeNutrition({ ...bowl, lines: [...bowl.lines, { ingredientId: "mystery", amount: 1, unit: "count" }] }, map);
+    const n = recipeNutrition(
+      { ...bowl, lines: [...bowl.lines, { ingredientId: "mystery", amount: 1, unit: "count" }] },
+      map,
+    );
     expect(n.source).toBe("partial");
     expect(n.missingIngredients.length).toBe(1);
   });
   it("keeps legacy estimates labelled", () => {
-    const n = recipeNutrition({ id: "x", name: "x", yield: 1, lines: [], legacyEstimate: { kcal: 700, protein: 30, carbs: 80, fat: 20 } }, map);
+    const n = recipeNutrition(
+      {
+        id: "x",
+        name: "x",
+        yield: 1,
+        lines: [],
+        legacyEstimate: { kcal: 700, protein: 30, carbs: 80, fat: 20 },
+      },
+      map,
+    );
     expect(n.source).toBe("legacy-estimate");
   });
   it("reports cost coverage when some ingredients have no price", () => {
@@ -35,7 +74,10 @@ describe("recipes", () => {
 
 describe("shopping", () => {
   it("rounds to whole packs after pantry deductions", () => {
-    const reqs = requirements([{ recipe: bowl, servings: 2 }, { recipe: bowl, servings: 2 }]);
+    const reqs = requirements([
+      { recipe: bowl, servings: 2 },
+      { recipe: bowl, servings: 2 },
+    ]);
     const rows = buildShoppingList(reqs, map, { rice: { amount: 100, unit: "g" } });
     const r = rows.find((x) => x.ingredientId === "rice")!;
     expect(r.needBase).toBe(400);

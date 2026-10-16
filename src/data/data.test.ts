@@ -36,7 +36,12 @@ describe("legacy migration", () => {
   const tracker = {
     activeTab: "a",
     logs: {
-      "2026-10-12": { exercises: { a1: { done: true, weight: "30" }, a2: { done: false } }, cardioDone: true, supplements: { vitd: true }, bodyWeightKg: 64.2 },
+      "2026-10-12": {
+        exercises: { a1: { done: true, weight: "30" }, a2: { done: false } },
+        cardioDone: true,
+        supplements: { vitd: true },
+        bodyWeightKg: 64.2,
+      },
       "2026-10-13": { exercises: {}, cardioDone: false, supplements: {} }, // empty placeholder
     },
   };
@@ -44,7 +49,10 @@ describe("legacy migration", () => {
     { id: "step-2", key: "fajr", startTime: "03:14", label: "Fajr" },
     { id: "step-5", key: "gym", startTime: "06:00", endTime: "07:00", label: "Gym session" },
   ];
-  const ls = store({ [LEGACY_KEYS.tracker]: JSON.stringify(tracker), [LEGACY_KEYS.schedule]: JSON.stringify(schedule) });
+  const ls = store({
+    [LEGACY_KEYS.tracker]: JSON.stringify(tracker),
+    [LEGACY_KEYS.schedule]: JSON.stringify(schedule),
+  });
 
   it("preserves single-weight entries as legacy without inventing sets", async () => {
     const rep = await runMigration(ls);
@@ -72,9 +80,18 @@ describe("legacy migration", () => {
   it("keeps A/B/C/D on Mon/Tue/Thu/Sat with the original exercises", async () => {
     await runMigration(ls);
     const t = await list<WorkoutTemplate>(COL.templates);
-    expect(t.sort((a, b) => a.order - b.order).map((x) => [x.letter, x.weekday])).toEqual([["A", 0], ["B", 1], ["C", 3], ["D", 5]]);
-    expect(t.find((x) => x.letter === "A")!.exercises.map((e) => e.name)[0]).toBe("Flat Chest Press Machine");
-    expect(t.find((x) => x.letter === "C")!.exercises.find((e) => e.legacyId === "c3")!.alternative).toBe("Cable Face Pull");
+    expect(t.sort((a, b) => a.order - b.order).map((x) => [x.letter, x.weekday])).toEqual([
+      ["A", 0],
+      ["B", 1],
+      ["C", 3],
+      ["D", 5],
+    ]);
+    expect(t.find((x) => x.letter === "A")!.exercises.map((e) => e.name)[0]).toBe(
+      "Flat Chest Press Machine",
+    );
+    expect(
+      t.find((x) => x.letter === "C")!.exercises.find((e) => e.legacyId === "c3")!.alternative,
+    ).toBe("Cable Face Pull");
   });
   it("archives the old fixed Fajr time instead of treating it as a prayer time", async () => {
     await runMigration(ls);

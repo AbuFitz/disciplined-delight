@@ -1,7 +1,11 @@
 import { compatible, toBase, type Quantity, type Unit, familyOf } from "./units";
 import type { Ingredient, Recipe } from "./nutrition";
 
-export type Requirement = { ingredientId: string; baseAmount: number; family: ReturnType<typeof familyOf> };
+export type Requirement = {
+  ingredientId: string;
+  baseAmount: number;
+  family: ReturnType<typeof familyOf>;
+};
 
 export type PlannedUse = {
   recipe: Recipe;
@@ -15,7 +19,10 @@ export type PlannedUse = {
  * Requirements for a set of planned uses. Cooked-batch servings are counted
  * once for the whole batch (yield servings), never per leftover serving.
  */
-export function requirements(uses: PlannedUse[], batches: { id: string; recipeId: string }[] = []): Requirement[] {
+export function requirements(
+  uses: PlannedUse[],
+  batches: { id: string; recipeId: string }[] = [],
+): Requirement[] {
   const totals = new Map<string, Requirement>();
   const add = (ingredientId: string, q: Quantity) => {
     const key = `${ingredientId}:${familyOf(q.unit)}`;
@@ -57,15 +64,28 @@ export function buildShoppingList(
   return reqs.map((r) => {
     const ing = ings.get(r.ingredientId);
     const stock = pantry[r.ingredientId];
-    const pantryBase = stock && compatible(stock.unit, (r.family === "g" ? "g" : r.family === "ml" ? "ml" : "count") as Unit) ? toBase(stock) : 0;
+    const pantryBase =
+      stock &&
+      compatible(stock.unit, (r.family === "g" ? "g" : r.family === "ml" ? "ml" : "count") as Unit)
+        ? toBase(stock)
+        : 0;
     const toBuy = Math.max(0, r.baseAmount - pantryBase);
-    let packs: number | null = null, cost: number | null = null;
+    let packs: number | null = null,
+      cost: number | null = null;
     if (ing?.pack && familyOf(ing.pack.unit) === r.family) {
       const size = toBase({ amount: ing.pack.amount, unit: ing.pack.unit });
       packs = size > 0 ? Math.ceil(toBuy / size - 1e-9) : null;
       cost = packs == null ? null : packs * ing.pack.pricePence;
     }
-    return { ingredientId: r.ingredientId, needBase: r.baseAmount, pantryBase, toBuyBase: toBuy, packs, packCostPence: cost, family: r.family };
+    return {
+      ingredientId: r.ingredientId,
+      needBase: r.baseAmount,
+      pantryBase,
+      toBuyBase: toBuy,
+      packs,
+      packCostPence: cost,
+      family: r.family,
+    };
   });
 }
 

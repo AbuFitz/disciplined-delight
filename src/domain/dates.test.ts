@@ -10,9 +10,13 @@ describe("local dates (Europe/London)", () => {
   });
   it("converts wall clock to instants across DST", () => {
     // BST (UTC+1)
-    expect(new Date(zonedInstant("2026-10-16", "05:52")).toISOString()).toBe("2026-10-16T04:52:00.000Z");
+    expect(new Date(zonedInstant("2026-10-16", "05:52")).toISOString()).toBe(
+      "2026-10-16T04:52:00.000Z",
+    );
     // GMT after clocks go back on 25 Oct 2026
-    expect(new Date(zonedInstant("2026-10-26", "05:52")).toISOString()).toBe("2026-10-26T05:52:00.000Z");
+    expect(new Date(zonedInstant("2026-10-26", "05:52")).toISOString()).toBe(
+      "2026-10-26T05:52:00.000Z",
+    );
     expect(formatClock(zonedInstant("2026-10-26", "05:52"))).toBe("05:52");
   });
   it("handles the spring-forward gap and autumn repeat", () => {
@@ -20,7 +24,9 @@ describe("local dates (Europe/London)", () => {
     const gap = zonedInstant("2026-03-29", "01:30");
     expect(formatClock(gap)).toBe("02:30");
     // 25 Oct 2026: 01:30 occurs twice → first occurrence (BST)
-    expect(new Date(zonedInstant("2026-10-25", "01:30")).toISOString()).toBe("2026-10-25T00:30:00.000Z");
+    expect(new Date(zonedInstant("2026-10-25", "01:30")).toISOString()).toBe(
+      "2026-10-25T00:30:00.000Z",
+    );
   });
   it("week maths is Monday-first", () => {
     expect(weekdayIndex("2026-10-16")).toBe(4); // Friday
