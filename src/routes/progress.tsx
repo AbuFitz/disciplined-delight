@@ -65,10 +65,10 @@ function ProgressPage() {
 
   const start: ISODate | null =
     range === "all" ? null : addDays(startOfWeek(today), -(Number(range) - 1) * 7);
-  const inRange = (d: ISODate) => !start || d >= start;
 
   const weights = useMemo(
-    () => w.items.filter((x) => inRange(x.date)).sort((a, b) => a.date.localeCompare(b.date)),
+    () =>
+      w.items.filter((x) => !start || x.date >= start).sort((a, b) => a.date.localeCompare(b.date)),
     [w.items, start],
   );
   const trend = linearTrend(weights.map((x) => ({ date: x.date, value: x.kg })));
@@ -106,7 +106,7 @@ function ProgressPage() {
   const exSeries = useMemo(
     () =>
       done
-        .filter((s) => inRange(s.date))
+        .filter((s) => !start || s.date >= start)
         .sort((a, b) => a.startedAt - b.startedAt)
         .flatMap((s) => {
           const e = s.exercises.find((x) => x.name === exName2);

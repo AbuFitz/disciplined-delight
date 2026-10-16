@@ -46,6 +46,7 @@ function PlanPage() {
   const sess = useCollection<Session>(COL.sessions).items;
   const meals = useCollection<MealPlanEntry>(COL.mealPlan).items;
   const today = prayer.today;
+  const prayerLookup = prayer.lookup;
   const [anchor, setAnchor] = useState<ISODate | null>(null);
   const [sel, setSel] = useState<ISODate | null>(null);
   const [edit, setEdit] = useState<{ block: Partial<RoutineBlock>; date?: ISODate } | null>(null);
@@ -59,7 +60,7 @@ function PlanPage() {
     const out = new Map<ISODate, { items: Item[]; conflicts: number }>();
     const template = activeTemplates(tpls.items);
     for (const d of days) {
-      const day = prayer.lookup(d);
+      const day = prayerLookup(d);
       const occs = occurrencesFor(d, blocks.items, ex, (p) => day?.start[p]);
       const wkTpl = template.find((t) => t.weekday === weekdayIndex(d));
       const toMin = (h: string) => {
@@ -102,7 +103,7 @@ function PlanPage() {
       out.set(d, { items: items.sort((a, b) => a.time - b.time), conflicts: conflicts.length });
     }
     return out;
-  }, [days, blocks.items, ex, tpls.items, sess, meals, prayer.lookup]);
+  }, [days, blocks.items, ex, tpls.items, sess, meals, prayerLookup]);
 
   if (!blocks.ready || !tpls.ready) return <Skeleton className="h-72" />;
 
