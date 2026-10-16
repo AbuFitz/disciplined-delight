@@ -591,7 +591,7 @@ export const DAY_PLANS: DayPlan[] = [
     id: "a",
     label: "Day A",
     subtitle: "Shake breakfast + easy Tesco lunch",
-    totals: { kcal: 2758, carbs: 345, fat: 91, protein: 138 },
+    totals: { kcal: 2758, carbs: 346, fat: 92, protein: 138 },
     meals: [
       {
         id: "a-breakfast",
@@ -664,7 +664,7 @@ export const DAY_PLANS: DayPlan[] = [
     id: "b",
     label: "Day B",
     subtitle: "Egg breakfast + prepared chicken lunch",
-    totals: { kcal: 2766, carbs: 344, fat: 93, protein: 138 },
+    totals: { kcal: 2766, carbs: 345, fat: 93, protein: 139 },
     meals: [
       {
         id: "b-breakfast",
