@@ -20,6 +20,13 @@
  "wger:10b0684c-1c48-4be6-913e-19bf1419107b": {
   "curated": "new"
  },
+ "wger:13234b53-ea0c-41f1-9069-776865ea8eff": {
+  "mediaRemove": [
+   "wger-img:695ced5c-9961-4076-add2-cb250d01089e",
+   "wger-img:60c68ac5-70c7-4ed6-bfc1-99bed63a472a"
+  ],
+  "note": "Media review: removed one unrelated image and one byte-identical duplicate."
+ },
  "wger:139772c6-e401-4281-8aa6-c7ff7fb49f6a": {
   "curated": "new"
  },
@@ -169,6 +176,13 @@
  "wger:55ff32e6-24ab-4303-9b50-176d60d48796": {
   "curated": "new"
  },
+ "wger:57263316-6f34-4539-952b-b07e09bac3ba": {
+  "mediaRemove": [
+   "wger-img:8dc5ad63-a93a-496f-9473-ac414236e58d",
+   "wger-img:7359ab6a-72a4-4ed8-b7da-35d57aaa2199"
+  ],
+  "note": "Media review: removed byte-identical duplicate frames."
+ },
  "wger:57e17672-52b9-43cf-8d0d-4b3f06a0c0d0": {
   "curated": "new"
  },
@@ -177,6 +191,13 @@
  },
  "wger:5915fabe-c941-4dac-b196-bc4e8c7ce57b": {
   "curated": "new"
+ },
+ "wger:596b9d2d-0f01-41a0-97e1-1839ffdb824d": {
+  "mediaRemove": [
+   "wger-img:95f2bbc4-2f95-476d-a9b8-81b333fe2ef5",
+   "wger-img:dfad24f7-3f6f-497c-8436-7dfd909bca3f"
+  ],
+  "note": "Media review: removed byte-identical duplicate frames."
  },
  "wger:5b4fb3ec-53a1-4525-a58a-c070798ea86e": {
   "curated": "new"
@@ -197,7 +218,11 @@
   "curated": "some"
  },
  "wger:616f9026-1a1d-4ed8-b068-cfbb81b6a000": {
-  "curated": "new"
+  "curated": "new",
+  "mediaRemove": [
+   "wger-img:8548b2d2-004d-48b4-95fd-b1b25f4e53d0"
+  ],
+  "note": "Media review: removed a byte-identical duplicate frame."
  },
  "wger:62170477-90ec-463c-907e-9e523abc0a15": {
   "curated": "new",
@@ -247,6 +272,13 @@
    "traps"
   ]
  },
+ "wger:738137c0-5387-4215-b457-ea7af113b3ba": {
+  "mediaRemove": [
+   "wger-img:72bb8231-8994-453f-8a3f-85b061dcffb8",
+   "wger-img:141711a2-58dc-47f7-b30c-968256953198"
+  ],
+  "note": "Media review: removed byte-identical duplicate frames."
+ },
  "wger:75e34967-b0ec-40d5-811e-b474b234a7a9": {
   "curated": "new"
  },
@@ -289,7 +321,11 @@
   "curated": "new",
   "equipment": [
    "bodyweight"
-  ]
+  ],
+  "mediaRemove": [
+   "wger-img:d6d57067-97de-462e-a8bb-15228d730323"
+  ],
+  "note": "Media review: removed a byte-identical duplicate frame."
  },
  "wger:81942f3d-d92c-431c-b9d0-0da12918d1e4": {
   "curated": "new"
@@ -338,6 +374,12 @@
   ],
   "name": "Machine chest press (decline)",
   "tracking": "weight_reps"
+ },
+ "wger:92cd0459-5cd1-46a0-934d-e7cff8d4ccda": {
+  "mediaRemove": [
+   "wger-img:66fca8a5-41e8-42d1-8776-5e46a4902650"
+  ],
+  "note": "Media review: image shows an upward-dog/cobra pose, not a runner's lunge."
  },
  "wger:94a5c406-7bcd-47f3-9687-bdf92a763932": {
   "curated": "new"
@@ -436,7 +478,11 @@
   "curated": "new"
  },
  "wger:b7c6a444-90ea-4f5b-9fea-748311606eaa": {
-  "curated": "new"
+  "curated": "new",
+  "mediaRemove": [
+   "wger-img:2ab30113-4e08-4d39-9d23-d901ce2c0971"
+  ],
+  "note": "Media review: removed a byte-identical duplicate frame."
  },
  "wger:bcb7020c-8678-496d-8f4d-aad0e233a5bd": {
   "curated": "new"
@@ -461,7 +507,12 @@
   "curated": "new"
  },
  "wger:c9e57bbe-e839-44c6-861d-1c8dd2845e36": {
-  "curated": "new"
+  "curated": "new",
+  "mediaRemove": [
+   "wger-img:902e6836-394e-458b-b94e-101d714294e2",
+   "wger-img:d1ca4a79-f299-4e70-a391-3e9526c3b141"
+  ],
+  "note": "Media review: removed byte-identical duplicate frames."
  },
  "wger:ceb0c2d0-06ac-4a49-89e7-8d7b1c1e5672": {
   "curated": "new"
@@ -523,7 +574,11 @@
  },
  "wger:ee8e8db4-2d82-49e1-ab7f-891e9a354934": {
   "curated": "some",
+  "mediaRemove": [
+   "wger-img:1709c405-620a-4d07-9658-fade2b66a2df"
+  ],
   "name": "Barbell deadlift",
+  "note": "Media review: image shows a dumbbell deadlift, not the barbell movement.",
   "primaryMuscles": [
    "glutes",
    "hamstrings"
@@ -559,6 +614,19 @@
  },
  "wger:fcf5039b-7784-4f82-830a-b213b597a646": {
   "curated": "new"
+ },
+ "wger:fdeb0973-121f-494d-8b94-54f1d7ba003f": {
+  "mediaRemove": [
+   "wger-img:49207a62-8799-4b47-8c0b-7bde02926f3d"
+  ],
+  "note": "Media review: image shows a standing/crouched clap, not a clap push-up."
+ },
+ "wger:fe04cf35-1af5-4b51-89d4-c38d7eaa0db1": {
+  "mediaRemove": [
+   "wger-img:c51d875b-0c07-495e-a7cf-08893a9f125d",
+   "wger-img:93716d06-c378-49b8-820a-8bf3e1d7e45c"
+  ],
+  "note": "Media review: removed byte-identical duplicate frames."
  },
  "wger:fff05d7a-f374-4c8a-9885-39f49076918f": {
   "curated": "new",

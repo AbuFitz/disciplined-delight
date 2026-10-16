@@ -484,22 +484,6 @@
       "sha256": "a75edc8a295588f758b7dfb9064f08e5d8303ae2fe497e389a1bf33179e907a2"
     },
     {
-      "id": "wger-img:141711a2-58dc-47f7-b30c-968256953198",
-      "exerciseId": "wger:738137c0-5387-4215-b457-ea7af113b3ba",
-      "localUrl": "/catalogue/media/141711a2-58dc-47f7-b30c-968256953198.jpg",
-      "originalUrl": "https://wger.de/media/exercise-images/691/141711a2-58dc-47f7-b30c-968256953198.jpg",
-      "originalThumb": "https://wger.de/media/exercise-images/691/141711a2-58dc-47f7-b30c-968256953198.jpg.400x400_q85.jpg",
-      "author": "anto.kreegyr",
-      "licence": {
-        "id": "CC-BY-SA 4",
-        "short": "CC BY-SA 4.0",
-        "url": "https://creativecommons.org/licenses/by-sa/4.0/"
-      },
-      "contentType": "image/jpeg",
-      "bytes": 21681,
-      "sha256": "08b88b6c8bd296d13e62c36a31199f26ee2bbbbf5e63199978355830f561b5a2"
-    },
-    {
       "id": "wger-img:1503e8e3-b67a-4e74-b044-99288eb26f44",
       "exerciseId": "wger:b16e3e5d-8401-4d2b-919c-15b536f9ec5e",
       "localUrl": "/catalogue/media/1503e8e3-b67a-4e74-b044-99288eb26f44.jpg",
@@ -514,22 +498,6 @@
       "contentType": "image/jpeg",
       "bytes": 33374,
       "sha256": "cc4750f6969ffc2f682cd83afe8cbd9d46e90e66605be70e4608f68dd48ef9cc"
-    },
-    {
-      "id": "wger-img:1709c405-620a-4d07-9658-fade2b66a2df",
-      "exerciseId": "wger:ee8e8db4-2d82-49e1-ab7f-891e9a354934",
-      "localUrl": "/catalogue/media/1709c405-620a-4d07-9658-fade2b66a2df.jpg",
-      "originalUrl": "https://wger.de/media/exercise-images/184/1709c405-620a-4d07-9658-fade2b66a2df.jpeg",
-      "originalThumb": "https://wger.de/media/exercise-images/184/1709c405-620a-4d07-9658-fade2b66a2df.jpeg.400x400_q85.jpg",
-      "author": "philip",
-      "licence": {
-        "id": "CC-BY-SA 4",
-        "short": "CC BY-SA 4.0",
-        "url": "https://creativecommons.org/licenses/by-sa/4.0/"
-      },
-      "contentType": "image/jpeg",
-      "bytes": 19255,
-      "sha256": "eef8edabb71407a84e39bcca7e479213a99c4778c1214a4ea4aa85270ebbcffb"
     },
     {
       "id": "wger-img:1983b6be-1784-4ad3-a05c-7e4b34d9878f",
@@ -754,22 +722,6 @@
       "contentType": "image/jpeg",
       "bytes": 21681,
       "sha256": "08b88b6c8bd296d13e62c36a31199f26ee2bbbbf5e63199978355830f561b5a2"
-    },
-    {
-      "id": "wger-img:2ab30113-4e08-4d39-9d23-d901ce2c0971",
-      "exerciseId": "wger:b7c6a444-90ea-4f5b-9fea-748311606eaa",
-      "localUrl": "/catalogue/media/2ab30113-4e08-4d39-9d23-d901ce2c0971.jpg",
-      "originalUrl": "https://wger.de/media/exercise-images/203/2ab30113-4e08-4d39-9d23-d901ce2c0971.jpeg",
-      "originalThumb": "https://wger.de/media/exercise-images/203/2ab30113-4e08-4d39-9d23-d901ce2c0971.jpeg.400x400_q85.jpg",
-      "author": "philip",
-      "licence": {
-        "id": "CC-BY-SA 4",
-        "short": "CC BY-SA 4.0",
-        "url": "https://creativecommons.org/licenses/by-sa/4.0/"
-      },
-      "contentType": "image/jpeg",
-      "bytes": 21400,
-      "sha256": "a49c10b5af2d4a5bae464d43cf2a299fd20c04fa0e3f87bfec4424f6f68f2f62"
     },
     {
       "id": "wger-img:2b6de046-5806-49e3-bf36-b6fae16af021",
@@ -1155,22 +1107,6 @@
       "sha256": "771dcac218d276dc5df476976ee641a42762bf4b260ebf55bfb02f1b05c683f6"
     },
     {
-      "id": "wger-img:49207a62-8799-4b47-8c0b-7bde02926f3d",
-      "exerciseId": "wger:fdeb0973-121f-494d-8b94-54f1d7ba003f",
-      "localUrl": "/catalogue/media/49207a62-8799-4b47-8c0b-7bde02926f3d.jpg",
-      "originalUrl": "https://wger.de/media/exercise-images/1554/49207a62-8799-4b47-8c0b-7bde02926f3d.png",
-      "originalThumb": "https://wger.de/media/exercise-images/1554/49207a62-8799-4b47-8c0b-7bde02926f3d.png.400x400_q85.jpg",
-      "author": "Settebello",
-      "licence": {
-        "id": "CC-BY-SA 4",
-        "short": "CC BY-SA 4.0",
-        "url": "https://creativecommons.org/licenses/by-sa/4.0/"
-      },
-      "contentType": "image/jpeg",
-      "bytes": 36773,
-      "sha256": "8fef0e7d05811b50a2bee67376e44210e3623656a98e025c1bc11323a79c8546"
-    },
-    {
       "id": "wger-img:492ce9c7-12cf-4378-aca4-fe008dea5dd4",
       "exerciseId": "wger:4af6dbd9-8991-484b-9810-68f117c21edf",
       "localUrl": "/catalogue/media/492ce9c7-12cf-4378-aca4-fe008dea5dd4.jpg",
@@ -1522,22 +1458,6 @@
       "sha256": "712714dc0520aa8344c084bfb6445641b0de8e65fc6f1b56fcd76c83106edd98"
     },
     {
-      "id": "wger-img:60c68ac5-70c7-4ed6-bfc1-99bed63a472a",
-      "exerciseId": "wger:13234b53-ea0c-41f1-9069-776865ea8eff",
-      "localUrl": "/catalogue/media/60c68ac5-70c7-4ed6-bfc1-99bed63a472a.jpg",
-      "originalUrl": "https://wger.de/media/exercise-images/50/60c68ac5-70c7-4ed6-bfc1-99bed63a472a.jpg",
-      "originalThumb": "https://wger.de/media/exercise-images/50/60c68ac5-70c7-4ed6-bfc1-99bed63a472a.jpg.400x400_q85.jpg",
-      "author": "Franpol",
-      "licence": {
-        "id": "CC-BY-SA 4",
-        "short": "CC BY-SA 4.0",
-        "url": "https://creativecommons.org/licenses/by-sa/4.0/"
-      },
-      "contentType": "image/jpeg",
-      "bytes": 10022,
-      "sha256": "36acbd9e4db215f94573a6a859bb387e66b66d1ee6a50b3a881ef8ebc21d2226"
-    },
-    {
       "id": "wger-img:60e2aa21-1910-40d3-9fed-babfee06dd48",
       "exerciseId": "wger:5f0b757c-0d6a-430b-9d5e-3bfba202878e",
       "localUrl": "/catalogue/media/60e2aa21-1910-40d3-9fed-babfee06dd48.jpg",
@@ -1618,22 +1538,6 @@
       "sha256": "b000c664d16443d74e3bc707c6655e84be30e473d06b6611e442fc24f0da26f5"
     },
     {
-      "id": "wger-img:66fca8a5-41e8-42d1-8776-5e46a4902650",
-      "exerciseId": "wger:92cd0459-5cd1-46a0-934d-e7cff8d4ccda",
-      "localUrl": "/catalogue/media/66fca8a5-41e8-42d1-8776-5e46a4902650.png",
-      "originalUrl": "https://wger.de/media/exercise-images/1874/66fca8a5-41e8-42d1-8776-5e46a4902650.png",
-      "originalThumb": "https://wger.de/media/exercise-images/1874/66fca8a5-41e8-42d1-8776-5e46a4902650.png.400x400_q85.png",
-      "author": "Davidgj32",
-      "licence": {
-        "id": "CC-BY-SA 4",
-        "short": "CC BY-SA 4.0",
-        "url": "https://creativecommons.org/licenses/by-sa/4.0/"
-      },
-      "contentType": "image/png",
-      "bytes": 150490,
-      "sha256": "8ab7f7d27d2562dfde54993d07146d05cb9f41057ba66fd7754c3b48cd9a9c99"
-    },
-    {
       "id": "wger-img:66ff858e-3719-4fdc-9710-c41e43a3c057",
       "exerciseId": "wger:8b0a0371-c0a9-42a7-aab7-68d520542fb2",
       "localUrl": "/catalogue/media/66ff858e-3719-4fdc-9710-c41e43a3c057.jpg",
@@ -1712,22 +1616,6 @@
       "contentType": "image/jpeg",
       "bytes": 24606,
       "sha256": "d672c751fee16c5e03fc359b7714e7cca45cd71fad8fa7569e8d7932e109fa67"
-    },
-    {
-      "id": "wger-img:695ced5c-9961-4076-add2-cb250d01089e",
-      "exerciseId": "wger:13234b53-ea0c-41f1-9069-776865ea8eff",
-      "localUrl": "/catalogue/media/695ced5c-9961-4076-add2-cb250d01089e.jpg",
-      "originalUrl": "https://wger.de/media/exercise-images/50/695ced5c-9961-4076-add2-cb250d01089e.png",
-      "originalThumb": "https://wger.de/media/exercise-images/50/695ced5c-9961-4076-add2-cb250d01089e.png.400x400_q85.jpg",
-      "author": "Franpol",
-      "licence": {
-        "id": "CC-BY-SA 4",
-        "short": "CC BY-SA 4.0",
-        "url": "https://creativecommons.org/licenses/by-sa/4.0/"
-      },
-      "contentType": "image/jpeg",
-      "bytes": 29036,
-      "sha256": "e71677989f1f029254103904df74c1626d48875e8fc8534af7a561868d9da5ec"
     },
     {
       "id": "wger-img:6a770e5d-cd62-4754-a18c-eebe2103d7c5",
@@ -1922,38 +1810,6 @@
       "sha256": "4d7b2522bdaa5175118f1843d7d2d9c3c216bf2bb280a0fb7472b936c8a55657"
     },
     {
-      "id": "wger-img:72bb8231-8994-453f-8a3f-85b061dcffb8",
-      "exerciseId": "wger:738137c0-5387-4215-b457-ea7af113b3ba",
-      "localUrl": "/catalogue/media/72bb8231-8994-453f-8a3f-85b061dcffb8.jpg",
-      "originalUrl": "https://wger.de/media/exercise-images/691/72bb8231-8994-453f-8a3f-85b061dcffb8.jpg",
-      "originalThumb": "https://wger.de/media/exercise-images/691/72bb8231-8994-453f-8a3f-85b061dcffb8.jpg.400x400_q85.jpg",
-      "author": "anto.kreegyr",
-      "licence": {
-        "id": "CC-BY-SA 4",
-        "short": "CC BY-SA 4.0",
-        "url": "https://creativecommons.org/licenses/by-sa/4.0/"
-      },
-      "contentType": "image/jpeg",
-      "bytes": 21681,
-      "sha256": "08b88b6c8bd296d13e62c36a31199f26ee2bbbbf5e63199978355830f561b5a2"
-    },
-    {
-      "id": "wger-img:7359ab6a-72a4-4ed8-b7da-35d57aaa2199",
-      "exerciseId": "wger:57263316-6f34-4539-952b-b07e09bac3ba",
-      "localUrl": "/catalogue/media/7359ab6a-72a4-4ed8-b7da-35d57aaa2199.png",
-      "originalUrl": "https://wger.de/media/exercise-images/349/7359ab6a-72a4-4ed8-b7da-35d57aaa2199.png",
-      "originalThumb": "https://wger.de/media/exercise-images/349/7359ab6a-72a4-4ed8-b7da-35d57aaa2199.png.400x400_q85.png",
-      "author": "philip",
-      "licence": {
-        "id": "CC-BY-SA 4",
-        "short": "CC BY-SA 4.0",
-        "url": "https://creativecommons.org/licenses/by-sa/4.0/"
-      },
-      "contentType": "image/png",
-      "bytes": 33857,
-      "sha256": "b4e440c5d0886fca4714b0721d8bc23237b28fa9156f5f19a25809ef4bb43052"
-    },
-    {
       "id": "wger-img:7465bbcf-3b86-42a6-8d2f-12a3d1f60a15",
       "exerciseId": "wger:b5529305-04a2-4ca2-af6a-4a67d3e4aca4",
       "localUrl": "/catalogue/media/7465bbcf-3b86-42a6-8d2f-12a3d1f60a15.png",
@@ -2130,22 +1986,6 @@
       "sha256": "b000c664d16443d74e3bc707c6655e84be30e473d06b6611e442fc24f0da26f5"
     },
     {
-      "id": "wger-img:8548b2d2-004d-48b4-95fd-b1b25f4e53d0",
-      "exerciseId": "wger:616f9026-1a1d-4ed8-b068-cfbb81b6a000",
-      "localUrl": "/catalogue/media/8548b2d2-004d-48b4-95fd-b1b25f4e53d0.jpg",
-      "originalUrl": "https://wger.de/media/exercise-images/999/8548b2d2-004d-48b4-95fd-b1b25f4e53d0.jfif",
-      "originalThumb": "https://wger.de/media/exercise-images/999/8548b2d2-004d-48b4-95fd-b1b25f4e53d0.jfif.400x400_q85.jpg",
-      "author": "philip",
-      "licence": {
-        "id": "CC-BY-SA 4",
-        "short": "CC BY-SA 4.0",
-        "url": "https://creativecommons.org/licenses/by-sa/4.0/"
-      },
-      "contentType": "image/jpeg",
-      "bytes": 11618,
-      "sha256": "e7889539101a00849d9fc8297de05eb89371aa6eb2ad56f01cccc1cb9750b81c"
-    },
-    {
       "id": "wger-img:85a6b9de-4eec-445b-8ebb-f1950b076aba",
       "exerciseId": "wger:492e90a5-1ecb-4a06-8e9d-26a00042560e",
       "localUrl": "/catalogue/media/85a6b9de-4eec-445b-8ebb-f1950b076aba.png",
@@ -2226,22 +2066,6 @@
       "sha256": "b3f1f4d15a6974e4659ba6a7ed0bbdd3a3a01b02f9f3c41e618df4350d7a4e23"
     },
     {
-      "id": "wger-img:8dc5ad63-a93a-496f-9473-ac414236e58d",
-      "exerciseId": "wger:57263316-6f34-4539-952b-b07e09bac3ba",
-      "localUrl": "/catalogue/media/8dc5ad63-a93a-496f-9473-ac414236e58d.png",
-      "originalUrl": "https://wger.de/media/exercise-images/349/8dc5ad63-a93a-496f-9473-ac414236e58d.png",
-      "originalThumb": "https://wger.de/media/exercise-images/349/8dc5ad63-a93a-496f-9473-ac414236e58d.png.400x400_q85.png",
-      "author": "philip",
-      "licence": {
-        "id": "CC-BY-SA 4",
-        "short": "CC BY-SA 4.0",
-        "url": "https://creativecommons.org/licenses/by-sa/4.0/"
-      },
-      "contentType": "image/png",
-      "bytes": 33857,
-      "sha256": "b4e440c5d0886fca4714b0721d8bc23237b28fa9156f5f19a25809ef4bb43052"
-    },
-    {
       "id": "wger-img:8fb4de34-d4df-435a-bf59-14410ebda230",
       "exerciseId": "wger:b16e3e5d-8401-4d2b-919c-15b536f9ec5e",
       "localUrl": "/catalogue/media/8fb4de34-d4df-435a-bf59-14410ebda230.jpg",
@@ -2258,22 +2082,6 @@
       "sha256": "c1316411de04b37e93b0ca2ae749c6308bde21831a2b30687150bb2a5a1d8fc8"
     },
     {
-      "id": "wger-img:902e6836-394e-458b-b94e-101d714294e2",
-      "exerciseId": "wger:c9e57bbe-e839-44c6-861d-1c8dd2845e36",
-      "localUrl": "/catalogue/media/902e6836-394e-458b-b94e-101d714294e2.png",
-      "originalUrl": "https://wger.de/media/exercise-images/458/902e6836-394e-458b-b94e-101d714294e2.png",
-      "originalThumb": "https://wger.de/media/exercise-images/458/902e6836-394e-458b-b94e-101d714294e2.png.400x400_q85.png",
-      "author": "utkb",
-      "licence": {
-        "id": "CC-BY-SA 4",
-        "short": "CC BY-SA 4.0",
-        "url": "https://creativecommons.org/licenses/by-sa/4.0/"
-      },
-      "contentType": "image/png",
-      "bytes": 17027,
-      "sha256": "8c96659aa40237edebce4a0360ae94851f5df7f1f6d131d6c793d32daa7c6a44"
-    },
-    {
       "id": "wger-img:92291128-cc7e-4f70-9663-80840c516fc9",
       "exerciseId": "wger:4d96e62c-e4ac-45be-9428-b97f18ca26d9",
       "localUrl": "/catalogue/media/92291128-cc7e-4f70-9663-80840c516fc9.jpg",
@@ -2288,22 +2096,6 @@
       "contentType": "image/jpeg",
       "bytes": 18241,
       "sha256": "b7394ecd18a06a3e8faa1680072dd588ec102f839d7b4d6bb4dd962c22a96ecc"
-    },
-    {
-      "id": "wger-img:93716d06-c378-49b8-820a-8bf3e1d7e45c",
-      "exerciseId": "wger:fe04cf35-1af5-4b51-89d4-c38d7eaa0db1",
-      "localUrl": "/catalogue/media/93716d06-c378-49b8-820a-8bf3e1d7e45c.jpg",
-      "originalUrl": "https://wger.de/media/exercise-images/456/93716d06-c378-49b8-820a-8bf3e1d7e45c.jpg",
-      "originalThumb": "https://wger.de/media/exercise-images/456/93716d06-c378-49b8-820a-8bf3e1d7e45c.jpg.400x400_q85.jpg",
-      "author": "wakanda90",
-      "licence": {
-        "id": "CC-BY-SA 4",
-        "short": "CC BY-SA 4.0",
-        "url": "https://creativecommons.org/licenses/by-sa/4.0/"
-      },
-      "contentType": "image/jpeg",
-      "bytes": 10212,
-      "sha256": "9610874d72c879a0f719465284fe82c1109fd3a8fa5cae5736cd42e5b2e50102"
     },
     {
       "id": "wger-img:93d993f8-1d8c-4e21-99c6-08b2fe424a17",
@@ -2343,22 +2135,6 @@
       "localUrl": "/catalogue/media/947ac249-475d-44ed-bed3-8dc433374f59.jpg",
       "originalUrl": "https://wger.de/media/exercise-images/958/947ac249-475d-44ed-bed3-8dc433374f59.png",
       "originalThumb": "https://wger.de/media/exercise-images/958/947ac249-475d-44ed-bed3-8dc433374f59.png.400x400_q85.jpg",
-      "author": "cynomops",
-      "licence": {
-        "id": "CC-BY-SA 4",
-        "short": "CC BY-SA 4.0",
-        "url": "https://creativecommons.org/licenses/by-sa/4.0/"
-      },
-      "contentType": "image/jpeg",
-      "bytes": 16034,
-      "sha256": "f0780d7d6e6901993707a8d323585a21cfda0643a98ca318f11f096f9dc211d3"
-    },
-    {
-      "id": "wger-img:95f2bbc4-2f95-476d-a9b8-81b333fe2ef5",
-      "exerciseId": "wger:596b9d2d-0f01-41a0-97e1-1839ffdb824d",
-      "localUrl": "/catalogue/media/95f2bbc4-2f95-476d-a9b8-81b333fe2ef5.jpg",
-      "originalUrl": "https://wger.de/media/exercise-images/958/95f2bbc4-2f95-476d-a9b8-81b333fe2ef5.png",
-      "originalThumb": "https://wger.de/media/exercise-images/958/95f2bbc4-2f95-476d-a9b8-81b333fe2ef5.png.400x400_q85.jpg",
       "author": "cynomops",
       "licence": {
         "id": "CC-BY-SA 4",
@@ -3282,22 +3058,6 @@
       "sha256": "1752581da1916f74962eb1d9dc308108af6d486c0cbd7c16d87bd20bd7335325"
     },
     {
-      "id": "wger-img:c51d875b-0c07-495e-a7cf-08893a9f125d",
-      "exerciseId": "wger:fe04cf35-1af5-4b51-89d4-c38d7eaa0db1",
-      "localUrl": "/catalogue/media/c51d875b-0c07-495e-a7cf-08893a9f125d.jpg",
-      "originalUrl": "https://wger.de/media/exercise-images/456/c51d875b-0c07-495e-a7cf-08893a9f125d.jpg",
-      "originalThumb": "https://wger.de/media/exercise-images/456/c51d875b-0c07-495e-a7cf-08893a9f125d.jpg.400x400_q85.jpg",
-      "author": "wakanda90",
-      "licence": {
-        "id": "CC-BY-SA 4",
-        "short": "CC BY-SA 4.0",
-        "url": "https://creativecommons.org/licenses/by-sa/4.0/"
-      },
-      "contentType": "image/jpeg",
-      "bytes": 10212,
-      "sha256": "9610874d72c879a0f719465284fe82c1109fd3a8fa5cae5736cd42e5b2e50102"
-    },
-    {
       "id": "wger-img:c5ca283d-8958-4fd8-9d59-a3f52a3ac66b",
       "exerciseId": "wger:6ebb138e-bb0a-402e-84e5-68fe0896e897",
       "localUrl": "/catalogue/media/c5ca283d-8958-4fd8-9d59-a3f52a3ac66b.jpg",
@@ -3570,22 +3330,6 @@
       "sha256": "347d684f4de1c887284c2f909c20bf6ff84a76d5ff42a56acd626b706f4deb27"
     },
     {
-      "id": "wger-img:d1ca4a79-f299-4e70-a391-3e9526c3b141",
-      "exerciseId": "wger:c9e57bbe-e839-44c6-861d-1c8dd2845e36",
-      "localUrl": "/catalogue/media/d1ca4a79-f299-4e70-a391-3e9526c3b141.png",
-      "originalUrl": "https://wger.de/media/exercise-images/458/d1ca4a79-f299-4e70-a391-3e9526c3b141.png",
-      "originalThumb": "https://wger.de/media/exercise-images/458/d1ca4a79-f299-4e70-a391-3e9526c3b141.png.400x400_q85.png",
-      "author": "utkb",
-      "licence": {
-        "id": "CC-BY-SA 4",
-        "short": "CC BY-SA 4.0",
-        "url": "https://creativecommons.org/licenses/by-sa/4.0/"
-      },
-      "contentType": "image/png",
-      "bytes": 17027,
-      "sha256": "8c96659aa40237edebce4a0360ae94851f5df7f1f6d131d6c793d32daa7c6a44"
-    },
-    {
       "id": "wger-img:d3e26e7c-7ef6-443d-a2bf-5b0a06fe2d29",
       "exerciseId": "wger:2f8ee51b-f493-47f7-8b2a-1da16c128f73",
       "localUrl": "/catalogue/media/d3e26e7c-7ef6-443d-a2bf-5b0a06fe2d29.png",
@@ -3600,22 +3344,6 @@
       "contentType": "image/png",
       "bytes": 37680,
       "sha256": "bc12f9d7a7f1eefe9558f8d71d9ac57bf3aec06773e0e5a5c4642e5a3f2b0c5b"
-    },
-    {
-      "id": "wger-img:d6d57067-97de-462e-a8bb-15228d730323",
-      "exerciseId": "wger:7ce443b6-eb84-4f65-b05f-461c1cc8bcc0",
-      "localUrl": "/catalogue/media/d6d57067-97de-462e-a8bb-15228d730323.jpg",
-      "originalUrl": "https://wger.de/media/exercise-images/622/d6d57067-97de-462e-a8bb-15228d730323.jpeg",
-      "originalThumb": "https://wger.de/media/exercise-images/622/d6d57067-97de-462e-a8bb-15228d730323.jpeg.400x400_q85.jpg",
-      "author": "clafal",
-      "licence": {
-        "id": "CC-BY-SA 4",
-        "short": "CC BY-SA 4.0",
-        "url": "https://creativecommons.org/licenses/by-sa/4.0/"
-      },
-      "contentType": "image/jpeg",
-      "bytes": 7479,
-      "sha256": "f95cf941c9a6e00e2427ff967cce6dbc28e12e412a8e032aa902c1c510b3bd63"
     },
     {
       "id": "wger-img:d7d6f9e1-7834-4cca-bd3b-f9def33ff44d",
@@ -3728,22 +3456,6 @@
       "contentType": "image/jpeg",
       "bytes": 12877,
       "sha256": "2f9acfc5be80578319ed57e99533a9b40da216bbd894850b25586ded107023af"
-    },
-    {
-      "id": "wger-img:dfad24f7-3f6f-497c-8436-7dfd909bca3f",
-      "exerciseId": "wger:596b9d2d-0f01-41a0-97e1-1839ffdb824d",
-      "localUrl": "/catalogue/media/dfad24f7-3f6f-497c-8436-7dfd909bca3f.jpg",
-      "originalUrl": "https://wger.de/media/exercise-images/958/dfad24f7-3f6f-497c-8436-7dfd909bca3f.png",
-      "originalThumb": "https://wger.de/media/exercise-images/958/dfad24f7-3f6f-497c-8436-7dfd909bca3f.png.400x400_q85.jpg",
-      "author": "cynomops",
-      "licence": {
-        "id": "CC-BY-SA 4",
-        "short": "CC BY-SA 4.0",
-        "url": "https://creativecommons.org/licenses/by-sa/4.0/"
-      },
-      "contentType": "image/jpeg",
-      "bytes": 16034,
-      "sha256": "f0780d7d6e6901993707a8d323585a21cfda0643a98ca318f11f096f9dc211d3"
     },
     {
       "id": "wger-img:e1128391-4b73-43a9-ab27-657d8bb43083",

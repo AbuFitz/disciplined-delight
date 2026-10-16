@@ -11,9 +11,11 @@ import { createHash } from "node:crypto";
 import {
   existsSync,
   mkdirSync,
+  readdirSync,
   readFileSync,
   renameSync,
   statSync,
+  unlinkSync,
   writeFileSync,
 } from "node:fs";
 import { basename, dirname, extname, join } from "node:path";
@@ -22,6 +24,7 @@ const ROOT = new URL("../../", import.meta.url).pathname;
 const CATALOGUE_FILE = join(ROOT, "public/catalogue/v1/exercises.json");
 const MANIFEST_FILE = join(ROOT, "public/catalogue/v1/media-manifest.json");
 const MEDIA_DIR = join(ROOT, "public/catalogue/media");
+const OVERRIDES_FILE = join(ROOT, "catalogue/overrides.json");
 const PUBLIC_PREFIX = "/catalogue/media/";
 const USER_AGENT = "VAYVOR-media-importer/1.0 (licensed wger exercise media)";
 const MAX_BYTES = 8 * 1024 * 1024;
@@ -53,7 +56,11 @@ const sha256 = (buffer) => createHash("sha256").update(buffer).digest("hex");
 
 async function fetchImage(url) {
   const parsed = new URL(url);
-  if (parsed.protocol !== "https:" || parsed.hostname !== "wger.de" || !parsed.pathname.startsWith("/media/")) {
+  if (
+    parsed.protocol !== "https:" ||
+    parsed.hostname !== "wger.de" ||
+    !parsed.pathname.startsWith("/media/")
+  ) {
     throw new Error(`Refusing unexpected media origin: ${url}`);
   }
   let lastError;
@@ -64,7 +71,8 @@ async function fetchImage(url) {
       });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const contentType = response.headers.get("content-type") ?? "";
-      if (!contentType.startsWith("image/")) throw new Error(`unexpected content type ${contentType}`);
+      if (!contentType.startsWith("image/"))
+        throw new Error(`unexpected content type ${contentType}`);
       const bytes = Buffer.from(await response.arrayBuffer());
       if (bytes.length === 0 || bytes.length > MAX_BYTES) {
         throw new Error(`invalid image size ${bytes.length}`);
@@ -75,47 +83,77 @@ async function fetchImage(url) {
       if (attempt < 3) await new Promise((resolve) => setTimeout(resolve, 500 * 2 ** attempt));
     }
   }
-  throw new Error(`Could not download ${url}: ${lastError instanceof Error ? lastError.message : lastError}`);
+  throw new Error(
+    `Could not download ${url}: ${lastError instanceof Error ? lastError.message : lastError}`,
+  );
 }
 
 const catalogue = JSON.parse(readFileSync(CATALOGUE_FILE, "utf8"));
+const overrides = existsSync(OVERRIDES_FILE)
+  ? JSON.parse(readFileSync(OVERRIDES_FILE, "utf8"))
+  : {};
 const previousManifest = existsSync(MANIFEST_FILE)
   ? JSON.parse(readFileSync(MANIFEST_FILE, "utf8"))
   : { entries: [] };
 const previousById = new Map(previousManifest.entries.map((entry) => [entry.id, entry]));
 
+let curatedRemovals = 0;
+const pendingCuratedRemovals = [];
+for (const exercise of catalogue.exercises) {
+  const removed = new Set(overrides[exercise.id]?.mediaRemove ?? []);
+  if (!removed.size) continue;
+  for (const item of exercise.media ?? []) {
+    if (removed.has(item.id)) pendingCuratedRemovals.push(`${exercise.id}: ${item.id}`);
+  }
+  const before = exercise.media?.length ?? 0;
+  exercise.media = (exercise.media ?? []).filter((item) => !removed.has(item.id));
+  exercise.flags = [...new Set([...(exercise.flags ?? []), "media_curated"])];
+  curatedRemovals += before - exercise.media.length;
+}
+
 const jobs = [];
 for (const exercise of catalogue.exercises) {
   for (const media of exercise.media ?? []) {
     const existing = previousById.get(media.id);
-    const remoteUrl = media.url.startsWith("http")
-      ? media.url
-      : existing?.originalUrl;
-    const remoteThumb = media.thumb?.startsWith("http")
-      ? media.thumb
-      : existing?.originalThumb;
+    const remoteUrl = media.url.startsWith("http") ? media.url : existing?.originalUrl;
+    const remoteThumb = media.thumb?.startsWith("http") ? media.thumb : existing?.originalThumb;
     if (!remoteUrl) throw new Error(`No original URL recorded for ${media.id}`);
-    jobs.push({ exercise, media, remoteUrl, remoteThumb, downloadUrl: remoteThumb ?? remoteUrl, existing });
+    jobs.push({
+      exercise,
+      media,
+      remoteUrl,
+      remoteThumb,
+      downloadUrl: remoteThumb ?? remoteUrl,
+      existing,
+    });
   }
 }
 
 if (process.argv.includes("--check")) {
-  const missing = [];
+  const missing = pendingCuratedRemovals.map((item) => `${item}: curated removal not applied`);
   for (const { media, existing } of jobs) {
     if (!media.url.startsWith(PUBLIC_PREFIX)) missing.push(`${media.id}: not same-origin`);
     else {
       const file = join(ROOT, "public", media.url.slice(1));
-      if (!existsSync(file) || statSync(file).size === 0) missing.push(`${media.id}: missing ${media.url}`);
+      if (!existsSync(file) || statSync(file).size === 0)
+        missing.push(`${media.id}: missing ${media.url}`);
       else if (!existing) missing.push(`${media.id}: missing provenance entry`);
       else {
         const fileBytes = readFileSync(file);
-        if (existing.localUrl !== media.url) missing.push(`${media.id}: catalogue/manifest path mismatch`);
+        if (existing.localUrl !== media.url)
+          missing.push(`${media.id}: catalogue/manifest path mismatch`);
         if (existing.bytes !== fileBytes.length) missing.push(`${media.id}: byte count mismatch`);
         if (existing.sha256 !== sha256(fileBytes)) missing.push(`${media.id}: checksum mismatch`);
         if (existing.author !== media.author || existing.licence?.id !== media.licence?.id) {
           missing.push(`${media.id}: attribution mismatch`);
         }
       }
+    }
+  }
+  const referencedFiles = new Set(jobs.map(({ media }) => basename(media.url)));
+  for (const entry of readdirSync(MEDIA_DIR, { withFileTypes: true })) {
+    if (entry.isFile() && !referencedFiles.has(entry.name)) {
+      missing.push(`${entry.name}: orphaned local media`);
     }
   }
   if (missing.length) throw new Error(`Media check failed:\n${missing.join("\n")}`);
@@ -192,6 +230,13 @@ await Promise.all(
 );
 
 manifestEntries.sort((a, b) => a.id.localeCompare(b.id));
+const referencedFiles = new Set(manifestEntries.map((entry) => basename(entry.localUrl)));
+let pruned = 0;
+for (const entry of readdirSync(MEDIA_DIR, { withFileTypes: true })) {
+  if (!entry.isFile() || referencedFiles.has(entry.name)) continue;
+  unlinkSync(join(MEDIA_DIR, entry.name));
+  pruned += 1;
+}
 atomicWrite(CATALOGUE_FILE, compactJson(catalogue));
 atomicWrite(
   MANIFEST_FILE,
@@ -202,4 +247,6 @@ atomicWrite(
     entries: manifestEntries,
   }),
 );
-console.log(`Wrote ${jobs.length} self-hosted images and updated ${basename(CATALOGUE_FILE)}.`);
+console.log(
+  `Wrote ${jobs.length} self-hosted images and updated ${basename(CATALOGUE_FILE)} (${curatedRemovals} human-reviewed removals, ${pruned} orphaned files pruned).`,
+);
