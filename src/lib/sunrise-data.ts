@@ -3,24 +3,24 @@ import workoutB from "@/assets/workout-b.jpg";
 import workoutC from "@/assets/workout-c.jpg";
 import workoutD from "@/assets/workout-d.jpg";
 
-import chestPress from "@/assets/exercises/chest-press-photo.png";
-import inclinePress from "@/assets/exercises/incline-press-photo.png";
-import cableFly from "@/assets/exercises/cable-fly-photo.png";
-import machineFly from "@/assets/exercises/machine-fly-photo.png";
-import tricepPushdown from "@/assets/exercises/tricep-pushdown-photo.png";
-import overheadRopeTricepExtension from "@/assets/exercises/overhead-rope-tricep-extension-photo.png";
-import singleArmCableTricepExtension from "@/assets/exercises/single-arm-cable-tricep-extension-photo.png";
-import latPulldown from "@/assets/exercises/lat-pulldown-photo.png";
-import straightArmRopePulldown from "@/assets/exercises/straight-arm-rope-pulldown-photo.png";
-import cableRow from "@/assets/exercises/cable-row-photo.png";
-import seatedMachineRow from "@/assets/exercises/seated-machine-row-photo.png";
-import standingCableBicepCurl from "@/assets/exercises/standing-cable-bicep-curl-photo.png";
-import bicepCurlMachine from "@/assets/exercises/bicep-curl-machine-photo.png";
-import hammerCurl from "@/assets/exercises/hammer-curl-photo.png";
-import shoulderPressMachine from "@/assets/exercises/shoulder-press-machine-photo.png";
-import cableLateralRaise from "@/assets/exercises/cable-lateral-raise-photo.png";
+import chestPress from "@/assets/exercises/chest-press-photo.webp";
+import inclinePress from "@/assets/exercises/incline-press-photo.webp";
+import cableFly from "@/assets/exercises/cable-fly-photo.webp";
+import machineFly from "@/assets/exercises/machine-fly-photo.webp";
+import tricepPushdown from "@/assets/exercises/tricep-pushdown-photo.webp";
+import overheadRopeTricepExtension from "@/assets/exercises/overhead-rope-tricep-extension-photo.webp";
+import singleArmCableTricepExtension from "@/assets/exercises/single-arm-cable-tricep-extension-photo.webp";
+import latPulldown from "@/assets/exercises/lat-pulldown-photo.webp";
+import straightArmRopePulldown from "@/assets/exercises/straight-arm-rope-pulldown-photo.webp";
+import cableRow from "@/assets/exercises/cable-row-photo.webp";
+import seatedMachineRow from "@/assets/exercises/seated-machine-row-photo.webp";
+import standingCableBicepCurl from "@/assets/exercises/standing-cable-bicep-curl-photo.webp";
+import bicepCurlMachine from "@/assets/exercises/bicep-curl-machine-photo.webp";
+import hammerCurl from "@/assets/exercises/hammer-curl-photo.webp";
+import shoulderPressMachine from "@/assets/exercises/shoulder-press-machine-photo.webp";
+import cableLateralRaise from "@/assets/exercises/cable-lateral-raise-photo.webp";
 import facePull from "@/assets/exercises/face-pull.jpg";
-import reversePecDeck from "@/assets/exercises/reversePecDeck.png";
+import reversePecDeck from "@/assets/exercises/reversePecDeck.webp";
 
 // Search links instead of fixed video IDs / deep pages — a specific video can
 // go private or a specific page can 404, a search never breaks.
@@ -609,7 +609,7 @@ export const DAY_PLANS: DayPlan[] = [
           "25g honey",
           "Water or ice to thin it out — blend oats first so it's drinkable, not concrete",
         ],
-        image: "/meals/shake.jpg",
+        image: "/meals/shake.webp",
       },
       {
         id: "a-lunch",
@@ -624,7 +624,7 @@ export const DAY_PLANS: DayPlan[] = [
           "2 boiled eggs",
           "1 Arla Protein Chocolate 482ml (225 kcal, 26.3g protein, 23g carbs, 2.9g fat)",
         ],
-        image: "/meals/tuna-lunch.jpg",
+        image: "/meals/tuna-lunch.webp",
       },
       {
         id: "a-dinner",
@@ -656,7 +656,7 @@ export const DAY_PLANS: DayPlan[] = [
           "38g mixed nuts or peanuts",
           "250ml orange juice",
         ],
-        image: "/meals/bagel-nuts-oj.png",
+        image: "/meals/bagel-nuts-oj.webp",
       },
     ],
   },
@@ -681,7 +681,7 @@ export const DAY_PLANS: DayPlan[] = [
           "300ml whole milk",
           "1 medium banana",
         ],
-        image: "/meals/eggs-bagel-milk.png",
+        image: "/meals/eggs-bagel-milk.webp",
       },
       {
         id: "b-lunch",
@@ -713,7 +713,7 @@ export const DAY_PLANS: DayPlan[] = [
           "1 Tesco Tuna & Sweetcorn Sandwich",
           "No Arla shake needed today — chicken, eggs, milk and tuna already cover the protein target",
         ],
-        image: "/meals/tuna-sandwich.png",
+        image: "/meals/tuna-sandwich.webp",
       },
       {
         id: "b-evening",
@@ -731,7 +731,7 @@ export const DAY_PLANS: DayPlan[] = [
           "36g mixed nuts or peanuts, alongside",
           "260ml orange juice, alongside",
         ],
-        image: "/meals/shake.jpg",
+        image: "/meals/shake.webp",
       },
     ],
   },
