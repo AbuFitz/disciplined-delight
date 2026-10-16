@@ -28,9 +28,10 @@ import {
   TextInput,
   Segmented,
 } from "./ui";
-import { MealLogSheet, useFoodData } from "./MealLog";
+import { MealLogSheet } from "./MealLog";
 import { PrayerList } from "./prayer";
-import { useActiveSession } from "./Shell";
+import { useActiveSession } from "@/data/session-hooks";
+import { useFoodData } from "@/data/food-hooks";
 import {
   DEFAULT_WIDGETS,
   resetLayout,
@@ -825,5 +826,3 @@ export function EditTodaySheet({
     </Sheet>
   );
 }
-
-export { DEFAULT_WIDGETS, resolveLayout };

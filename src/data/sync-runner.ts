@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useScope } from "./account";
+import { useScope } from "./scope-context";
 import { getMeta, onAnyChange, outboxCount, setMeta } from "./db";
 import { scopeDbName } from "./scope";
 import { getConflicts, runSync, type SyncResult } from "./sync-engine";

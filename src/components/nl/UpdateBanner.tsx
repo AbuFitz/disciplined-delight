@@ -1,5 +1,5 @@
 import { applyUpdate, usePwa } from "@/lib/pwa";
-import { useActiveSession } from "./Shell";
+import { useActiveSession } from "@/data/session-hooks";
 import { Button } from "./ui";
 
 /** Offers a waiting update. Never reloads by itself, and holds back while a workout is in progress. */

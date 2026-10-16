@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Button, Chip, ConfirmDialog, Field, Sheet, Switch, TextInput } from "./ui";
-import { useScope } from "@/data/account";
+import { useScope } from "@/data/scope-context";
 import { ProfileApiError, profileApi, useAccountProfile } from "@/data/account-profile";
 import { deleteScopeData, getScopeDB, listLocalScopes, outboxCount } from "@/data/db";
 import { getScope, sameScope, type Scope } from "@/data/scope";

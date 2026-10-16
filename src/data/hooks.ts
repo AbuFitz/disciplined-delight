@@ -8,7 +8,7 @@ import {
   useSyncExternalStore,
   type ReactNode,
 } from "react";
-import { useScope } from "./account";
+import { useScope } from "./scope-context";
 import { list, subscribe } from "./db";
 import { getScope, onScopeChange, scopeGeneration } from "./scope";
 import { runMigration, type MigrationReport } from "./legacy";

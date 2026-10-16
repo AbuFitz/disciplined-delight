@@ -13,7 +13,7 @@ export const Route = createFileRoute("/welcome")({
   component: WelcomePage,
 });
 
-export function useResendCooldown(seconds = 60) {
+function useResendCooldown(seconds = 60) {
   const [left, setLeft] = useState(0);
   useEffect(() => {
     if (left <= 0) return;

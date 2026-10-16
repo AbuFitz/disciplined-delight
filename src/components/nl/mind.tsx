@@ -177,7 +177,7 @@ const SOUL_PROMPTS = [
 ];
 
 /** One prompt a day, chosen by the date so it doesn't change on reload. */
-export const promptFor = (space: "mind" | "soul", date: ISODate) => {
+const promptFor = (space: "mind" | "soul", date: ISODate) => {
   const list = space === "mind" ? MIND_PROMPTS : SOUL_PROMPTS;
   const n = date.split("-").reduce((a, p) => a + Number(p), 0);
   return list[n % list.length]!;
