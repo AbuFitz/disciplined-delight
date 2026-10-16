@@ -243,6 +243,7 @@ Screenshots: `docs/screenshots/vayvor/`. Earlier folders show the old name and a
 ## Phase 2: catalogue, programmes and recoverable plan editing
 
 Done:
+
 - Licence-checked catalogue snapshot, pipeline and quarantine report. `catalogue/overrides.json` contains 148 reviewed exercise records, including 12 durable media-curation records; only the curated generator tier is used automatically, while the wider library remains browsable.
 - Deterministic generator, honest time/equipment gaps, corrected weekly-volume accounting, Sunday/Monday recovery, shortening, substitutes and missed-day handling. The rules remain **draft and unreviewed by a qualified coach** (`docs/TRAINING-RULES.md`).
 - The builder recalculates blockers after every swap/removal, cannot accept empty or invalid sessions, keeps useful fixes on partial previews and never assigns a starting weight.
@@ -254,6 +255,7 @@ Done:
 ## Phase 3: connected daily routine system
 
 Done:
+
 - Primary navigation is Today / Body / Mind / Soul / Circle; Train, Food, Progress, Library and Week remain available as deep links and desktop shortcuts.
 - Body brings together training, food, shopping/budget, progress, the exercise library and the plan builder.
 - The routine engine supports recurring and one-off activities, skip/rest/move, pause/resume, correcting completion, cross-midnight blocks, prayer-relative activities and timezone-local dates. Linked workouts, meals, prayers and Mind entries complete from their real records rather than a duplicate tick.
@@ -264,6 +266,7 @@ Done:
 ## Phase 4: Circle foundation
 
 Built:
+
 - Exact-handle/display-name discovery without email or contact-book lookup; directed requests become mutual connections only after acceptance.
 - A connection-only feed with explicit, manually written shares, optional highlights, kudos and removal. Workouts, meals, prayers, mood and journal records are never posted automatically or read by Circle.
 - Blocking removes an existing request/connection in both directions, hides both people from discovery and feeds, and has a reviewable unblock list.
@@ -273,6 +276,7 @@ Built:
 ## Phase 5: connection-only chat and accountability pacts
 
 Built:
+
 - Private one-to-one threads exist only between accepted, unblocked Circle connections. There are no stranger inboxes,
   sample conversations, group chat or attachments.
 - Threads show the latest message and unread count. Conversations support messages up to 1,000 characters, read state,
@@ -291,11 +295,11 @@ Built:
   visibility to both participants while they remain connected and unblocked, and revokes direct writes. Blocking or
   removing the connection hides the pact and stops further check-ins.
 
-Current verification (16 October 2026): 214 Vitest tests pass, TypeScript passes, ESLint passes with 18 fast-refresh-only warnings and no errors, and the Vercel-preset production build succeeds. Browser checks cover every main and legacy route at 320 px and 768 px, the five primary routes at 390 px, and Today at 1440 px; no horizontal overflow or console errors were observed. The complete builder produced a credible 3-day, 30-minute home-dumbbell plan and remained overflow-free at 320, 390 and 768 px; emptying a session disabled acceptance and exposed specific repair actions. Light theme at 320 px and keyboard traversal with a visible 2 px focus outline were also checked. A check-in saved successfully and appeared in private History. Circle, Chat and Pacts configuration gates were rendered at 390 and 1440 px without overflow or console errors. Mobile and desktop screenshots showed coherent navigation and usable empty states. The local production-preview path now builds Nitro's node-server output before serving it. With that production server stopped, the library retained all 879 exercises and a self-hosted exercise image, and a newly created workout could record and complete a set; after reconnect and reload the completed session appeared exactly once. Every one of the first import's 253 allowed exercise images was reviewed at full-card scale. Four wrong exercise associations and 14 byte-identical same-exercise frames were removed through durable catalogue overrides, leaving 235 self-hosted images across 186 exercises. `media-manifest.json` retains their original wger URLs, authors, licences, byte sizes and SHA-256 checksums; automated tests now enforce manifest/file parity, reviewed exclusions and no repeated bytes within an exercise.
+Current verification (16 October 2026): 215 Vitest tests pass, TypeScript passes, ESLint passes with 18 fast-refresh-only warnings and no errors, and the Vercel-preset production build succeeds. Browser checks cover every main and legacy route at 320 px and 768 px, the five primary routes at 390 px, and Today at 1440 px; no horizontal overflow or console errors were observed. A separate 200%-text pass covered every primary/legacy route, auth and onboarding states, all six builder steps including a full generated-plan preview, Edit Today, meal logging and the routine editor. It fixed a Today card action escaping its column, Settings columns crushing controls and long display headings breaking mid-word; the corrected layouts were rechecked at 390 px and 1440 px with no overflow or browser errors. The complete builder produced a credible 3-day, 30-minute home-dumbbell plan and remained overflow-free at 320, 390, 768 and 200% text; emptying a session disabled acceptance and exposed specific repair actions. Light theme at 320 px and keyboard traversal with a visible 2 px focus outline were also checked. A check-in saved successfully and appeared in private History. Circle, Chat and Pacts configuration gates were rendered at 390 and 1440 px without overflow or console errors. Mobile and desktop screenshots showed coherent navigation and usable empty states. The local production-preview path now builds Nitro's node-server output before serving it. With that production server stopped, the library retained all 879 exercises and a self-hosted exercise image, and a newly created workout could record and complete a set; after reconnect and reload the completed session appeared exactly once. Every one of the first import's 253 allowed exercise images was reviewed at full-card scale. Four wrong exercise associations and 14 byte-identical same-exercise frames were removed through durable catalogue overrides, leaving 235 self-hosted images across 186 exercises. `media-manifest.json` retains their original wger URLs, authors, licences, byte sizes and SHA-256 checksums; automated tests now enforce manifest/file parity, reviewed exclusions and no repeated bytes within an exercise. Reduced-motion CSS globally collapses animation/transition durations and disables smooth scrolling; an automated guard now prevents that rule being removed.
 
 Still required before calling the rebuild complete:
-- Complete the 200%-text and emulated reduced-motion browser sweep, including builders, sheets, long names, errors and all routine editing flows. The global reduced-motion CSS override is present, but this browser surface did not expose motion emulation or text-only zoom.
+
+- Repeat one visual reduced-motion sanity check in a browser/device that exposes `prefers-reduced-motion` emulation. This browser surface did not expose that setting; the global override and its automated regression guard pass.
 - Re-run `npm run catalogue:media` and repeat the semantic image review after any upstream catalogue refresh; automated checks preserve the current reviewed exclusions and detect repeated bytes, but cannot judge a newly added image's movement semantics.
 - Obtain qualified coach/clinician review of the training rules and curated catalogue. Real Supabase queued sync and Circle RLS/RPC tests, SMTP, Google sign-in, push, account isolation on the real project, Vercel deployment/domain and real iPhone installation remain external verification dependencies.
-- Phase 6 release verification remains. It includes the external credentials/device checks above and the outstanding
-  200%-text and reduced-motion review. The initial semantic exercise-image review is complete.
+- Phase 6 external release verification remains: real credentials/backend, deployment/domain, iPhone installation and a visual reduced-motion sanity check. The 200%-text and initial semantic exercise-image reviews are complete.

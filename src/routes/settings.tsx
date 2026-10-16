@@ -39,12 +39,12 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <section className="border-t border-line py-8 first:border-t-0 md:grid md:grid-cols-[16rem_1fr] md:gap-10">
-      <div className="mb-4 md:mb-0">
+    <section className="grid gap-x-10 border-t border-line py-8 [grid-template-columns:repeat(auto-fit,minmax(min(100%,20rem),1fr))] first:border-t-0">
+      <div className="mb-4">
         <h2 className="font-display text-2xl font-semibold">{title}</h2>
         {hint && <p className="mt-1 text-sm text-muted-foreground">{hint}</p>}
       </div>
-      <div className="grid max-w-xl gap-4">{children}</div>
+      <div className="grid min-w-0 max-w-xl gap-4">{children}</div>
     </section>
   );
 }
