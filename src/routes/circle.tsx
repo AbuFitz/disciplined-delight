@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   Heart,
+  Gamepad2,
   Lock,
   MessageCircle,
   Search,
@@ -68,6 +69,12 @@ function CirclePage() {
                 className="inline-flex min-h-11 items-center gap-2 rounded-full border border-input px-4 text-sm font-semibold"
               >
                 <Trophy className="size-4" /> Pacts
+              </Link>
+              <Link
+                to="/circle/four"
+                className="inline-flex min-h-11 items-center gap-2 rounded-full border border-input px-4 text-sm font-semibold"
+              >
+                <Gamepad2 className="size-4" /> Four
               </Link>
             </>
           ) : undefined

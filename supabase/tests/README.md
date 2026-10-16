@@ -38,3 +38,7 @@ denial and anonymous denial. Chat is RLS-private but intentionally documented as
 `circle-challenges.test.sql` targets `0008_circle_challenges.sql`. It covers explicit invitations, acceptance,
 self-reported progress totals, participant-only check-ins, target bounds, correction ownership, guessed-ID denial,
 RLS reads, direct-write denial, connection removal through blocking and anonymous denial.
+
+`circle-four.test.sql` targets `0009_circle_four.sql`. It covers self-authored stakes, explicit acceptance,
+turn enforcement, a server-detected win, one-open-game concurrency protection, participant-only visibility,
+RLS reads, direct-write denial, block shutdown and anonymous denial.

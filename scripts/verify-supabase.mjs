@@ -7,7 +7,7 @@
  *   ... VERIFY_A_EMAIL=.. VERIFY_A_PASSWORD=.. VERIFY_B_EMAIL=.. VERIFY_B_PASSWORD=.. node scripts/verify-supabase.mjs --write
  *
  * `--write` signs in as two THROWAWAY, already-confirmed test accounts and exercises private sync plus Circle,
- * chat and challenge records. It cleans up the social relationship and content afterwards, but creates profiles when
+ * chat, challenge and game records. It cleans up the social relationship and content afterwards, but creates profiles when
  * absent and leaves sync tombstones. It never uses a service-role key or prints keys/tokens. Exit code is non-zero
  * if any check fails.
  * Email delivery, Google sign-in, push delivery and real-device behaviour cannot be checked here: see
@@ -167,6 +167,11 @@ for (const [migration, fn, args] of [
   ["0008", "circle_challenge_add", { p_challenge_id: ZERO_UUID, p_amount: 1, p_note: "verify" }],
   ["0008", "circle_challenge_delete_entry", { p_entry_id: ZERO_UUID }],
   ["0008", "circle_challenge_close", { p_challenge_id: ZERO_UUID }],
+  ["0009", "circle_four_create", { p_user_id: ZERO_UUID, p_creator_dare: "Verifier dare" }],
+  ["0009", "circle_four_respond", { p_game_id: ZERO_UUID, p_accept: false, p_invited_dare: null }],
+  ["0009", "circle_four_games", {}],
+  ["0009", "circle_four_move", { p_game_id: ZERO_UUID, p_column: 0 }],
+  ["0009", "circle_four_close", { p_game_id: ZERO_UUID }],
 ]) {
   const r = await call(`/rest/v1/rpc/${fn}`, { method: "POST", body: args });
   if (missing(r))
@@ -190,6 +195,7 @@ for (const [migration, t] of [
   ["0007", "circle_messages"],
   ["0008", "circle_challenges"],
   ["0008", "circle_challenge_entries"],
+  ["0009", "circle_four_games"],
 ]) {
   const r = await call(`/rest/v1/${t}?select=*&limit=1`);
   if (missing(r))
@@ -374,6 +380,15 @@ else {
         JSON.stringify(accepted.json),
       );
 
+      const priorGames = await rpc("circle_four_games", A);
+      if (Array.isArray(priorGames.json)) {
+        for (const game of priorGames.json.filter(
+          (item) => item.other_user_id === B.id && ["pending", "active"].includes(item.status),
+        )) {
+          await rpc("circle_four_close", A, { p_game_id: game.id });
+        }
+      }
+
       const post = await rpc("circle_share", A, {
         p_kind: "milestone",
         p_title: "Verifier post",
@@ -450,6 +465,42 @@ else {
         `HTTP ${challengeList.status}`,
       );
 
+      const game = await rpc("circle_four_create", A, {
+        p_user_id: B.id,
+        p_creator_dare: "Take a twenty-minute verifier walk",
+      });
+      rec("A can invite B to Four in a Row", isUuid(game.json), JSON.stringify(game.json));
+      const gameAccepted = isUuid(game.json)
+        ? await rpc("circle_four_respond", B, {
+            p_game_id: game.json,
+            p_accept: true,
+            p_invited_dare: "Prepare tomorrow's verifier lunch",
+          })
+        : { status: 0, json: null };
+      rec(
+        "B can accept with a self-authored dare",
+        gameAccepted.json === "active",
+        JSON.stringify(gameAccepted.json),
+      );
+      const gameMove = isUuid(game.json)
+        ? await rpc("circle_four_move", A, { p_game_id: game.json, p_column: 0 })
+        : { status: 0, json: null };
+      rec(
+        "A can make a server-validated move",
+        gameMove.json === "active",
+        JSON.stringify(gameMove.json),
+      );
+      const gameList = await rpc("circle_four_games", B);
+      rec(
+        "B sees the move and receives the next turn",
+        Array.isArray(gameList.json) &&
+          gameList.json.some(
+            (item) =>
+              item.id === game.json && item.my_turn === true && Number(item.board?.[35]) === 1,
+          ),
+        `HTTP ${gameList.status}`,
+      );
+
       const directPost = await call("/rest/v1/circle_posts", {
         method: "POST",
         token: A.token,
@@ -463,12 +514,15 @@ else {
 
       const blocked = await rpc("circle_block", B, { p_user_id: A.id });
       const blockedFeed = await rpc("circle_feed", B, { p_before: null, p_limit: 20 });
+      const blockedGames = await rpc("circle_four_games", B);
       rec(
-        "Blocking ends the connection and hides A's post",
+        "Blocking ends the connection and hides A's post and game",
         okResponse(blocked) &&
           Array.isArray(blockedFeed.json) &&
-          !blockedFeed.json.some((item) => item.id === post.json),
-        `block HTTP ${blocked.status}, feed HTTP ${blockedFeed.status}`,
+          !blockedFeed.json.some((item) => item.id === post.json) &&
+          Array.isArray(blockedGames.json) &&
+          !blockedGames.json.some((item) => item.id === game.json),
+        `block HTTP ${blocked.status}, feed HTTP ${blockedFeed.status}, games HTTP ${blockedGames.status}`,
       );
 
       await rpc("circle_unblock", B, { p_user_id: A.id });
@@ -476,6 +530,7 @@ else {
         await rpc("circle_challenge_delete_entry", A, { p_entry_id: progress.json });
       if (isUuid(challenge.json))
         await rpc("circle_challenge_close", A, { p_challenge_id: challenge.json });
+      if (isUuid(game.json)) await rpc("circle_four_close", A, { p_game_id: game.json });
       if (isUuid(message.json)) await rpc("circle_chat_delete", A, { p_message_id: message.json });
       if (isUuid(post.json)) await rpc("circle_delete_post", A, { p_post_id: post.json });
       await rpc("circle_remove_connection", A, { p_user_id: B.id });

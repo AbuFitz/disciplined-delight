@@ -65,7 +65,10 @@ function PrivacyPage() {
             <li>
               Accepted connections can see posts you deliberately share and the kudos on them.
             </li>
-            <li>Chat messages and pact check-ins are visible only to the two participants.</li>
+            <li>
+              Chat messages, pact check-ins and Four in a Row boards and dares are visible only to
+              the two participants.
+            </li>
             <li>Blocking removes the connection and immediately closes shared visibility.</li>
           </ul>
         </Panel>

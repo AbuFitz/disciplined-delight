@@ -22,8 +22,9 @@ Circle has a deliberately smaller shared surface:
 | Manually written feed posts and kudos        | The author and accepted, unblocked connections                   |
 | One-to-one chat                              | The two accepted, unblocked participants                         |
 | Pact invitations and self-reported check-ins | The two accepted, unblocked participants                         |
+| Four in a Row boards and self-authored dares | The two accepted, unblocked participants                         |
 
-Blocking removes the connection and immediately makes its feed posts, chat and pacts unavailable in both directions.
+Blocking removes the connection and immediately makes its feed posts, chat, pacts and games unavailable in both directions.
 Deleting a sent chat message leaves an honest tombstone rather than pretending the record never existed.
 
 - **On the device:** one IndexedDB database per account (guest data is separate and is never merged without a prompt).

@@ -80,7 +80,7 @@ the repository's own conventions were followed.
 - Recovery: Settings → Your data → Download original data, or export a backup. `runMigration` only runs once
   (`meta: migration:legacy`).
 - **Database.** Migrations `0001`/`0002` are untouched and unused by the new client (archive, don't drop).
-  Migrations `0003_sync.sql` through `0008_circle_challenges.sql` are new and **have not been applied to any Supabase
+  Migrations `0003_sync.sql` through `0009_circle_four.sql` are new and **have not been applied to any Supabase
   project**. Apply them with the Supabase SQL editor or CLI when you want accounts, sync and Circle. Review them first.
 
 ## Configuration still required (names only)
@@ -98,7 +98,7 @@ build; the default stays the Vercel preset.
 
 ## Verification: what was run and what it showed
 
-Automated (all passing at hand-off): **221 Vitest tests in 38 files**, `tsc --noEmit` clean, `eslint src` clean
+Automated (all passing at hand-off): **233 Vitest tests in 42 files**, `tsc --noEmit` clean, `eslint src` clean
 with zero warnings, and the production build succeeds. Run `bun run test`,
 `bun run typecheck`, `bun run lint`.
 
@@ -207,7 +207,7 @@ Evidence
   14 of 15 assertions passed; the 15th was a case-sensitive regex in my own test (the heading renders in capitals).
 
 **Not verified**: anything against a real Supabase project; real confirmation and recovery emails; Google sign-in;
-session expiry in the wild; migrations `0005` through `0008`.
+session expiry in the wild; migrations `0005` through `0009`.
 
 ## The Supabase project blocker
 
@@ -215,7 +215,7 @@ The only project the connector can see is "TruetoDetail System" (inactive, a dif
 VAYVOR project and **nothing was applied to it**. Activation needs a decision from you:
 
 1. Create or choose the VAYVOR Supabase project.
-2. Apply `supabase/migrations/0003` to `0008` (review first; `0001`/`0002` are legacy and unused by the new client).
+2. Apply `supabase/migrations/0003` to `0009` (review first; `0001`/`0002` are legacy and unused by the new client).
 3. Set Site URL and Redirect URLs (`<origin>/auth/callback`, `<origin>/auth/reset`) to the real working origin.
 4. Configure custom SMTP and paste `supabase/templates/*` (see its README).
 5. Set `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` on Vercel; add `VITE_AUTH_PROVIDERS=google` only after Google is configured.
@@ -295,7 +295,7 @@ Keyboard: tab order and visible focus checked on eight routes, dialog focus trap
   times from the Week page; nothing is placed over them, and what can't fit is reported.
 - **Privacy:** Mind entries are forced private; Salah is off until chosen. Private collections are listed in code and checked
   at the database level (owner-only rows). Not end-to-end encrypted (see `docs/PRIVACY.md`).
-- **Still planned:** crews and Four in a Row. Circle connections, chat, private accountability pacts and private
+- **Still planned:** crews. Circle connections, chat, private accountability pacts, Four in a Row and private
   record-derived milestones are now built in the later phases below.
 - **Limits:** routine blocks don't schedule notifications; "meal" links mean any meal logged; skipping the default workout
   row is per date.
@@ -304,12 +304,12 @@ Keyboard: tab order and visible focus checked on eight routes, dialog focus trap
 
 | Check                                                                                  | Result                                                                                                                                                                                                                        |
 | -------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Unit tests (vitest, fake IndexedDB)                                                    | 221 pass: planner, reliability, plan actions (atomic failure, regeneration, restore), diff, routine engine incl. DST, routine actions, tracking, milestones, catalogue, backup, sync, accounts                                  |
+| Unit tests (vitest, fake IndexedDB)                                                    | 233 pass: planner, reliability, plan actions (atomic failure, regeneration, restore), diff, routine engine incl. DST, routine actions, tracking, milestones, Four in a Row, catalogue, backup, sync, accounts                 |
 | `tsc --noEmit`, `eslint`                                                               | clean, 0 errors and 0 warnings                                                                                                                                                                                                |
 | Production build (`NITRO_PRESET=node-server`)                                          | builds; served on a local port                                                                                                                                                                                                |
 | Offline on the **production build with the service worker active** (headless Chromium) | SW controls the page; catalogue snapshot cached; offline Library shows 879 exercises, search and credits work; a workout set logged offline survives a reload                                                                 |
 | Browser flows on the dev server (headless Chromium)                                    | builder gating (remove main lift → blocked → fill → saved), regenerate with required choice, archive and restore, routine builder, tick/undo/skip/undo/move/pause/resume, Salah optional, old URLs                            |
-| Database SQL tests, local Postgres 16, **simulated** auth schema                       | `supabase/tests/run-local.sh` after merging Circle: sync 21, reminders 8, profiles 18, circle 21, circle-chat 15, circle-challenges 12 = 95, all pass (includes private `mind` and prayer rows unreadable by another user)    |
+| Database SQL tests, local Postgres 16, **simulated** auth schema                       | Through `0008`: sync 21, reminders 8, profiles 18, circle 21, circle-chat 15, circle-challenges 12 = 95, all pass (includes private `mind` and prayer isolation). The `0009` game test is committed but not run here.         |
 | Design sweep                                                                           | see Design; final screenshots in `docs/screenshots/phase3/` (final sweep: no overflow, small-target, unlabelled-control or clipping findings at 320/390/768/1440 px, dark and light, 200% text, and reduced motion at 390 px) |
 
 **Simulated vs real:** nothing was run against a real Supabase project (none exists for VAYVOR), real email, Google sign-in,
@@ -327,8 +327,8 @@ exercised; its checks have only been run against an incomplete local simulation,
 4. Owner or legal review of the CC BY-SA snapshot distribution wording before public release. The in-app credits page,
    per-record attribution and 235 self-hosted images with provenance are now implemented.
 5. vayvor.com registration, trademark search, embroidery test sew.
-6. Later product work: crews and Four in a Row with dares. Circle connections, chat, private accountability pacts and
-   private milestones are built; release verification remains.
+6. Later product work: crews. Circle connections, chat, private accountability pacts, Four in a Row with self-authored
+   dares and private milestones are built; release verification remains.
 
 ## Parallel work pushed to this branch by the repository owner (Circle, chat, pacts, self-hosted media)
 
@@ -366,7 +366,23 @@ Built:
   visibility to both participants while they remain connected and unblocked, and revokes direct writes. Blocking or
   removing the connection hides the pact and stops further check-ins.
 
-Current verification (16 October 2026): 221 Vitest tests pass, TypeScript passes, ESLint passes with zero warnings, and the Vercel-preset production build succeeds. Browser checks cover every main and legacy route at 320 px and 768 px, the five primary routes at 390 px, and Today at 1440 px; no horizontal overflow or console errors were observed. A separate 200%-text pass covered every primary/legacy route, auth and onboarding states, all six builder steps including a full generated-plan preview, Edit Today, meal logging and the routine editor. It fixed a Today card action escaping its column, Settings columns crushing controls and long display headings breaking mid-word; the corrected layouts were rechecked at 390 px and 1440 px with no overflow or browser errors. The complete builder produced a credible 3-day, 30-minute home-dumbbell plan and remained overflow-free at 320, 390, 768 and 200% text; emptying a session disabled acceptance and exposed specific repair actions. Light theme at 320 px and keyboard traversal with a visible 2 px focus outline were also checked. A check-in saved successfully and appeared in private History. Circle, Chat and Pacts configuration gates were rendered at 390 and 1440 px without overflow or console errors. Mobile and desktop screenshots showed coherent navigation and usable empty states. The local production-preview path now builds Nitro's node-server output before serving it. Settings now captures Chromium's one-shot install prompt from app startup, reports installed/offline status, and gives an iPhone/iPad Home Screen path when a native prompt is unavailable. Its production-rendered fallback was verified at 390 × 844 and 1440 × 1000 with no overflow or console errors. Production responses for the document, manifest and service worker were also checked directly: they deny framing and unused camera, geolocation and microphone capabilities, suppress referrer data and MIME sniffing, and retain the service worker's `no-cache` policy. The user-visible Credits & licences route derives source, licence and contributor counts from the shipped catalogue and links every applicable licence; it was verified at 375 px and 1440 px with no overflow or browser warnings/errors. With that production server stopped, the library retained all 879 exercises and a self-hosted exercise image, and a newly created workout could record and complete a set; after reconnect and reload the completed session appeared exactly once. Every one of the first import's 253 allowed exercise images was reviewed at full-card scale. Four wrong exercise associations and 14 byte-identical same-exercise frames were removed through durable catalogue overrides, leaving 235 self-hosted images across 186 exercises. `media-manifest.json` retains their original wger URLs, authors, licences, byte sizes and SHA-256 checksums; automated tests now enforce manifest/file parity, reviewed exclusions and no repeated bytes within an exercise. The 20 original curated meal/exercise PNGs were visually compared after WebP conversion and reduced from 7,886,544 bytes to 637,346 bytes (7,249,198 bytes saved). Two previously broken meal-photo paths now use purpose-made shake and tuna-lunch images; an automated check prevents any public meal-image reference from silently breaking again. Reduced-motion CSS globally collapses animation/transition durations and disables smooth scrolling; an automated guard now prevents that rule being removed.
+## Phase 6: connection-only Four in a Row
+
+Built:
+
+- A real 7 × 6 game board between accepted, unblocked Circle connections. There are no bots, sample opponents, fake
+  scores or public leaderboard. The interface refreshes foreground games and makes the active turn explicit.
+- Each player writes only their own safe, useful dare. The invitee must explicitly accept and add their own stake before
+  the board opens; the interface rejects coercive framing and advises against money, danger, body shame or punishment.
+- `0009_circle_four.sql` serializes every move with a row lock, enforces the current player and open column, detects all
+  four win directions and draws on the server, permits one open game per pair, applies participant-only RLS and revokes
+  direct writes. Blocking immediately removes visibility.
+- Ten focused rules, validation and static security tests plus two server-rendered board tests cover token gravity,
+  horizontal/vertical/diagonal wins, malformed remote boards, invitation bounds, named column controls and disabled turns.
+  `circle-four.test.sql` adds a two-player server win, wrong-turn rejection, RLS/direct-write/anonymous denial and block
+  shutdown checks; it is committed but could not be executed here because Postgres 16 is unavailable.
+
+Current verification (16 October 2026): 233 Vitest tests pass, TypeScript passes, ESLint passes with zero warnings, and the Vercel-preset production build succeeds. Browser checks cover every main and legacy route at 320 px and 768 px, the five primary routes at 390 px, and Today at 1440 px; no horizontal overflow or console errors were observed. A separate 200%-text pass covered every primary/legacy route, auth and onboarding states, all six builder steps including a full generated-plan preview, Edit Today, meal logging and the routine editor. It fixed a Today card action escaping its column, Settings columns crushing controls and long display headings breaking mid-word; the corrected layouts were rechecked at 390 px and 1440 px with no overflow or browser errors. The complete builder produced a credible 3-day, 30-minute home-dumbbell plan and remained overflow-free at 320, 390, 768 and 200% text; emptying a session disabled acceptance and exposed specific repair actions. Light theme at 320 px and keyboard traversal with a visible 2 px focus outline were also checked. A check-in saved successfully and appeared in private History. Circle, Chat and Pacts configuration gates were rendered at 390 and 1440 px without overflow or console errors. The Four in a Row setup gate was production-rendered at 390 × 844 and 1440 × 1000 with one H1, honest empty-state content, no horizontal overflow, no controls below 44 px and no console warnings/errors. Mobile and desktop screenshots showed coherent navigation and usable empty states. The local production-preview path now builds Nitro's node-server output before serving it. Settings now captures Chromium's one-shot install prompt from app startup, reports installed/offline status, and gives an iPhone/iPad Home Screen path when a native prompt is unavailable. Its production-rendered fallback was verified at 390 × 844 and 1440 × 1000 with no overflow or console errors. Production responses for the document, manifest and service worker were also checked directly: they deny framing and unused camera, geolocation and microphone capabilities, suppress referrer data and MIME sniffing, and retain the service worker's `no-cache` policy. The user-visible Credits & licences route derives source, licence and contributor counts from the shipped catalogue and links every applicable licence; it was verified at 375 px and 1440 px with no overflow or browser warnings/errors. With that production server stopped, the library retained all 879 exercises and a self-hosted exercise image, and a newly created workout could record and complete a set; after reconnect and reload the completed session appeared exactly once. Every one of the first import's 253 allowed exercise images was reviewed at full-card scale. Four wrong exercise associations and 14 byte-identical same-exercise frames were removed through durable catalogue overrides, leaving 235 self-hosted images across 186 exercises. `media-manifest.json` retains their original wger URLs, authors, licences, byte sizes and SHA-256 checksums; automated tests now enforce manifest/file parity, reviewed exclusions and no repeated bytes within an exercise. The 20 original curated meal/exercise PNGs were visually compared after WebP conversion and reduced from 7,886,544 bytes to 637,346 bytes (7,249,198 bytes saved). Two previously broken meal-photo paths now use purpose-made shake and tuna-lunch images; an automated check prevents any public meal-image reference from silently breaking again. Reduced-motion CSS globally collapses animation/transition durations and disables smooth scrolling; an automated guard now prevents that rule being removed.
 
 The seed-content contract also verifies all four original workouts, their 22 unique exercises, prescriptions, starting loads, alternatives, recurring weekdays and workout/exercise media mappings. Both complete meal days must add up exactly from their displayed meal rows; that check corrected the rounded totals to Day A's 346 g carbohydrate and 92 g fat, and Day B's 345 g carbohydrate and 139 g protein.
 
