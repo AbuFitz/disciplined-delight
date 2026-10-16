@@ -46,7 +46,7 @@ function SalahPage() {
           <h2 className="font-display text-2xl font-semibold">Set up your prayer times</h2>
           <p className="mt-2 text-foreground/80">
             Use a calculation method for your town, or enter your mosque's timetable. You can change
-            either later, and your logs stay private on this device.
+            either later. Your logs stay private to your account and never enter Circle.
           </p>
           <div className="mt-5 flex flex-wrap gap-2">
             <Button variant="primary" size="lg" onClick={() => setSettings(true)}>

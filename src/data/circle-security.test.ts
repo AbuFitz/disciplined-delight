@@ -11,6 +11,9 @@ const verifier = readFileSync(
   "utf8",
 );
 const privacy = readFileSync(join(__dirname, "..", "..", "docs", "PRIVACY.md"), "utf8");
+const settings = readFileSync(join(__dirname, "..", "routes", "settings.tsx"), "utf8");
+const salah = readFileSync(join(__dirname, "..", "routes", "salah.tsx"), "utf8");
+const mind = readFileSync(join(__dirname, "..", "components", "nl", "mind.tsx"), "utf8");
 
 describe("Circle migration security contract", () => {
   it("uses explicit social tables rather than exposing private sync records", () => {
@@ -19,6 +22,11 @@ describe("Circle migration security contract", () => {
     expect(privacy).not.toContain("Nothing social exists yet");
     expect(privacy).toContain("Circle is built, but it uses separate social tables");
     expect(privacy).toMatch(/Workouts,\s+meals, weight and routines are not posted automatically/);
+    expect(settings).not.toContain("Kept private on this device");
+    expect(salah).not.toContain("logs stay private on this device");
+    expect(mind).not.toContain("nothing in Circle or anywhere else can read it");
+    expect(settings).toContain("Included in sync and exported backups when enabled");
+    expect(mind).toContain("not end-to-end encrypted");
   });
 
   it("enables RLS and denies direct writes on every Circle table", () => {

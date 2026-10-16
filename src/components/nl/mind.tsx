@@ -1,4 +1,5 @@
 import { Pause, Play, Square, Trash2 } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import {
@@ -20,8 +21,11 @@ import { cn } from "@/lib/utils";
 
 export const PrivacyNote = ({ what }: { what: string }) => (
   <p className="text-xs text-muted-foreground" role="note">
-    {what} is private to you. It is stored with your account only, and nothing in Circle or anywhere
-    else can read it.
+    {what} is private to you and never enters Circle. If sync is linked, it is stored with your
+    account and is not end-to-end encrypted.{" "}
+    <Link to="/privacy" className="inline-flex min-h-11 items-center font-semibold underline">
+      Privacy details
+    </Link>
   </p>
 );
 

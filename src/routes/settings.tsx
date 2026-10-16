@@ -115,7 +115,11 @@ function SettingsPage() {
             onChange={(v) => setD({ ...d, goal: { ...d.goal, targetWeightKg: v } })}
           />
         </Field>
-        <Field label="Allergies" htmlFor="s-all" hint="Kept private on this device.">
+        <Field
+          label="Allergies"
+          htmlFor="s-all"
+          hint="Private to your account. Included in sync and exported backups when enabled."
+        >
           <TextArea
             id="s-all"
             className="min-h-20"
@@ -127,7 +131,7 @@ function SettingsPage() {
         <Field
           label="Dietary notes"
           htmlFor="s-diet"
-          hint="Halal preference, medical or clinician advice you follow."
+          hint="Private to your account. Included in sync and exported backups when enabled."
         >
           <TextArea
             id="s-diet"

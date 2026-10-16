@@ -370,6 +370,8 @@ The seed-content contract also verifies all four original workouts, their 22 uni
 
 The stale pre-Circle privacy note was replaced with an in-app `/privacy` map linked from Settings and Circle. It distinguishes owner-only health, reflection and Salah records from public profile fields, manually shared connection-only posts, two-person chat and pact data; it also states the account provider and backup limitations without claiming end-to-end encryption. The production-rendered route was checked at 390 × 844 and 1440 × 1000: one H1 and main landmark, no horizontal overflow, no controls below 44 px, working inbound links and no console warnings or errors.
 
+The same truthfulness sweep removed three misleading local-only claims: allergies and dietary notes disclose their sync/backup inclusion, Salah logs are described as account-private rather than device-only, and Mind no longer claims that nobody outside the app can technically read synced data. The updated Mind, Settings and Salah states were rendered at phone width without overflow or browser errors; the privacy-details link is a 44 px target.
+
 Still required before calling the rebuild complete:
 
 - Repeat one visual reduced-motion sanity check in a browser/device that exposes `prefers-reduced-motion` emulation. This browser surface did not expose that setting; the global override and its automated regression guard pass.
