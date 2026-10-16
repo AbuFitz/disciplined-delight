@@ -15,6 +15,7 @@ import {
 } from "recharts";
 import { toast } from "sonner";
 import { WeighInSheet } from "@/components/nl/today";
+import { MilestoneLedger } from "@/components/nl/milestones";
 import {
   Button,
   EmptyState,
@@ -33,6 +34,7 @@ import {
   COL,
   type FoodDay,
   type LegacyDayLog,
+  type MindEntry,
   type Purchase,
   type Session,
   type WeighIn,
@@ -40,6 +42,7 @@ import {
 } from "@/data/types";
 import { addDays, formatDateLong, startOfWeek, weekDates, type ISODate } from "@/domain/dates";
 import { formatGBP } from "@/domain/money";
+import { progressMilestones } from "@/domain/milestones";
 import type { MealLog } from "@/domain/nutrition";
 import { estimateMaintenance, type TdeeDay } from "@/domain/tdee";
 import { linearTrend } from "@/domain/trend";
@@ -62,6 +65,7 @@ function ProgressPage() {
   const fd = useCollection<FoodDay>(COL.foodDays);
   const legacy = useCollection<LegacyDayLog>(COL.legacyDays);
   const purchases = useCollection<Purchase>(COL.purchases);
+  const mind = useCollection<MindEntry>(COL.mind);
 
   const start: ISODate | null =
     range === "all" ? null : addDays(startOfWeek(today), -(Number(range) - 1) * 7);
@@ -172,6 +176,16 @@ function ProgressPage() {
     .filter((p) => wkDates.includes(p.date))
     .reduce((s, p) => s + p.totalPence, 0);
   const foodWeek = wkDates.filter((d) => food.by.has(d)).length;
+  const milestones = useMemo(
+    () =>
+      progressMilestones({
+        sessions: sess.items,
+        foodDays: fd.items,
+        weighIns: w.items,
+        mind: mind.items,
+      }),
+    [sess.items, fd.items, w.items, mind.items],
+  );
 
   if (!w.ready || !sess.ready || !profile) return <Skeleton className="h-72" />;
 
@@ -209,6 +223,8 @@ function ProgressPage() {
       />
 
       <div className="grid gap-5 lg:grid-cols-2">
+        <MilestoneLedger milestones={milestones} />
+
         <Panel className="lg:col-span-2" aria-label="Bodyweight">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
@@ -218,7 +234,12 @@ function ProgressPage() {
                 {profile.goal.targetWeightKg ? ` · goal ${profile.goal.targetWeightKg} kg` : ""}
               </p>
             </div>
-            <Button variant="secondary" size="sm" onClick={() => setWOpen(true)}>
+            <Button
+              variant="secondary"
+              size="sm"
+              className="min-h-11"
+              onClick={() => setWOpen(true)}
+            >
               Log weight
             </Button>
           </div>

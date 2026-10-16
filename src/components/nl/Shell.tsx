@@ -136,7 +136,7 @@ export function Shell({ children }: { children: ReactNode }) {
                 to={t.to}
                 aria-current={isActive(t.to, t.match) ? "page" : undefined}
                 className={cn(
-                  "flex min-h-10 items-center gap-3 rounded-2xl px-3 text-sm font-medium transition",
+                  "flex min-h-11 items-center gap-3 rounded-2xl px-3 text-sm font-medium transition",
                   isActive(t.to, t.match)
                     ? "text-foreground underline underline-offset-4"
                     : "text-muted-foreground hover:text-foreground",
