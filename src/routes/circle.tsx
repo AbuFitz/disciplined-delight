@@ -1,5 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Heart, Lock, MessageCircle, Search, ShieldCheck, UserPlus, Users } from "lucide-react";
+import {
+  Heart,
+  Lock,
+  MessageCircle,
+  Search,
+  ShieldCheck,
+  Trophy,
+  UserPlus,
+  Users,
+} from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import {
@@ -53,6 +62,12 @@ function CirclePage() {
                 className="inline-flex min-h-11 items-center gap-2 rounded-full border border-input px-4 text-sm font-semibold"
               >
                 <MessageCircle className="size-4" /> Chat
+              </Link>
+              <Link
+                to="/circle/challenges"
+                className="inline-flex min-h-11 items-center gap-2 rounded-full border border-input px-4 text-sm font-semibold"
+              >
+                <Trophy className="size-4" /> Pacts
               </Link>
             </>
           ) : undefined

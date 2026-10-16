@@ -27,3 +27,7 @@ direct writes and anonymous denial. Run them against a disposable database after
 `circle-chat.test.sql` targets `0007_circle_chat.sql` in a fresh disposable database. It covers accepted-connection
 gating, unread/read state, bidirectional messages, tombstones, guessed-thread denial, block shutdown, direct-write
 denial and anonymous denial. Chat is RLS-private but intentionally documented as not end-to-end encrypted.
+
+`circle-challenges.test.sql` targets `0008_circle_challenges.sql`. It covers explicit invitations, acceptance,
+self-reported progress totals, participant-only check-ins, target bounds, correction ownership, guessed-ID denial,
+RLS reads, direct-write denial, connection removal through blocking and anonymous denial.

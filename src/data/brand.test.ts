@@ -33,6 +33,7 @@ describe("VAYVOR rebrand", () => {
         "0005_profiles.sql",
         "0006_circle.sql",
         "0007_circle_chat.sql",
+        "0008_circle_challenges.sql",
       ].map((f) => join(root, "supabase", "migrations", f)),
       ...walk(join(root, "supabase", "templates")),
       join(root, ".env.example"),

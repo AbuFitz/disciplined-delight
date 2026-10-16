@@ -29,6 +29,7 @@ import { Route as WorkoutsRouteImport } from './routes/workouts'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as AuthForgotRouteImport } from './routes/auth.forgot'
 import { Route as AuthResetRouteImport } from './routes/auth.reset'
+import { Route as CircleChallengesRouteImport } from './routes/circle_.challenges'
 import { Route as CircleChatRouteImport } from './routes/circle_.chat'
 import { Route as TrainIndexRouteImport } from './routes/train.index'
 import { Route as TrainBuildRouteImport } from './routes/train.build'
@@ -134,6 +135,11 @@ const AuthResetRoute = AuthResetRouteImport.update({
   path: '/auth/reset',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CircleChallengesRoute = CircleChallengesRouteImport.update({
+  id: '/circle_/challenges',
+  path: '/circle/challenges',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CircleChatRoute = CircleChatRouteImport.update({
   id: '/circle_/chat',
   path: '/circle/chat',
@@ -176,6 +182,7 @@ export interface FileRoutesByFullPath {
   '/auth/callback': typeof AuthCallbackRoute
   '/auth/forgot': typeof AuthForgotRoute
   '/auth/reset': typeof AuthResetRoute
+  '/circle/challenges': typeof CircleChallengesRoute
   '/circle/chat': typeof CircleChatRoute
   '/train/build': typeof TrainBuildRoute
   '/train/session': typeof TrainSessionRoute
@@ -201,6 +208,7 @@ export interface FileRoutesByTo {
   '/auth/callback': typeof AuthCallbackRoute
   '/auth/forgot': typeof AuthForgotRoute
   '/auth/reset': typeof AuthResetRoute
+  '/circle/challenges': typeof CircleChallengesRoute
   '/circle/chat': typeof CircleChatRoute
   '/train/build': typeof TrainBuildRoute
   '/train/session': typeof TrainSessionRoute
@@ -228,6 +236,7 @@ export interface FileRoutesById {
   '/auth/callback': typeof AuthCallbackRoute
   '/auth/forgot': typeof AuthForgotRoute
   '/auth/reset': typeof AuthResetRoute
+  '/circle_/challenges': typeof CircleChallengesRoute
   '/circle_/chat': typeof CircleChatRoute
   '/train/build': typeof TrainBuildRoute
   '/train/session': typeof TrainSessionRoute
@@ -256,6 +265,7 @@ export interface FileRouteTypes {
     | '/auth/callback'
     | '/auth/forgot'
     | '/auth/reset'
+    | '/circle/challenges'
     | '/circle/chat'
     | '/train/build'
     | '/train/session'
@@ -281,6 +291,7 @@ export interface FileRouteTypes {
     | '/auth/callback'
     | '/auth/forgot'
     | '/auth/reset'
+    | '/circle/challenges'
     | '/circle/chat'
     | '/train/build'
     | '/train/session'
@@ -307,6 +318,7 @@ export interface FileRouteTypes {
     | '/auth/callback'
     | '/auth/forgot'
     | '/auth/reset'
+    | '/circle_/challenges'
     | '/circle_/chat'
     | '/train/build'
     | '/train/session'
@@ -334,6 +346,7 @@ export interface RootRouteChildren {
   AuthCallbackRoute: typeof AuthCallbackRoute
   AuthForgotRoute: typeof AuthForgotRoute
   AuthResetRoute: typeof AuthResetRoute
+  CircleChallengesRoute: typeof CircleChallengesRoute
   CircleChatRoute: typeof CircleChatRoute
 }
 
@@ -479,6 +492,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthResetRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/circle_/challenges': {
+      id: '/circle_/challenges'
+      path: '/circle/challenges'
+      fullPath: '/circle/challenges'
+      preLoaderRoute: typeof CircleChallengesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/circle_/chat': {
       id: '/circle_/chat'
       path: '/circle/chat'
@@ -545,6 +565,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthCallbackRoute: AuthCallbackRoute,
   AuthForgotRoute: AuthForgotRoute,
   AuthResetRoute: AuthResetRoute,
+  CircleChallengesRoute: CircleChallengesRoute,
   CircleChatRoute: CircleChatRoute,
 }
 export const routeTree = rootRouteImport
