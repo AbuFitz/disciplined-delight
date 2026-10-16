@@ -9,6 +9,8 @@
     "build:dev": "vite build --mode development",
     "build:preview": "NITRO_PRESET=node-server vite build",
     "preview": "npm run build:preview && node .output/server/index.mjs",
+    "catalogue:media": "node scripts/catalogue/media.mjs",
+    "catalogue:media:check": "node scripts/catalogue/media.mjs --check",
     "lint": "eslint src",
     "format": "prettier --write .",
     "test": "vitest run",
