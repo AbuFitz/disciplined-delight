@@ -92,7 +92,13 @@ describe("mind entries are private", () => {
     });
     expect((await get<MindEntry>(COL.mind, e.id))!.visibility).toBe("private");
     expect(PRIVATE_COLLECTIONS).toEqual(
-      expect.arrayContaining([COL.mind, COL.prayerLogs, COL.prayerSettings, COL.prayerDays]),
+      expect.arrayContaining([
+        COL.mind,
+        COL.prayerLogs,
+        COL.prayerSettings,
+        COL.prayerDays,
+        COL.modules,
+      ]),
     );
   });
 });

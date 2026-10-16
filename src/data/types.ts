@@ -313,7 +313,13 @@ export type MindEntry = {
 export type Modules = { id: "main"; salah?: boolean };
 
 /** Collections that hold personal reflections and religious practice. Nothing social may read these. */
-export const PRIVATE_COLLECTIONS: string[] = ["mind", "prayerLogs", "prayerSettings", "prayerDays"];
+export const PRIVATE_COLLECTIONS: string[] = [
+  "mind",
+  "prayerLogs",
+  "prayerSettings",
+  "prayerDays",
+  "modules",
+];
 
 export type WeighIn = {
   id: string;

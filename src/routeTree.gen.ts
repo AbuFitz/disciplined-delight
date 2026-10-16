@@ -19,6 +19,7 @@ import { Route as MindRouteImport } from './routes/mind'
 import { Route as NutritionRouteImport } from './routes/nutrition'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as PlanRouteImport } from './routes/plan'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as ProgressRouteImport } from './routes/progress'
 import { Route as SalahRouteImport } from './routes/salah'
 import { Route as ScheduleRouteImport } from './routes/schedule'
@@ -84,6 +85,11 @@ const OnboardingRoute = OnboardingRouteImport.update({
 const PlanRoute = PlanRouteImport.update({
   id: '/plan',
   path: '/plan',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProgressRoute = ProgressRouteImport.update({
@@ -178,6 +184,7 @@ export interface FileRoutesByFullPath {
   '/nutrition': typeof NutritionRoute
   '/onboarding': typeof OnboardingRoute
   '/plan': typeof PlanRoute
+  '/privacy': typeof PrivacyRoute
   '/progress': typeof ProgressRoute
   '/salah': typeof SalahRoute
   '/schedule': typeof ScheduleRoute
@@ -206,6 +213,7 @@ export interface FileRoutesByTo {
   '/nutrition': typeof NutritionRoute
   '/onboarding': typeof OnboardingRoute
   '/plan': typeof PlanRoute
+  '/privacy': typeof PrivacyRoute
   '/progress': typeof ProgressRoute
   '/salah': typeof SalahRoute
   '/schedule': typeof ScheduleRoute
@@ -234,6 +242,7 @@ export interface FileRoutesById {
   '/nutrition': typeof NutritionRoute
   '/onboarding': typeof OnboardingRoute
   '/plan': typeof PlanRoute
+  '/privacy': typeof PrivacyRoute
   '/progress': typeof ProgressRoute
   '/salah': typeof SalahRoute
   '/schedule': typeof ScheduleRoute
@@ -264,6 +273,7 @@ export interface FileRouteTypes {
     | '/nutrition'
     | '/onboarding'
     | '/plan'
+    | '/privacy'
     | '/progress'
     | '/salah'
     | '/schedule'
@@ -292,6 +302,7 @@ export interface FileRouteTypes {
     | '/nutrition'
     | '/onboarding'
     | '/plan'
+    | '/privacy'
     | '/progress'
     | '/salah'
     | '/schedule'
@@ -319,6 +330,7 @@ export interface FileRouteTypes {
     | '/nutrition'
     | '/onboarding'
     | '/plan'
+    | '/privacy'
     | '/progress'
     | '/salah'
     | '/schedule'
@@ -348,6 +360,7 @@ export interface RootRouteChildren {
   NutritionRoute: typeof NutritionRoute
   OnboardingRoute: typeof OnboardingRoute
   PlanRoute: typeof PlanRoute
+  PrivacyRoute: typeof PrivacyRoute
   ProgressRoute: typeof ProgressRoute
   SalahRoute: typeof SalahRoute
   ScheduleRoute: typeof ScheduleRoute
@@ -433,6 +446,13 @@ declare module '@tanstack/react-router' {
       path: '/plan'
       fullPath: '/plan'
       preLoaderRoute: typeof PlanRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/progress': {
@@ -575,6 +595,7 @@ const rootRouteChildren: RootRouteChildren = {
   NutritionRoute: NutritionRoute,
   OnboardingRoute: OnboardingRoute,
   PlanRoute: PlanRoute,
+  PrivacyRoute: PrivacyRoute,
   ProgressRoute: ProgressRoute,
   SalahRoute: SalahRoute,
   ScheduleRoute: ScheduleRoute,

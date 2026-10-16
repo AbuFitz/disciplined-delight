@@ -368,6 +368,8 @@ Current verification (16 October 2026): 217 Vitest tests pass, TypeScript passes
 
 The seed-content contract also verifies all four original workouts, their 22 unique exercises, prescriptions, starting loads, alternatives, recurring weekdays and workout/exercise media mappings. Both complete meal days must add up exactly from their displayed meal rows; that check corrected the rounded totals to Day A's 346 g carbohydrate and 92 g fat, and Day B's 345 g carbohydrate and 139 g protein.
 
+The stale pre-Circle privacy note was replaced with an in-app `/privacy` map linked from Settings and Circle. It distinguishes owner-only health, reflection and Salah records from public profile fields, manually shared connection-only posts, two-person chat and pact data; it also states the account provider and backup limitations without claiming end-to-end encryption. The production-rendered route was checked at 390 × 844 and 1440 × 1000: one H1 and main landmark, no horizontal overflow, no controls below 44 px, working inbound links and no console warnings or errors.
+
 Still required before calling the rebuild complete:
 
 - Repeat one visual reduced-motion sanity check in a browser/device that exposes `prefers-reduced-motion` emulation. This browser surface did not expose that setting; the global override and its automated regression guard pass.

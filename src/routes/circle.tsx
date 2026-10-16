@@ -584,6 +584,12 @@ function PrivacyPanel() {
         <li>• Only accepted connections can see an update.</li>
         <li>• Block removes the connection in both directions.</li>
       </ul>
+      <Link
+        to="/privacy"
+        className="mt-5 inline-flex min-h-11 items-center font-semibold underline underline-offset-4"
+      >
+        Read the full privacy map
+      </Link>
     </Panel>
   );
 }

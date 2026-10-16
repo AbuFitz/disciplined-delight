@@ -10,11 +10,15 @@ const verifier = readFileSync(
   join(__dirname, "..", "..", "scripts", "verify-supabase.mjs"),
   "utf8",
 );
+const privacy = readFileSync(join(__dirname, "..", "..", "docs", "PRIVACY.md"), "utf8");
 
 describe("Circle migration security contract", () => {
   it("uses explicit social tables rather than exposing private sync records", () => {
     expect(sql).not.toMatch(/\bpublic\.records\b|\bpublic\.mutation_log\b/);
     expect(sql).toContain("Nothing from the private records/sync tables is copied or exposed here");
+    expect(privacy).not.toContain("Nothing social exists yet");
+    expect(privacy).toContain("Circle is built, but it uses separate social tables");
+    expect(privacy).toMatch(/Workouts,\s+meals, weight and routines are not posted automatically/);
   });
 
   it("enables RLS and denies direct writes on every Circle table", () => {

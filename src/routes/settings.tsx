@@ -375,6 +375,14 @@ function SettingsPage() {
 
       <Section title="Your data" hint="Where it lives, backups, and moving between devices.">
         <DataSection />
+        <div>
+          <Link
+            to="/privacy"
+            className="inline-flex min-h-11 items-center rounded-full border border-input px-5 font-medium"
+          >
+            Read the privacy map
+          </Link>
+        </div>
       </Section>
 
       <Section
