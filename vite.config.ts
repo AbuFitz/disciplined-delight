@@ -6,6 +6,13 @@ import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import { nitro } from "nitro/vite";
 
 const srcDir = fileURLToPath(new URL("./src", import.meta.url));
+const securityHeaders = {
+  "permissions-policy": "camera=(), geolocation=(), microphone=()",
+  "referrer-policy": "no-referrer",
+  "x-content-type-options": "nosniff",
+  "x-frame-options": "DENY",
+  "x-permitted-cross-domain-policies": "none",
+};
 
 export default defineConfig(({ command }) => ({
   css: { transformer: "lightningcss" },
@@ -45,7 +52,12 @@ export default defineConfig(({ command }) => ({
       ? [
           nitro({
             preset: process.env.NITRO_PRESET ?? "vercel",
-            routeRules: { "/sw.js": { headers: { "cache-control": "no-cache" } } },
+            routeRules: {
+              "/**": { headers: securityHeaders },
+              "/sw.js": {
+                headers: { ...securityHeaders, "cache-control": "no-cache" },
+              },
+            },
           }),
         ]
       : []),
