@@ -50,6 +50,7 @@ import type {
   SessionSet,
   WorkoutTemplate,
 } from "@/data/types";
+import { formatSet, trackingOf } from "@/domain/tracking";
 import { cn } from "@/lib/utils";
 
 export const fmtClock = (ms: number) => {
@@ -156,7 +157,7 @@ function SetRow({
   ex: SessionExercise;
   index: number;
   set: SessionSet;
-  ph: { weightKg?: number; reps?: number };
+  ph: { weightKg?: number; reps?: number; seconds?: number; distanceM?: number };
   onChange: (patch: Partial<SessionSet>, completedNow?: boolean) => void;
   showEffort: boolean;
   onRemove: () => void;
@@ -165,8 +166,15 @@ function SetRow({
     set.kind === "warmup"
       ? "Warm-up"
       : `Set ${ex.sets.slice(0, index + 1).filter((x) => x.kind === "working").length}`;
+  const tr = trackingOf(ex.tracking);
   const canComplete =
-    (set.weightKg != null || ph.weightKg != null) && (set.reps != null || ph.reps != null);
+    tr === "weight_reps"
+      ? (set.weightKg != null || ph.weightKg != null) && (set.reps != null || ph.reps != null)
+      : tr === "time"
+        ? set.seconds != null || ph.seconds != null
+        : tr === "distance_time"
+          ? set.seconds != null || set.distanceM != null || ph.seconds != null
+          : set.reps != null || ph.reps != null;
   const toggle = (v: boolean) => {
     if (!v) return onChange({ completed: false });
     // Completing with blank fields records the shown suggestion: an explicit tap.
@@ -174,8 +182,10 @@ function SetRow({
       {
         completed: true,
         skipped: false,
-        weightKg: set.weightKg ?? ph.weightKg,
-        reps: set.reps ?? ph.reps,
+        ...(tr === "weight_reps" ? { weightKg: set.weightKg ?? ph.weightKg } : {}),
+        ...(tr === "time" || tr === "distance_time"
+          ? { seconds: set.seconds ?? ph.seconds }
+          : { reps: set.reps ?? ph.reps }),
       },
       true,
     );
@@ -211,25 +221,65 @@ function SetRow({
         />
       </div>
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-        <NumberField
-          label={`${label} weight`}
-          unit="kg"
-          step={ex.incrementKg ?? 2.5}
-          decimals={2}
-          value={set.weightKg}
-          placeholder={ph.weightKg != null ? String(ph.weightKg) : "0"}
-          onChange={(v) => onChange({ weightKg: v })}
-          className="w-[10.5rem]"
-        />
-        <NumberField
-          label={`${label} reps`}
-          step={1}
-          decimals={0}
-          value={set.reps}
-          placeholder={ph.reps != null ? String(ph.reps) : String(ex.prescription.repMax)}
-          onChange={(v) => onChange({ reps: v })}
-          className="w-[9.5rem]"
-        />
+        {tr === "weight_reps" && (
+          <NumberField
+            label={`${label} weight`}
+            unit="kg"
+            step={ex.incrementKg ?? 2.5}
+            decimals={2}
+            value={set.weightKg}
+            placeholder={ph.weightKg != null ? String(ph.weightKg) : "0"}
+            onChange={(v) => onChange({ weightKg: v })}
+            className="w-[10.5rem]"
+          />
+        )}
+        {tr === "assisted_reps" && (
+          <NumberField
+            label={`${label} assistance`}
+            unit="kg assist"
+            step={2.5}
+            decimals={2}
+            value={set.assistKg}
+            placeholder="0"
+            onChange={(v) => onChange({ assistKg: v })}
+            className="w-[11.5rem]"
+          />
+        )}
+        {(tr === "time" || tr === "distance_time") && (
+          <NumberField
+            label={`${label} seconds`}
+            unit="sec"
+            step={5}
+            decimals={0}
+            value={set.seconds}
+            placeholder={ph.seconds != null ? String(ph.seconds) : "30"}
+            onChange={(v) => onChange({ seconds: v })}
+            className="w-[9.5rem]"
+          />
+        )}
+        {tr === "distance_time" && (
+          <NumberField
+            label={`${label} distance`}
+            unit="m"
+            step={100}
+            decimals={0}
+            value={set.distanceM}
+            placeholder="0"
+            onChange={(v) => onChange({ distanceM: v })}
+            className="w-[9.5rem]"
+          />
+        )}
+        {tr !== "time" && tr !== "distance_time" && (
+          <NumberField
+            label={`${label} reps${ex.perSide ? " per side" : ""}`}
+            step={1}
+            decimals={0}
+            value={set.reps}
+            placeholder={ph.reps != null ? String(ph.reps) : String(ex.prescription.repMax)}
+            onChange={(v) => onChange({ reps: v })}
+            className="w-[9.5rem]"
+          />
+        )}
         <div className="ml-auto">
           <CheckButton
             size="lg"
@@ -240,7 +290,13 @@ function SetRow({
         </div>
       </div>
       {!canComplete && !set.completed && (
-        <p className="mt-1.5 text-xs text-muted-foreground">Enter weight and reps, then tick.</p>
+        <p className="mt-1.5 text-xs text-muted-foreground">
+          {tr === "weight_reps"
+            ? "Enter weight and reps, then tick."
+            : tr === "time" || tr === "distance_time"
+              ? "Enter the time, then tick."
+              : "Enter reps, then tick."}
+        </p>
       )}
       {showEffort && (
         <div className="mt-2">
@@ -375,7 +431,7 @@ export function ExerciseCard({
             {prev ? (
               <p className="tnum">
                 <span className="text-muted-foreground">Last time ({prev.date}):</span>{" "}
-                {prev.sets.map((s) => `${s.weightKg} kg × ${s.reps ?? "?"}`).join(" · ")}
+                {prev.sets.map((s) => formatSet(s, ex.tracking)).join(" · ")}
               </p>
             ) : old ? (
               <p>

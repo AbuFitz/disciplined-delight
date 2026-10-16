@@ -7,6 +7,11 @@ export type RecordedSet = {
   kind: "warmup" | "working";
   weightKg?: number;
   reps?: number;
+  /** Timed holds and distance work. */
+  seconds?: number;
+  distanceM?: number;
+  /** Assistance in kg for assisted movements (not a load lifted). */
+  assistKg?: number;
   completed: boolean;
   skipped?: boolean;
   rir?: number;

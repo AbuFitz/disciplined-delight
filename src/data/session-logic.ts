@@ -1,5 +1,6 @@
 import type { LegacyDayLog, Session, SessionExercise, SessionSet } from "./types";
 import { suggestNext, type Suggestion } from "@/domain/progression";
+import { countsTowardVolume, hasRecord, supportsProgression } from "@/domain/tracking";
 
 export type Previous = { date: string; sets: SessionSet[]; sessionId: string };
 
@@ -20,7 +21,7 @@ export function previousComparable(
     );
     if (!match) continue;
     const sets = match.sets.filter(
-      (x) => x.kind === "working" && x.completed && !x.skipped && x.weightKg != null,
+      (x) => x.kind === "working" && x.completed && !x.skipped && hasRecord(x, ex.tracking),
     );
     if (sets.length) return { date: s.date, sets, sessionId: s.id };
   }
@@ -40,6 +41,8 @@ export function legacyHint(
 }
 
 export function suggestionFor(ex: SessionExercise, prev: Previous | null): Suggestion {
+  if (!supportsProgression(ex.tracking))
+    return { kind: "none", reason: "Progress this one by doing more reps or holding longer." };
   if (!prev) return { kind: "none", reason: "No earlier session to compare with." };
   return suggestNext(prev.sets, ex.prescription, ex.incrementKg ?? 2.5);
 }
@@ -49,12 +52,17 @@ export function placeholderFor(
   ex: SessionExercise,
   index: number,
   prev: Previous | null,
-): { weightKg?: number; reps?: number } {
+): { weightKg?: number; reps?: number; seconds?: number; distanceM?: number } {
   const before = [...ex.sets.slice(0, index)]
     .reverse()
-    .find((s) => s.completed && s.kind === "working" && s.weightKg != null);
+    .find((s) => s.completed && s.kind === "working" && hasRecord(s, ex.tracking));
   const prevSet = prev?.sets[Math.min(index, prev.sets.length - 1)];
-  return { weightKg: before?.weightKg ?? prevSet?.weightKg, reps: before?.reps ?? prevSet?.reps };
+  return {
+    weightKg: before?.weightKg ?? prevSet?.weightKg,
+    reps: before?.reps ?? prevSet?.reps,
+    seconds: before?.seconds ?? prevSet?.seconds ?? ex.targetSeconds,
+    distanceM: before?.distanceM ?? prevSet?.distanceM,
+  };
 }
 
 export function sessionSummary(s: Session) {
@@ -70,7 +78,8 @@ export function sessionSummary(s: Session) {
     completed += done.length;
     skipped += working.filter((x) => x.skipped).length;
     if (done.length) exercisesTouched++;
-    for (const x of done) if (x.weightKg != null && x.reps != null) volume += x.weightKg * x.reps;
+    if (countsTowardVolume(e.tracking))
+      for (const x of done) if (x.weightKg != null && x.reps != null) volume += x.weightKg * x.reps;
   }
   return {
     planned,

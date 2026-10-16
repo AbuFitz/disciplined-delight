@@ -1,3 +1,4 @@
+import type { TrackingType } from "@/domain/catalogue";
 import type { RecordedSet } from "@/domain/progression";
 import type { Macros } from "@/domain/nutrition";
 
@@ -77,6 +78,11 @@ export type TemplateExercise = {
   alternative?: string;
   links?: { label: string; url: string }[];
   startWeightKg?: number;
+  catalogueId?: string;
+  tracking?: TrackingType;
+  targetSeconds?: number;
+  perSide?: boolean;
+  superset?: string;
 };
 
 export type WorkoutTemplate = {
@@ -101,6 +107,11 @@ export type SessionExercise = {
   name: string;
   legacyId?: string;
   templateExerciseId?: string;
+  catalogueId?: string;
+  tracking?: TrackingType;
+  targetSeconds?: number;
+  perSide?: boolean;
+  superset?: string;
   substitutedFrom?: string;
   prescription: { sets: number; repMin: number; repMax: number; schemeText: string };
   equipment?: string;
