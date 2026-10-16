@@ -95,8 +95,8 @@ function PrivacyPage() {
         <div>
           <h2 className="font-display text-xl font-semibold">Control stays visible</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Export, import, account removal and data erasure live in Settings. Connection and block
-            controls live in Circle.
+            Export, import, on-device account removal and data erasure live in Settings. Connection
+            and block controls live in Circle.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
