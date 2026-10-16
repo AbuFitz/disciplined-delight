@@ -7,7 +7,7 @@
  *   ... VERIFY_A_EMAIL=.. VERIFY_A_PASSWORD=.. VERIFY_B_EMAIL=.. VERIFY_B_PASSWORD=.. node scripts/verify-supabase.mjs --write
  *
  * `--write` signs in as two THROWAWAY, already-confirmed test accounts and exercises private sync plus Circle,
- * chat, challenge and game records. It cleans up the social relationship and content afterwards, but creates profiles when
+ * chat, challenge, game and crew records. It cleans up the social relationship and content afterwards, but creates profiles when
  * absent and leaves sync tombstones. It never uses a service-role key or prints keys/tokens. Exit code is non-zero
  * if any check fails.
  * Email delivery, Google sign-in, push delivery and real-device behaviour cannot be checked here: see
@@ -172,6 +172,25 @@ for (const [migration, fn, args] of [
   ["0009", "circle_four_games", {}],
   ["0009", "circle_four_move", { p_game_id: ZERO_UUID, p_column: 0 }],
   ["0009", "circle_four_close", { p_game_id: ZERO_UUID }],
+  [
+    "0010",
+    "circle_crew_create",
+    {
+      p_name: "Verifier crew",
+      p_purpose: "Verify the real crew service safely.",
+      p_invitee_ids: [],
+    },
+  ],
+  ["0010", "circle_crews", {}],
+  ["0010", "circle_crew_members", { p_crew_id: ZERO_UUID }],
+  ["0010", "circle_crew_respond", { p_crew_id: ZERO_UUID, p_accept: false }],
+  ["0010", "circle_crew_invite", { p_crew_id: ZERO_UUID, p_user_id: ZERO_UUID }],
+  ["0010", "circle_crew_remove_member", { p_crew_id: ZERO_UUID, p_user_id: ZERO_UUID }],
+  ["0010", "circle_crew_leave", { p_crew_id: ZERO_UUID }],
+  ["0010", "circle_crew_archive", { p_crew_id: ZERO_UUID }],
+  ["0010", "circle_crew_checkin", { p_crew_id: ZERO_UUID, p_state: "showed_up", p_note: null }],
+  ["0010", "circle_crew_checkin_delete", { p_crew_id: ZERO_UUID }],
+  ["0010", "circle_crew_checkins", { p_crew_id: ZERO_UUID }],
 ]) {
   const r = await call(`/rest/v1/rpc/${fn}`, { method: "POST", body: args });
   if (missing(r))
@@ -196,6 +215,9 @@ for (const [migration, t] of [
   ["0008", "circle_challenges"],
   ["0008", "circle_challenge_entries"],
   ["0009", "circle_four_games"],
+  ["0010", "circle_crews"],
+  ["0010", "circle_crew_members"],
+  ["0010", "circle_crew_checkins"],
 ]) {
   const r = await call(`/rest/v1/${t}?select=*&limit=1`);
   if (missing(r))
@@ -501,6 +523,45 @@ else {
         `HTTP ${gameList.status}`,
       );
 
+      const crew = await rpc("circle_crew_create", A, {
+        p_name: "Verifier crew",
+        p_purpose: "Prove that the real crew service keeps deliberate weekly roll calls isolated.",
+        p_invitee_ids: [B.id],
+      });
+      rec("A can create a crew and invite B", isUuid(crew.json), JSON.stringify(crew.json));
+      const crewAccepted = isUuid(crew.json)
+        ? await rpc("circle_crew_respond", B, { p_crew_id: crew.json, p_accept: true })
+        : { status: 0, json: null };
+      rec(
+        "B can explicitly accept a crew invitation",
+        crewAccepted.json === "active",
+        JSON.stringify(crewAccepted.json),
+      );
+      const crewCheckin = isUuid(crew.json)
+        ? await rpc("circle_crew_checkin", B, {
+            p_crew_id: crew.json,
+            p_state: "adjusted",
+            p_note: "Verifier roll call",
+          })
+        : { status: 0, json: null };
+      rec(
+        "B can write a manual crew roll call",
+        isUuid(crewCheckin.json),
+        JSON.stringify(crewCheckin.json),
+      );
+      const crewList = await rpc("circle_crews", B);
+      const crewCheckins = isUuid(crew.json)
+        ? await rpc("circle_crew_checkins", A, { p_crew_id: crew.json })
+        : { status: 0, json: null };
+      rec(
+        "Both members see the accepted crew and its deliberate roll call",
+        Array.isArray(crewList.json) &&
+          crewList.json.some((item) => item.id === crew.json && Number(item.active_count) === 2) &&
+          Array.isArray(crewCheckins.json) &&
+          crewCheckins.json.some((item) => item.id === crewCheckin.json),
+        `crews HTTP ${crewList.status}, roll calls HTTP ${crewCheckins.status}`,
+      );
+
       const directPost = await call("/rest/v1/circle_posts", {
         method: "POST",
         token: A.token,
@@ -515,14 +576,17 @@ else {
       const blocked = await rpc("circle_block", B, { p_user_id: A.id });
       const blockedFeed = await rpc("circle_feed", B, { p_before: null, p_limit: 20 });
       const blockedGames = await rpc("circle_four_games", B);
+      const blockedCrews = await rpc("circle_crews", B);
       rec(
-        "Blocking ends the connection and hides A's post and game",
+        "Blocking ends the connection and hides A's post, game and crew",
         okResponse(blocked) &&
           Array.isArray(blockedFeed.json) &&
           !blockedFeed.json.some((item) => item.id === post.json) &&
           Array.isArray(blockedGames.json) &&
-          !blockedGames.json.some((item) => item.id === game.json),
-        `block HTTP ${blocked.status}, feed HTTP ${blockedFeed.status}, games HTTP ${blockedGames.status}`,
+          !blockedGames.json.some((item) => item.id === game.json) &&
+          Array.isArray(blockedCrews.json) &&
+          !blockedCrews.json.some((item) => item.id === crew.json),
+        `block HTTP ${blocked.status}, feed HTTP ${blockedFeed.status}, games HTTP ${blockedGames.status}, crews HTTP ${blockedCrews.status}`,
       );
 
       await rpc("circle_unblock", B, { p_user_id: A.id });
@@ -531,6 +595,7 @@ else {
       if (isUuid(challenge.json))
         await rpc("circle_challenge_close", A, { p_challenge_id: challenge.json });
       if (isUuid(game.json)) await rpc("circle_four_close", A, { p_game_id: game.json });
+      if (isUuid(crew.json)) await rpc("circle_crew_archive", A, { p_crew_id: crew.json });
       if (isUuid(message.json)) await rpc("circle_chat_delete", A, { p_message_id: message.json });
       if (isUuid(post.json)) await rpc("circle_delete_post", A, { p_post_id: post.json });
       await rpc("circle_remove_connection", A, { p_user_id: B.id });

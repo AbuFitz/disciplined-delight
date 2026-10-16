@@ -42,3 +42,7 @@ RLS reads, direct-write denial, connection removal through blocking and anonymou
 `circle-four.test.sql` targets `0009_circle_four.sql`. It covers self-authored stakes, explicit acceptance,
 turn enforcement, a server-detected win, one-open-game concurrency protection, participant-only visibility,
 RLS reads, direct-write denial, block shutdown and anonymous denial.
+
+`circle-crews.test.sql` targets `0010_circle_crews.sql`. It covers connection-only invitations, explicit acceptance,
+owner-only governance, a two-member roster, correctable manual roll calls, uninvited/RLS/direct-write/anonymous denial,
+and automatic membership removal when the owner's connection is removed.

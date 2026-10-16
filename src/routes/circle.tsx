@@ -65,6 +65,12 @@ function CirclePage() {
                 <MessageCircle className="size-4" /> Chat
               </Link>
               <Link
+                to="/circle/crews"
+                className="inline-flex min-h-11 items-center gap-2 rounded-full border border-input px-4 text-sm font-semibold"
+              >
+                <Users className="size-4" /> Crews
+              </Link>
+              <Link
                 to="/circle/challenges"
                 className="inline-flex min-h-11 items-center gap-2 rounded-full border border-input px-4 text-sm font-semibold"
               >

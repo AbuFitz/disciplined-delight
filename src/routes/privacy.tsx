@@ -69,6 +69,10 @@ function PrivacyPage() {
               Chat messages, pact check-ins and Four in a Row boards and dares are visible only to
               the two participants.
             </li>
+            <li>
+              Crew members can see the crew purpose, active roster and weekly roll calls that
+              members write themselves.
+            </li>
             <li>Blocking removes the connection and immediately closes shared visibility.</li>
           </ul>
         </Panel>

@@ -15,16 +15,19 @@ shares it explicitly.
 
 Circle has a deliberately smaller shared surface:
 
-| Data                                         | Who can read it                                                  |
-| -------------------------------------------- | ---------------------------------------------------------------- |
-| Handle and display name                      | Signed-in people using exact-handle or display-name search       |
-| Connection requests and blocks               | The affected accounts; block lists are shown only to their owner |
-| Manually written feed posts and kudos        | The author and accepted, unblocked connections                   |
-| One-to-one chat                              | The two accepted, unblocked participants                         |
-| Pact invitations and self-reported check-ins | The two accepted, unblocked participants                         |
-| Four in a Row boards and self-authored dares | The two accepted, unblocked participants                         |
+| Data                                              | Who can read it                                                    |
+| ------------------------------------------------- | ------------------------------------------------------------------ |
+| Handle and display name                           | Signed-in people using exact-handle or display-name search         |
+| Connection requests and blocks                    | The affected accounts; block lists are shown only to their owner   |
+| Manually written feed posts and kudos             | The author and accepted, unblocked connections                     |
+| One-to-one chat                                   | The two accepted, unblocked participants                           |
+| Pact invitations and self-reported check-ins      | The two accepted, unblocked participants                           |
+| Four in a Row boards and self-authored dares      | The two accepted, unblocked participants                           |
+| Crew purpose, active roster and weekly roll calls | Accepted crew members; blocked people are filtered from each other |
 
 Blocking removes the connection and immediately makes its feed posts, chat, pacts and games unavailable in both directions.
+If the block or connection removal is between a crew owner and member, that membership is removed; blocked ordinary crew
+members cannot see each other's roster entry or roll call.
 Deleting a sent chat message leaves an honest tombstone rather than pretending the record never existed.
 
 - **On the device:** one IndexedDB database per account (guest data is separate and is never merged without a prompt).
