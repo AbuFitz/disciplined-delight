@@ -193,3 +193,29 @@ describe("sync engine", () => {
     expect(await get("settings", "s")).toEqual({ a: 3 });
   });
 });
+
+describe("sync is cancelled when the account changes mid-pass", () => {
+  it("does not write the previous account's results into the next scope", async () => {
+    const { setScope } = await import("./scope");
+    const A = { kind: "user", userId: "a" } as const;
+    const B = { kind: "user", userId: "b" } as const;
+    setScope(A);
+    await put("mealLogs", "m1", { kcal: 1 });
+    const r = new FakeRemote();
+    r.external("weighIns", "w1", { kg: 70 }); // would be pulled into whichever scope is current
+    const orig = r.push.bind(r);
+    r.push = async (m) => {
+      const res = await orig(m);
+      setScope(B); // account switches while the request is in flight
+      return res;
+    };
+    const res = await runSync(r);
+    expect(res.error).toBe("cancelled");
+    expect(await get("weighIns", "w1")).toBeUndefined(); // B stays clean
+    expect(await getRecord("mealLogs", "m1")).toBeUndefined(); // and B has none of A's records
+    setScope(A);
+    expect((await getRecord("mealLogs", "m1"))!.serverRev).toBeUndefined(); // A's ack was dropped, retried later
+    expect(await outboxCount()).toBe(1);
+    setScope({ kind: "guest" });
+  });
+});

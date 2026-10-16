@@ -12,7 +12,7 @@ import { bulkPut, clearCollections, dumpAll, setMeta, type StoredRecord } from "
 const EXCLUDED = (r: StoredRecord) =>
   r.collection === "prayerDays" && (r.data as { origin?: string }).origin === "calculated";
 
-const group = (records: StoredRecord[]) => {
+export const group = (records: StoredRecord[]) => {
   const out: Record<string, BackupRecord[]> = {};
   for (const r of records) {
     if (EXCLUDED(r)) continue;

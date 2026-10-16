@@ -23,7 +23,7 @@ import { newId, put } from "@/data/db";
 import { useCollection, useProfile } from "@/data/hooks";
 import { COL, type ChecklistItem, type PrayerSettings, type Profile } from "@/data/types";
 import { DataSection } from "@/components/nl/data-section";
-import { SyncSection } from "@/components/nl/sync-section";
+import { AccountSection } from "@/components/nl/account-section";
 import { RemindersSection } from "@/components/nl/reminders-section";
 import { getThemePref, setThemePref, type ThemePref } from "@/lib/theme";
 
@@ -364,8 +364,8 @@ function SettingsPage() {
         <RemindersSection />
       </Section>
 
-      <Section title="Account and sync" hint="Optional cloud backup across devices.">
-        <SyncSection />
+      <Section title="Account" hint="Sign in for backup and friends. Guests stay on this device.">
+        <AccountSection />
       </Section>
 
       <Section title="Your data" hint="Where it lives, backups, and moving between devices.">

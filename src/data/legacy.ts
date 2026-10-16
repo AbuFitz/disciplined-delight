@@ -178,6 +178,15 @@ export function buildSeed() {
   return { templates, ingredients, shoppingNotes, recipes, dayTemplates, checklist, profile };
 }
 
+/** A new person's profile: no targets, no goals, nothing assumed. */
+export const blankProfile = (): Profile => ({
+  name: "",
+  timezone: DEFAULT_TZ,
+  goal: { kind: "strength" },
+  targets: { status: "unset" },
+  setup: { goals: false, routine: false, prayer: false, food: false },
+});
+
 export type MigrationReport = {
   ran: boolean;
   version: number;
@@ -283,17 +292,27 @@ export async function runMigration(
     routineBlocks++;
   });
 
-  // Seed content (skipped per-id if present)
-  const seed = buildSeed();
-  items.push({ collection: COL.profile, id: "main", data: seed.profile });
-  seed.templates.forEach((t) => items.push({ collection: COL.templates, id: t.id, data: t }));
-  seed.ingredients.forEach((t) => items.push({ collection: COL.ingredients, id: t.id, data: t }));
-  seed.shoppingNotes.forEach((t) =>
-    items.push({ collection: "ingredientNotes", id: t.id, data: t }),
-  );
-  seed.recipes.forEach((t) => items.push({ collection: COL.recipes, id: t.id, data: t }));
-  seed.dayTemplates.forEach((t) => items.push({ collection: COL.dayTemplates, id: t.id, data: t }));
-  seed.checklist.forEach((t) => items.push({ collection: COL.checklist, id: t.id, data: t }));
+  // The owner's programme, meals and provisional targets are seeded ONLY where the original app's
+  // data actually exists on this browser. Everyone else starts blank and personal.
+  const hasLegacy = Object.values(raw).some(Boolean);
+  let seeded = false;
+  if (hasLegacy) {
+    const seed = buildSeed();
+    items.push({ collection: COL.profile, id: "main", data: seed.profile });
+    seed.templates.forEach((t) => items.push({ collection: COL.templates, id: t.id, data: t }));
+    seed.ingredients.forEach((t) => items.push({ collection: COL.ingredients, id: t.id, data: t }));
+    seed.shoppingNotes.forEach((t) =>
+      items.push({ collection: "ingredientNotes", id: t.id, data: t }),
+    );
+    seed.recipes.forEach((t) => items.push({ collection: COL.recipes, id: t.id, data: t }));
+    seed.dayTemplates.forEach((t) =>
+      items.push({ collection: COL.dayTemplates, id: t.id, data: t }),
+    );
+    seed.checklist.forEach((t) => items.push({ collection: COL.checklist, id: t.id, data: t }));
+    seeded = true;
+  } else {
+    items.push({ collection: COL.profile, id: "main", data: blankProfile() });
+  }
 
   const { skipped } = await bulkPut(items, { overwrite: false });
   const report: MigrationReport = {
@@ -302,7 +321,7 @@ export async function runMigration(
     legacyDays,
     routineBlocks,
     weighIns,
-    seeded: true,
+    seeded,
     skippedExisting: skipped,
   };
   await setMeta("migration:legacy", report);

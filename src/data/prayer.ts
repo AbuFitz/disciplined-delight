@@ -1,6 +1,7 @@
 import { addDays, type ISODate } from "@/domain/dates";
 import { aladhanUrl, parseAladhanCalendar, PRAYERS, type PrayerDay } from "@/domain/prayer";
 import { bulkPut, get, list, put, remove } from "./db";
+import { assertGeneration, scopeGeneration } from "./scope";
 import { COL, type PrayerSettings } from "./types";
 
 export type StoredPrayerDay = PrayerDay & {
@@ -96,9 +97,11 @@ export async function refreshPrayerTimes(
   const ahead = addDays(date, 7).split("-").map(Number) as [number, number];
   months.add(`${ahead[0]}-${ahead[1]}`);
   let stored = 0;
+  const gen = scopeGeneration();
   for (const key of months) {
     const [yy, mm] = key.split("-").map(Number) as [number, number];
     const days = await fetchMonth(settings, yy, mm, fetchImpl);
+    assertGeneration(gen); // the account may have changed while the request was in flight
     const existingManual = new Set(
       (await list<StoredPrayerDay>(COL.prayerDays))
         .filter((d) => d.origin === "manual")
@@ -107,6 +110,7 @@ export async function refreshPrayerTimes(
     const toWrite = days
       .filter((d) => !existingManual.has(d.date))
       .map((d) => ({ collection: COL.prayerDays, id: d.date, data: d }));
+    assertGeneration(gen);
     stored += (await bulkPut(toWrite, { overwrite: true, track: false })).written;
   }
   return stored;

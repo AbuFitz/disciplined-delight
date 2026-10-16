@@ -9,57 +9,27 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as WorkoutsRouteImport } from './routes/workouts'
-import { Route as TrainRouteImport } from './routes/train'
-import { Route as SettingsRouteImport } from './routes/settings'
-import { Route as ScheduleRouteImport } from './routes/schedule'
-import { Route as SalahRouteImport } from './routes/salah'
-import { Route as ProgressRouteImport } from './routes/progress'
-import { Route as PlanRouteImport } from './routes/plan'
-import { Route as NutritionRouteImport } from './routes/nutrition'
-import { Route as FoodRouteImport } from './routes/food'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as FoodRouteImport } from './routes/food'
+import { Route as NutritionRouteImport } from './routes/nutrition'
+import { Route as OnboardingRouteImport } from './routes/onboarding'
+import { Route as PlanRouteImport } from './routes/plan'
+import { Route as ProgressRouteImport } from './routes/progress'
+import { Route as SalahRouteImport } from './routes/salah'
+import { Route as ScheduleRouteImport } from './routes/schedule'
+import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as TrainRouteImport } from './routes/train'
+import { Route as WelcomeRouteImport } from './routes/welcome'
+import { Route as WorkoutsRouteImport } from './routes/workouts'
+import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
+import { Route as AuthForgotRouteImport } from './routes/auth.forgot'
+import { Route as AuthResetRouteImport } from './routes/auth.reset'
 import { Route as TrainIndexRouteImport } from './routes/train.index'
 import { Route as TrainSessionRouteImport } from './routes/train.session'
 
-const WorkoutsRoute = WorkoutsRouteImport.update({
-  id: '/workouts',
-  path: '/workouts',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const TrainRoute = TrainRouteImport.update({
-  id: '/train',
-  path: '/train',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SettingsRoute = SettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ScheduleRoute = ScheduleRouteImport.update({
-  id: '/schedule',
-  path: '/schedule',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SalahRoute = SalahRouteImport.update({
-  id: '/salah',
-  path: '/salah',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ProgressRoute = ProgressRouteImport.update({
-  id: '/progress',
-  path: '/progress',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PlanRoute = PlanRouteImport.update({
-  id: '/plan',
-  path: '/plan',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const NutritionRoute = NutritionRouteImport.update({
-  id: '/nutrition',
-  path: '/nutrition',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FoodRoute = FoodRouteImport.update({
@@ -67,9 +37,69 @@ const FoodRoute = FoodRouteImport.update({
   path: '/food',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const NutritionRoute = NutritionRouteImport.update({
+  id: '/nutrition',
+  path: '/nutrition',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OnboardingRoute = OnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlanRoute = PlanRouteImport.update({
+  id: '/plan',
+  path: '/plan',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProgressRoute = ProgressRouteImport.update({
+  id: '/progress',
+  path: '/progress',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SalahRoute = SalahRouteImport.update({
+  id: '/salah',
+  path: '/salah',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ScheduleRoute = ScheduleRouteImport.update({
+  id: '/schedule',
+  path: '/schedule',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TrainRoute = TrainRouteImport.update({
+  id: '/train',
+  path: '/train',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WelcomeRoute = WelcomeRouteImport.update({
+  id: '/welcome',
+  path: '/welcome',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WorkoutsRoute = WorkoutsRouteImport.update({
+  id: '/workouts',
+  path: '/workouts',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthCallbackRoute = AuthCallbackRouteImport.update({
+  id: '/auth/callback',
+  path: '/auth/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthForgotRoute = AuthForgotRouteImport.update({
+  id: '/auth/forgot',
+  path: '/auth/forgot',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthResetRoute = AuthResetRouteImport.update({
+  id: '/auth/reset',
+  path: '/auth/reset',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TrainIndexRoute = TrainIndexRouteImport.update({
@@ -87,13 +117,18 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/food': typeof FoodRoute
   '/nutrition': typeof NutritionRoute
+  '/onboarding': typeof OnboardingRoute
   '/plan': typeof PlanRoute
   '/progress': typeof ProgressRoute
   '/salah': typeof SalahRoute
   '/schedule': typeof ScheduleRoute
   '/settings': typeof SettingsRoute
   '/train': typeof TrainRouteWithChildren
+  '/welcome': typeof WelcomeRoute
   '/workouts': typeof WorkoutsRoute
+  '/auth/callback': typeof AuthCallbackRoute
+  '/auth/forgot': typeof AuthForgotRoute
+  '/auth/reset': typeof AuthResetRoute
   '/train/session': typeof TrainSessionRoute
   '/train/': typeof TrainIndexRoute
 }
@@ -101,12 +136,17 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/food': typeof FoodRoute
   '/nutrition': typeof NutritionRoute
+  '/onboarding': typeof OnboardingRoute
   '/plan': typeof PlanRoute
   '/progress': typeof ProgressRoute
   '/salah': typeof SalahRoute
   '/schedule': typeof ScheduleRoute
   '/settings': typeof SettingsRoute
+  '/welcome': typeof WelcomeRoute
   '/workouts': typeof WorkoutsRoute
+  '/auth/callback': typeof AuthCallbackRoute
+  '/auth/forgot': typeof AuthForgotRoute
+  '/auth/reset': typeof AuthResetRoute
   '/train/session': typeof TrainSessionRoute
   '/train': typeof TrainIndexRoute
 }
@@ -115,13 +155,18 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/food': typeof FoodRoute
   '/nutrition': typeof NutritionRoute
+  '/onboarding': typeof OnboardingRoute
   '/plan': typeof PlanRoute
   '/progress': typeof ProgressRoute
   '/salah': typeof SalahRoute
   '/schedule': typeof ScheduleRoute
   '/settings': typeof SettingsRoute
   '/train': typeof TrainRouteWithChildren
+  '/welcome': typeof WelcomeRoute
   '/workouts': typeof WorkoutsRoute
+  '/auth/callback': typeof AuthCallbackRoute
+  '/auth/forgot': typeof AuthForgotRoute
+  '/auth/reset': typeof AuthResetRoute
   '/train/session': typeof TrainSessionRoute
   '/train/': typeof TrainIndexRoute
 }
@@ -131,13 +176,18 @@ export interface FileRouteTypes {
     | '/'
     | '/food'
     | '/nutrition'
+    | '/onboarding'
     | '/plan'
     | '/progress'
     | '/salah'
     | '/schedule'
     | '/settings'
     | '/train'
+    | '/welcome'
     | '/workouts'
+    | '/auth/callback'
+    | '/auth/forgot'
+    | '/auth/reset'
     | '/train/session'
     | '/train/'
   fileRoutesByTo: FileRoutesByTo
@@ -145,12 +195,17 @@ export interface FileRouteTypes {
     | '/'
     | '/food'
     | '/nutrition'
+    | '/onboarding'
     | '/plan'
     | '/progress'
     | '/salah'
     | '/schedule'
     | '/settings'
+    | '/welcome'
     | '/workouts'
+    | '/auth/callback'
+    | '/auth/forgot'
+    | '/auth/reset'
     | '/train/session'
     | '/train'
   id:
@@ -158,13 +213,18 @@ export interface FileRouteTypes {
     | '/'
     | '/food'
     | '/nutrition'
+    | '/onboarding'
     | '/plan'
     | '/progress'
     | '/salah'
     | '/schedule'
     | '/settings'
     | '/train'
+    | '/welcome'
     | '/workouts'
+    | '/auth/callback'
+    | '/auth/forgot'
+    | '/auth/reset'
     | '/train/session'
     | '/train/'
   fileRoutesById: FileRoutesById
@@ -173,71 +233,27 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   FoodRoute: typeof FoodRoute
   NutritionRoute: typeof NutritionRoute
+  OnboardingRoute: typeof OnboardingRoute
   PlanRoute: typeof PlanRoute
   ProgressRoute: typeof ProgressRoute
   SalahRoute: typeof SalahRoute
   ScheduleRoute: typeof ScheduleRoute
   SettingsRoute: typeof SettingsRoute
   TrainRoute: typeof TrainRouteWithChildren
+  WelcomeRoute: typeof WelcomeRoute
   WorkoutsRoute: typeof WorkoutsRoute
+  AuthCallbackRoute: typeof AuthCallbackRoute
+  AuthForgotRoute: typeof AuthForgotRoute
+  AuthResetRoute: typeof AuthResetRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/workouts': {
-      id: '/workouts'
-      path: '/workouts'
-      fullPath: '/workouts'
-      preLoaderRoute: typeof WorkoutsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/train': {
-      id: '/train'
-      path: '/train'
-      fullPath: '/train'
-      preLoaderRoute: typeof TrainRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/settings': {
-      id: '/settings'
-      path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof SettingsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/schedule': {
-      id: '/schedule'
-      path: '/schedule'
-      fullPath: '/schedule'
-      preLoaderRoute: typeof ScheduleRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/salah': {
-      id: '/salah'
-      path: '/salah'
-      fullPath: '/salah'
-      preLoaderRoute: typeof SalahRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/progress': {
-      id: '/progress'
-      path: '/progress'
-      fullPath: '/progress'
-      preLoaderRoute: typeof ProgressRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/plan': {
-      id: '/plan'
-      path: '/plan'
-      fullPath: '/plan'
-      preLoaderRoute: typeof PlanRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/nutrition': {
-      id: '/nutrition'
-      path: '/nutrition'
-      fullPath: '/nutrition'
-      preLoaderRoute: typeof NutritionRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/food': {
@@ -247,11 +263,95 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FoodRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/nutrition': {
+      id: '/nutrition'
+      path: '/nutrition'
+      fullPath: '/nutrition'
+      preLoaderRoute: typeof NutritionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/onboarding': {
+      id: '/onboarding'
+      path: '/onboarding'
+      fullPath: '/onboarding'
+      preLoaderRoute: typeof OnboardingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/plan': {
+      id: '/plan'
+      path: '/plan'
+      fullPath: '/plan'
+      preLoaderRoute: typeof PlanRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/progress': {
+      id: '/progress'
+      path: '/progress'
+      fullPath: '/progress'
+      preLoaderRoute: typeof ProgressRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/salah': {
+      id: '/salah'
+      path: '/salah'
+      fullPath: '/salah'
+      preLoaderRoute: typeof SalahRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/schedule': {
+      id: '/schedule'
+      path: '/schedule'
+      fullPath: '/schedule'
+      preLoaderRoute: typeof ScheduleRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/train': {
+      id: '/train'
+      path: '/train'
+      fullPath: '/train'
+      preLoaderRoute: typeof TrainRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/welcome': {
+      id: '/welcome'
+      path: '/welcome'
+      fullPath: '/welcome'
+      preLoaderRoute: typeof WelcomeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/workouts': {
+      id: '/workouts'
+      path: '/workouts'
+      fullPath: '/workouts'
+      preLoaderRoute: typeof WorkoutsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth/callback': {
+      id: '/auth/callback'
+      path: '/auth/callback'
+      fullPath: '/auth/callback'
+      preLoaderRoute: typeof AuthCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth/forgot': {
+      id: '/auth/forgot'
+      path: '/auth/forgot'
+      fullPath: '/auth/forgot'
+      preLoaderRoute: typeof AuthForgotRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth/reset': {
+      id: '/auth/reset'
+      path: '/auth/reset'
+      fullPath: '/auth/reset'
+      preLoaderRoute: typeof AuthResetRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/train/': {
@@ -287,13 +387,18 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   FoodRoute: FoodRoute,
   NutritionRoute: NutritionRoute,
+  OnboardingRoute: OnboardingRoute,
   PlanRoute: PlanRoute,
   ProgressRoute: ProgressRoute,
   SalahRoute: SalahRoute,
   ScheduleRoute: ScheduleRoute,
   SettingsRoute: SettingsRoute,
   TrainRoute: TrainRouteWithChildren,
+  WelcomeRoute: WelcomeRoute,
   WorkoutsRoute: WorkoutsRoute,
+  AuthCallbackRoute: AuthCallbackRoute,
+  AuthForgotRoute: AuthForgotRoute,
+  AuthResetRoute: AuthResetRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

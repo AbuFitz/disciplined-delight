@@ -9,7 +9,11 @@ beforeEach(async () => {
   await closeDB();
   indexedDB.deleteDatabase("new-life");
 });
-const ls = { getItem: () => null };
+// The owner's browser: original-app data present, so the legacy programme is migrated.
+const ls = {
+  getItem: (k: string) =>
+    k === "sunrise-strength-tracker-v1" ? JSON.stringify({ logs: {} }) : null,
+};
 
 describe("backup", () => {
   it("round-trips templates, edits and settings", async () => {

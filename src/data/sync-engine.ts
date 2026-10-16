@@ -1,3 +1,4 @@
+import { assertGeneration, ScopeChangedError, scopeGeneration } from "./scope";
 import {
   applyRemote,
   enqueue,
@@ -67,6 +68,10 @@ const setConflicts = (c: Conflict[]) => setMeta("sync:conflicts", c);
 export async function runSync(remote: Remote): Promise<SyncResult> {
   let pushed = 0,
     pulled = 0;
+  // Everything below reads and writes the scope that was current when the pass started.
+  // If the account changes mid-pass, stop before touching the next scope's database.
+  const gen = scopeGeneration();
+  const live = () => assertGeneration(gen);
   try {
     // 1. coalesce: only the latest mutation per record matters
     const all = await outboxAll();
@@ -95,9 +100,11 @@ export async function runSync(remote: Remote): Promise<SyncResult> {
           mid: m.mid,
         });
       } catch (e) {
+        live();
         await outboxFail(m.seq!, (e as Error).message);
         throw e;
       }
+      live();
       if (res.status === "conflict") {
         const localData = rec?.data;
         const localDeleted = m.op === "delete";
@@ -131,6 +138,7 @@ export async function runSync(remote: Remote): Promise<SyncResult> {
     let cursor = (await getMeta<number>("sync:cursor")) ?? 0;
     for (;;) {
       const page = await remote.pull(cursor);
+      live();
       for (const r of page.records) {
         const k = key(r.collection, r.id);
         if (pending.has(k) || conflictKeys.has(k)) continue;
@@ -145,6 +153,7 @@ export async function runSync(remote: Remote): Promise<SyncResult> {
     }
     return { pushed, pulled, conflicts: (await getConflicts()).length };
   } catch (e) {
+    if (e instanceof ScopeChangedError) return { pushed, pulled, conflicts: 0, error: "cancelled" };
     return {
       pushed,
       pulled,

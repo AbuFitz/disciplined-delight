@@ -99,6 +99,15 @@ describe("legacy migration", () => {
     expect(blocks.find((b) => b.legacyKey === "fajr")!.archivedAt).toBeTruthy();
     expect(blocks.find((b) => b.legacyKey === "gym")!.archivedAt).toBeNull();
   });
+  it("gives a new person a blank profile: no programme, meals or targets", async () => {
+    const rep = await runMigration(store({}));
+    expect(rep.seeded).toBe(false);
+    expect(await list(COL.templates)).toHaveLength(0);
+    expect(await list(COL.recipes)).toHaveLength(0);
+    expect(await list(COL.dayTemplates)).toHaveLength(0);
+    const [p] = await list<{ targets: { status: string } }>(COL.profile);
+    expect(p!.targets.status).toBe("unset");
+  });
   it("creates no routine or logs for a fresh browser", async () => {
     const rep = await runMigration(store({}));
     expect(rep.legacyDays).toBe(0);

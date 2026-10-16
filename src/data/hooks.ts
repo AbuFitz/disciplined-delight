@@ -8,7 +8,9 @@ import {
   useSyncExternalStore,
   type ReactNode,
 } from "react";
+import { useScope } from "./account";
 import { list, subscribe } from "./db";
+import { getScope, onScopeChange, scopeGeneration } from "./scope";
 import { runMigration, type MigrationReport } from "./legacy";
 import { COL, type Profile } from "./types";
 import { DEFAULT_TZ, localDate } from "@/domain/dates";
@@ -19,17 +21,36 @@ const loading = new Set<string>();
 const EMPTY: Snap<never> = { items: [], ready: false };
 
 function load(col: string) {
-  if (typeof indexedDB === "undefined" || loading.has(col)) return;
+  if (typeof indexedDB === "undefined" || !getScope() || loading.has(col)) return;
+  const gen = scopeGeneration();
   loading.add(col);
   list(col)
-    .then((items) => cache.set(col, { items, ready: true }))
-    .catch(() => cache.set(col, { items: [], ready: true }))
+    .then((items) => {
+      // A result from a previous account/guest scope must never populate the current one.
+      if (gen === scopeGeneration()) cache.set(col, { items, ready: true });
+    })
+    .catch(() => {
+      if (gen === scopeGeneration()) cache.set(col, { items: [], ready: true });
+    })
     .finally(() => {
+      if (gen !== scopeGeneration()) return;
       loading.delete(col);
       listenersFor(col).forEach((f) => f());
     });
 }
 const local = new Map<string, Set<() => void>>();
+
+/** On any scope change drop every cached record and tell mounted hooks to reload from the new scope. */
+export function resetCaches() {
+  cache.clear();
+  loading.clear();
+  for (const [col, set] of local) {
+    set.forEach((f) => f());
+    if (set.size > 0) load(col);
+  }
+}
+onScopeChange(resetCaches);
+
 const listenersFor = (c: string) => local.get(c) ?? new Set();
 
 /** Live list of non-deleted records in a collection (client only). */
@@ -62,10 +83,12 @@ type Ctx = { ready: boolean; report: MigrationReport | null; error: string | nul
 const DataCtx = createContext<Ctx>({ ready: false, report: null, error: null });
 
 export function DataProvider({ children }: { children: ReactNode }) {
+  const scope = useScope();
   const [state, setState] = useState<Ctx>({ ready: false, report: null, error: null });
   useEffect(() => {
     let alive = true;
-    runMigration()
+    // Only the guest scope can hold the original app's browser data; accounts start from their own blank state.
+    runMigration(scope.kind === "guest" ? globalThis.localStorage : undefined)
       .then((report) => alive && setState({ ready: true, report, error: null }))
       .catch(
         (e) => alive && setState({ ready: false, report: null, error: String(e?.message ?? e) }),
@@ -73,7 +96,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     return () => {
       alive = false;
     };
-  }, []);
+  }, [scope]);
   return createElement(DataCtx.Provider, { value: state }, children);
 }
 export const useData = () => useContext(DataCtx);

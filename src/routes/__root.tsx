@@ -7,6 +7,8 @@ import {
   HeadContent,
   Scripts,
   type ErrorComponentProps,
+  useLocation,
+  useNavigate,
 } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 
@@ -15,6 +17,11 @@ import { UpdateBanner } from "@/components/nl/UpdateBanner";
 import { registerServiceWorker } from "@/lib/pwa";
 import { useSyncRunner } from "@/data/sync-runner";
 import { Toaster } from "@/components/ui/sonner";
+import { ScopeGate, useScope } from "@/data/account";
+import { useAccountProfile } from "@/data/account-profile";
+import { getMeta, setMeta } from "@/data/db";
+import { useAuth } from "@/lib/auth";
+import { isSupabaseConfigured } from "@/lib/supabase";
 import { DataProvider, useData } from "@/data/hooks";
 import { THEME_BOOT, applyTheme, getThemePref } from "@/lib/theme";
 import { useEffect } from "react";
@@ -127,21 +134,61 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <DataProvider>
-        <Gate />
-        <Toaster position="top-center" />
-      </DataProvider>
+      <ScopeGate fallback={<div aria-busy className="min-h-dvh" />}>
+        <DataProvider>
+          <Gate />
+          <Toaster position="top-center" />
+        </DataProvider>
+      </ScopeGate>
     </QueryClientProvider>
   );
 }
 
+const BARE = /^\/(welcome|auth|onboarding)(\/|$)/;
+
 function Gate() {
-  const { ready, error } = useData();
+  const { ready, error, report } = useData();
+  const scope = useScope();
+  const auth = useAuth();
+  const acct = useAccountProfile();
+  const loc = useLocation();
+  const nav = useNavigate();
   useSyncRunner();
   useEffect(() => {
     applyTheme(getThemePref());
     registerServiceWorker();
   }, []);
+
+  const bare = BARE.test(loc.pathname);
+
+  // Signed in but no social profile yet: finish onboarding first (never while offline, where we can't know).
+  useEffect(() => {
+    if (!auth.user || acct.state.status !== "missing" || bare) return;
+    nav({ to: "/onboarding", replace: true });
+  }, [auth.user, acct.state.status, bare, nav]);
+
+  // A password-recovery link must lead to choosing a new password.
+  useEffect(() => {
+    if (auth.recovery && loc.pathname !== "/auth/reset") nav({ to: "/auth/reset", replace: true });
+  }, [auth.recovery, loc.pathname, nav]);
+
+  // First visit as a brand-new guest on a build with accounts: show the welcome once.
+  useEffect(() => {
+    if (!isSupabaseConfigured || !ready || scope.kind !== "guest" || bare || report?.seeded) return;
+    void getMeta<boolean>("welcome:seen").then((seen) => {
+      if (!seen) nav({ to: "/welcome", replace: true });
+    });
+  }, [ready, scope, bare, report, nav]);
+
+  // Remember who this on-device storage belongs to (shown when it's a signed-out, remembered account).
+  useEffect(() => {
+    if (scope.kind !== "user" || !auth.user) return;
+    void setMeta("scope:label", {
+      email: auth.user.email,
+      username: acct.state.status === "ready" ? acct.state.profile.username : undefined,
+    });
+  }, [scope, auth.user, acct.state]);
+
   if (error) {
     return (
       <div className="flex min-h-dvh items-center justify-center px-6">
@@ -155,6 +202,7 @@ function Gate() {
       </div>
     );
   }
+  if (bare) return ready ? <Outlet /> : <div aria-busy className="min-h-dvh" />;
   return (
     <Shell>
       <UpdateBanner />

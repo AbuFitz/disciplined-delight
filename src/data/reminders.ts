@@ -1,4 +1,5 @@
 import { get, list, put } from "./db";
+import { assertGeneration, scopeGeneration } from "./scope";
 import { COL, type PrayerSettings, type WorkoutTemplate } from "./types";
 import { makeLookup, type StoredPrayerDay } from "./prayer";
 import { buildReminders, DEFAULT_REMINDER_PREFS, type ReminderPrefs } from "@/domain/reminders";
@@ -110,6 +111,7 @@ export async function disablePush(): Promise<void> {
 /** Uploads the next ~48h of reminders so the server can deliver them. Returns how many are scheduled. */
 export async function uploadSchedule(): Promise<number> {
   if (!supabase) return 0;
+  const gen = scopeGeneration();
   const items = (await computeReminders()).map((r) => ({
     key: r.key,
     kind: r.kind,
@@ -118,6 +120,7 @@ export async function uploadSchedule(): Promise<number> {
     body: r.body,
     url: r.url,
   }));
+  assertGeneration(gen); // never upload another account's schedule
   const { error } = await supabase.rpc("replace_reminders", { p_items: items });
   if (error) throw new Error(error.message);
   return items.length;

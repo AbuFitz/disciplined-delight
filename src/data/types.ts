@@ -52,6 +52,11 @@ export type Profile = {
   setup: { goals: boolean; routine: boolean; prayer: boolean; food: boolean; skipped?: boolean };
   returnToTraining?: boolean;
   wakeLock?: boolean;
+  /** Social identity (mirrors the server profile; the server is the source of truth for the handle). */
+  username?: string;
+  /** Which pillars the person chose to use; others are hidden. */
+  pillars?: ("body" | "mind" | "soul")[];
+  faithRoutines?: boolean;
 };
 
 export type TemplateExercise = {

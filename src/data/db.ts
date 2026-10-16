@@ -1,4 +1,13 @@
 import { openDB, type DBSchema, type IDBPDatabase } from "idb";
+import {
+  getScope,
+  GUEST_DB,
+  requireScope,
+  sameScope,
+  scopeDbName,
+  USER_DB_PREFIX,
+  type Scope,
+} from "./scope";
 
 /**
  * Local-first document store on IndexedDB.
@@ -39,28 +48,70 @@ interface Schema extends DBSchema {
   meta: { key: string; value: unknown };
 }
 
-export const DB_NAME = "new-life";
 export const DB_VERSION = 1;
 
-let dbPromise: Promise<IDBPDatabase<Schema>> | null = null;
+const open: Map<string, Promise<IDBPDatabase<Schema>>> = new Map();
 
-export function getDB() {
-  dbPromise ??= openDB<Schema>(DB_NAME, DB_VERSION, {
-    upgrade(db) {
-      const rec = db.createObjectStore("records", { keyPath: ["collection", "id"] });
-      rec.createIndex("byCollection", "collection");
-      const ob = db.createObjectStore("outbox", { keyPath: "seq", autoIncrement: true });
-      ob.createIndex("byMid", "mid", { unique: true });
-      db.createObjectStore("meta");
-    },
-  });
-  return dbPromise;
+function openScoped(name: string) {
+  let p = open.get(name);
+  if (!p) {
+    p = openDB<Schema>(name, DB_VERSION, {
+      upgrade(db) {
+        const rec = db.createObjectStore("records", { keyPath: ["collection", "id"] });
+        rec.createIndex("byCollection", "collection");
+        const ob = db.createObjectStore("outbox", { keyPath: "seq", autoIncrement: true });
+        ob.createIndex("byMid", "mid", { unique: true });
+        db.createObjectStore("meta");
+      },
+    });
+    open.set(name, p);
+  }
+  return p;
 }
 
-/** Test helper: drop the cached connection so a fresh DB can be opened. */
+/** The database of the current scope. Throws if no scope has been resolved (e.g. auth still loading). */
+export function getDB() {
+  return openScoped(scopeDbName(requireScope()));
+}
+
+/** A handle on another scope's database (e.g. to read guest data for an import). Read it, don't write it. */
+export function getScopeDB(scope: Scope) {
+  return openScoped(scopeDbName(scope));
+}
+
+/** Test helper: close and forget every open connection. */
 export async function closeDB() {
-  if (dbPromise) (await dbPromise).close();
-  dbPromise = null;
+  for (const p of open.values()) (await p).close();
+  open.clear();
+}
+
+/** Permanently removes a scope's on-device data. Refuses to delete the scope currently in use. */
+export async function deleteScopeData(scope: Scope): Promise<void> {
+  if (sameScope(getScope(), scope)) throw new Error("Can't remove the data of the scope in use.");
+  const name = scopeDbName(scope);
+  const p = open.get(name);
+  if (p) {
+    (await p).close();
+    open.delete(name);
+  }
+  await new Promise<void>((resolve, reject) => {
+    const r = indexedDB.deleteDatabase(name);
+    r.onsuccess = () => resolve();
+    r.onerror = () => reject(r.error);
+    r.onblocked = () => resolve();
+  });
+}
+
+/** Names of every New Life database on this device (guest and remembered accounts). */
+export async function listLocalScopes(): Promise<Scope[]> {
+  const dbs = (await indexedDB.databases?.()) ?? [];
+  const out: Scope[] = [];
+  for (const d of dbs) {
+    if (d.name === GUEST_DB) out.push({ kind: "guest" });
+    else if (d.name?.startsWith(USER_DB_PREFIX))
+      out.push({ kind: "user", userId: d.name.slice(USER_DB_PREFIX.length) });
+  }
+  return out;
 }
 
 type Listener = () => void;
