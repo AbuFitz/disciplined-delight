@@ -14,10 +14,9 @@ Pilot run 16 October 2026 against the live wger public API. Numbers below come f
 
 ## What the wger pilot found
 
-- 932 English entries, no duplicate English names. After the importer's gates: **879 published, 53 quarantined**; 494 passed every automatic quality gate, of which **141 are hand-curated for automatic programmes** (see Curation)
-  (39 with no usable instructions, 14 whose text contains links).
+- 932 English entries. After the importer's publication gates: **879 published and 53 quarantined** (39 with no usable instructions, 14 whose text contains links). The committed snapshot has 878 unique normalised names because two records are legitimate "T-bar row" variants.
 - Licences are per entry: CC BY-SA 4.0 (755), CC BY-SA 3.0 (104), CC0 (20). **Every non-CC0 entry is ShareAlike.**
-- Instruction quality is uneven: median 222 characters, 25 empty, 594 pass a 100-character and primary-muscle check. 494 pass the automatic gates (instructions, muscle, known movement pattern), but automatic checks cannot tell a good programme exercise from a poor one, so they are not enough on their own.
+- Instruction quality is uneven: median 222 characters, 25 empty, 594 pass a 100-character and primary-muscle check. In the pilot, 494 passed the automated instruction, muscle and movement-pattern gates. Automatic plans now apply a stricter requirement: **141 explicitly reviewed records** are in the generator tier; the rest of the published catalogue remains browsable and can be added manually.
 - Equipment taxonomy has **no "machine" type**, although ~78 names are machine or cable stations. 50 entries get machine metadata derived from the name by rules and are flagged `equipmentDerived`. Selectorised-machine coverage is weak, so the owner's machine-based programme stays his own custom content (linked by name search, not replaced).
 - Images: 383 across 279 upstream exercises, CC BY-SA 3/4, 46 flagged AI-generated (34 exercises have **only** AI images). AI images are excluded and the exclusion is recorded. The first licensed import produced 253 images; a frame-by-frame human review removed four semantically wrong associations and 14 byte-identical frames within the same exercise. The committed snapshot now has **235 credited images across 186 exercises**.
 - Videos: 78 on 46 exercises, mostly ~60 MB HEVC `.MOV`. Unsuitable for the web or offline use. **Out of scope.**
@@ -28,7 +27,7 @@ Pilot run 16 October 2026 against the live wger public API. Numbers below come f
 - Attribution is stored with every record (`attribution`, `author`, `licence`, source URL) and per image. The Library shows the exact credit on every exercise; `/credits` exposes the snapshot source, aggregate contributor counts and every licence represented in the shipped data.
 - ShareAlike: text we adapt (we only strip HTML and normalise formatting) must be offered under the same or a compatible licence. The catalogue snapshot (`public/catalogue/v1/exercises.json`) is a CC BY-SA derivative; app code is unaffected. The in-app credits page links the applicable CC BY-SA 3.0, CC BY-SA 4.0 and CC0 1.0 terms and directs people to each record's exact attribution.
 - Images are self-hosted at `/catalogue/media/` for reliable same-origin/offline use. `media-manifest.json` retains each original wger URL, author, licence, byte count and SHA-256 checksum; the app still renders the required credit. This is redistribution of the licensed media, so the licence and attribution obligations remain.
-- A reviewer with the right expertise should check any instruction text shown as safety-relevant guidance. "Generator-eligible" means passes automated gates, **not** that a qualified person has reviewed it.
+- A reviewer with the right expertise should check any instruction text shown as safety-relevant guidance. The generator tier has passed automated gates and explicit internal curation, **not** review by a qualified coach or clinician.
 
 ## Pipeline
 
