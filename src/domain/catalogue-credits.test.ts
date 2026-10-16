@@ -90,5 +90,15 @@ describe("catalogue credits", () => {
       "CC0 1.0",
     ]);
     expect(summary.licences.every((item) => item.url.startsWith("https://"))).toBe(true);
+
+    for (const item of committed.exercises) {
+      expect(item.attribution, item.name).toContain(item.source.url);
+      expect(item.attribution, item.name).toContain(item.licence.url);
+      expect(item.attribution, item.name).toContain("Adapted: formatting simplified");
+      for (const image of item.media) {
+        expect(image.author.trim().length, `${item.name}: ${image.id}`).toBeGreaterThan(0);
+        expect(image.licence.url, `${item.name}: ${image.id}`).toMatch(/^https:\/\//);
+      }
+    }
   });
 });
