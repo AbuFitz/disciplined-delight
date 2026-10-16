@@ -149,9 +149,9 @@ export function NextActionWidget({ profile, today, now }: Ctx) {
 
   return (
     <Panel tone="green" className="md:p-8">
-      <Eyebrow className="!text-foreground/70">Next up</Eyebrow>
-      <h2 className="display-title mt-2 text-3xl md:text-5xl">{headline}</h2>
-      <p className="mt-3 max-w-xl text-foreground/80">{sub}</p>
+      <Eyebrow>Next up</Eyebrow>
+      <h2 className="display-title mt-3 text-[clamp(2.5rem,12vw,5rem)]">{headline}</h2>
+      <p className="mt-4 max-w-xl text-lg">{sub}</p>
       <div className="mt-5 flex flex-wrap items-center gap-2">
         {primary}
         {(active || (planned && !doneToday) || next?.status === "ok") && (
@@ -208,7 +208,9 @@ export function PrayerWidget({ today, now }: Ctx) {
         </div>
       ) : next?.status === "ok" ? (
         <div className="mt-2">
-          <p className="num text-5xl font-semibold">{PRAYER_LABEL[next.prayer]}</p>
+          <p className="display-title text-[clamp(2.75rem,14vw,5rem)]">
+            {PRAYER_LABEL[next.prayer]}
+          </p>
           <p className="mt-1 text-lg">
             <span className="tnum font-semibold">{formatClock(next.at, prayer.tz)}</span>
             <span className="text-foreground/70">
@@ -292,12 +294,16 @@ export function FoodWidget({ profile, today }: Ctx) {
       ) : (
         <>
           <div className="mt-2 flex items-baseline gap-2">
-            <span className="num text-5xl font-semibold">
-              {logged ? Math.round(eaten.kcal).toLocaleString("en-GB") : "–"}
-            </span>
-            <span className="text-foreground/75">
-              {t.kcal ? `of ${t.kcal.toLocaleString("en-GB")} kcal` : "kcal eaten"}
-            </span>
+            {logged ? (
+              <span className="stat">{Math.round(eaten.kcal).toLocaleString("en-GB")}</span>
+            ) : (
+              <span className="display-title text-[clamp(2.25rem,11vw,3.5rem)]">Not logged</span>
+            )}
+            {logged && (
+              <span className="text-foreground/75">
+                {t.kcal ? `of ${t.kcal.toLocaleString("en-GB")} kcal` : "kcal eaten"}
+              </span>
+            )}
           </div>
           {logged ? (
             <>
@@ -358,7 +364,7 @@ export function TrainingWidget({ today }: Ctx) {
         <div className="mt-3 h-16 animate-pulse rounded-2xl bg-surface-2" />
       ) : (
         <>
-          <p className="mt-2 font-display text-2xl font-semibold">
+          <p className="display-title mt-3 text-[clamp(2rem,10vw,3.5rem)]">
             {active
               ? `Workout ${active.templateLetter ?? ""} in progress`.replace("  ", " ")
               : planned
@@ -465,7 +471,7 @@ export function WeightWidget({ today }: Ctx) {
       <Eyebrow>Weight</Eyebrow>
       {last ? (
         <>
-          <p className="num mt-2 text-4xl font-semibold">
+          <p className="stat-sm mt-3">
             {last.kg.toFixed(1)}
             <span className="ml-1 text-lg text-muted-foreground">kg</span>
           </p>
@@ -570,7 +576,7 @@ export function BudgetWidget({ profile, today }: Ctx) {
           Shopping
         </Link>
       </div>
-      <p className="num mt-2 text-4xl font-semibold tnum">
+      <p className="stat-sm mt-3">
         {formatGBP(spent)}
         <span className="ml-2 text-base font-normal text-muted-foreground">
           of {formatGBP(budget)}

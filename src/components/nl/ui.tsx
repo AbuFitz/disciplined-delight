@@ -30,8 +30,8 @@ export const Button = forwardRef<HTMLButtonElement, BtnProps>(function Button(
       className={cn(
         "inline-flex max-w-full items-center justify-center gap-2 rounded-full text-center font-medium select-none",
         "transition-[transform,background-color,opacity] duration-150 active:scale-[0.97] disabled:opacity-50 disabled:active:scale-100",
-        size === "lg" && "min-h-[3.25rem] px-7 text-base",
-        size === "md" && "min-h-11 px-5 text-[0.95rem]",
+        size === "lg" && "min-h-14 px-8 text-base font-semibold",
+        size === "md" && "min-h-12 px-6 text-[0.95rem] font-semibold",
         size === "sm" && "min-h-10 px-4 text-sm",
         variant === "primary" && "bg-primary text-primary-foreground hover:brightness-110",
         variant === "secondary" &&
@@ -88,7 +88,7 @@ export function PageHeader({
     <header className="mb-6 flex flex-wrap items-end justify-between gap-x-6 gap-y-3 md:mb-8">
       <div className="min-w-0">
         {eyebrow && <Eyebrow className="mb-2">{eyebrow}</Eyebrow>}
-        <h1 className="display-title text-[2.35rem] md:text-6xl">{title}</h1>
+        <h1 className="display-title text-[clamp(2.75rem,14vw,4.75rem)] md:text-7xl">{title}</h1>
         {sub && <p className="mt-3 max-w-xl text-muted-foreground">{sub}</p>}
       </div>
       {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
@@ -103,7 +103,7 @@ export function Panel({
   as: As = "section",
   ...p
 }: {
-  tone?: "plain" | "green" | "dusk" | "warm";
+  tone?: "plain" | "green" | "dusk" | "warm" | "ink";
   className?: string;
   children: ReactNode;
   as?: "section" | "div" | "article";
@@ -111,11 +111,9 @@ export function Panel({
   return (
     <As
       className={cn(
-        "rounded-3xl border border-line p-5 md:p-6",
+        "rounded-[1.75rem] border border-line p-5 md:p-7",
         tone === "plain" && "bg-surface",
-        tone === "green" && "bg-[image:var(--panel-green)]",
-        tone === "dusk" && "bg-[image:var(--panel-dusk)]",
-        tone === "warm" && "bg-[image:var(--panel-warm)]",
+        tone !== "plain" && `loud loud-${tone}`,
         className,
       )}
       {...(p as object)}
