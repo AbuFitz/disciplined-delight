@@ -120,6 +120,14 @@ describe("wger adapter (real entries)", () => {
     expect(r.ok && r.exercise.tracking).toBe("bodyweight_reps");
     expect(r.ok && r.exercise.primaryMuscles).toEqual(["triceps"]);
   });
+  it("removes media rejected by human semantic review", () => {
+    const source = byName("Bench Press");
+    const rejected = `wger-img:${source.images[0]!.uuid}`;
+    const id = `wger:${source.uuid}`;
+    const r = normaliseWger(source, { [id]: { mediaRemove: [rejected] } });
+    expect(r.ok && r.exercise.media.some((item) => item.id === rejected)).toBe(false);
+    expect(source.images).toHaveLength(2);
+  });
 });
 
 describe("rules", () => {

@@ -13,19 +13,9 @@ import { COL, type PrayerSettings } from "@/data/types";
 import { parseTimetablePaste } from "@/domain/timetable";
 import { PRAYER_LABEL, PRAYERS, type PrayerName } from "@/domain/prayer";
 import { localDate, type ISODate } from "@/domain/dates";
+import { PRAYER_METHODS } from "@/domain/prayer-methods";
 
-/** Method ids and names as returned by https://api.aladhan.com/v1/methods (checked 16 Oct 2026). */
-export const METHODS: [number, string][] = [
-  [15, "Moonsighting Committee Worldwide"],
-  [2, "Islamic Society of North America (ISNA)"],
-  [3, "Muslim World League"],
-  [1, "University of Islamic Sciences, Karachi"],
-  [4, "Umm Al-Qura University, Makkah"],
-  [5, "Egyptian General Authority of Survey"],
-  [12, "Union Organization Islamic de France"],
-  [13, "Diyanet, Turkey (experimental)"],
-  [0, "Shia Ithna-Ashari, Leva Institute, Qum"],
-];
+const METHODS = PRAYER_METHODS;
 
 export function SalahSettingsSheet({
   open,

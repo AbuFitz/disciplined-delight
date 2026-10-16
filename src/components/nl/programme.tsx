@@ -26,16 +26,6 @@ const blankExercise = (): TemplateExercise => ({
   schemeText: "3 × 8–12",
 });
 
-export const blankTemplate = (order: number): WorkoutTemplate => ({
-  id: newId(),
-  letter: String.fromCharCode(65 + (order % 26)),
-  title: "",
-  focus: "",
-  weekday: null,
-  exercises: [],
-  order,
-});
-
 /** Edit a workout template. Saving changes future sessions only; past sessions keep their own snapshot. */
 export function TemplateEditor({
   template,

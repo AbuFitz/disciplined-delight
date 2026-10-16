@@ -13,8 +13,7 @@ import {
   Users,
 } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
-import { useCollection } from "@/data/hooks";
-import { COL, type Session } from "@/data/types";
+import { useActiveSession } from "@/data/session-hooks";
 import { SYNC_LABEL, useSyncStatus } from "@/data/sync-status";
 import { Wordmark } from "@/components/brand/Wordmark";
 import { cn } from "@/lib/utils";
@@ -59,11 +58,6 @@ function useTyping() {
     };
   }, []);
   return typing;
-}
-
-export function useActiveSession(): Session | undefined {
-  const { items } = useCollection<Session>(COL.sessions);
-  return items.find((s) => s.status === "active" || s.status === "paused");
 }
 
 function SyncChip() {

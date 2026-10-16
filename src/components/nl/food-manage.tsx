@@ -254,7 +254,7 @@ export function IngredientEditor({
 }
 
 /* ------------------------------ Recipe ------------------------------ */
-export const blankRecipe = (): Recipe => ({
+const blankRecipe = (): Recipe => ({
   id: newId(),
   name: "",
   slot: "lunch",

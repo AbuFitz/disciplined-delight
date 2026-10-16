@@ -18,8 +18,9 @@ import {
 } from "@/data/types";
 import { WEEKDAY_SHORT, formatDateLong, to12h } from "@/domain/dates";
 import { exerciseImage, workoutImage } from "@/lib/exercise-media";
-import { useActiveSession } from "@/components/nl/Shell";
-import { TemplateEditor, blankTemplate } from "@/components/nl/programme";
+import { useActiveSession } from "@/data/session-hooks";
+import { TemplateEditor } from "@/components/nl/programme";
+import { blankTemplate } from "@/data/editor-defaults";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/train/")({ component: TrainPage });

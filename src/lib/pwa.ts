@@ -1,15 +1,58 @@
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useSyncExternalStore } from "react";
 
-type PwaState = { waiting: ServiceWorker | null; registered: boolean; offlineReady: boolean };
-let state: PwaState = { waiting: null, registered: false, offlineReady: false };
+type InstallOutcome = "accepted" | "dismissed" | "unavailable";
+type InstallPromptEvent = Event & {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
+};
+type PwaState = {
+  waiting: ServiceWorker | null;
+  registered: boolean;
+  offlineReady: boolean;
+  installPrompt: InstallPromptEvent | null;
+  standalone: boolean;
+};
+let state: PwaState = {
+  waiting: null,
+  registered: false,
+  offlineReady: false,
+  installPrompt: null,
+  standalone: false,
+};
 const subs = new Set<() => void>();
+let watchingInstall = false;
 const set = (p: Partial<PwaState>) => {
   state = { ...state, ...p };
   subs.forEach((f) => f());
 };
 
+const installed = () =>
+  matchMedia("(display-mode: standalone)").matches ||
+  (navigator as { standalone?: boolean }).standalone === true;
+
+/** Capture the one-shot browser prompt before the Settings route is opened. */
+function watchInstallPrompt() {
+  if (watchingInstall || typeof window === "undefined") return;
+  watchingInstall = true;
+  set({ standalone: installed() });
+  window.addEventListener("beforeinstallprompt", (event) => {
+    event.preventDefault();
+    set({ installPrompt: event as InstallPromptEvent });
+  });
+  window.addEventListener("appinstalled", () => set({ installPrompt: null, standalone: true }));
+  const displayMode = matchMedia("(display-mode: standalone)");
+  const onDisplayMode = () => set({ standalone: installed() });
+  if (typeof displayMode.addEventListener === "function")
+    displayMode.addEventListener("change", onDisplayMode);
+  else
+    (displayMode as MediaQueryList & { addListener: (listener: () => void) => void }).addListener(
+      onDisplayMode,
+    );
+}
+
 /** Registers the service worker in production only. Updates are held until the user (or an idle moment) activates them. */
 export function registerServiceWorker() {
+  watchInstallPrompt();
   if (typeof window === "undefined" || !("serviceWorker" in navigator) || !import.meta.env.PROD)
     return;
   const start = () => {
@@ -62,22 +105,24 @@ export function applyUpdate() {
   w.postMessage({ type: "SKIP_WAITING" });
 }
 
-/** Install prompt (Chromium) and iOS hint. */
+/** Install prompt (Chromium), installed state and iOS hint. */
 export function useInstall() {
-  const [evt, setEvt] = useState<(Event & { prompt: () => Promise<void> }) | null>(null);
-  const [standalone, setStandalone] = useState(false);
-  useEffect(() => {
-    setStandalone(
-      matchMedia("(display-mode: standalone)").matches ||
-        (navigator as { standalone?: boolean }).standalone === true,
-    );
-    const h = (e: Event) => {
-      e.preventDefault();
-      setEvt(e as never);
-    };
-    window.addEventListener("beforeinstallprompt", h);
-    return () => window.removeEventListener("beforeinstallprompt", h);
-  }, []);
+  const current = usePwa();
   const ios = typeof navigator !== "undefined" && /iphone|ipad|ipod/i.test(navigator.userAgent);
-  return { standalone, canPrompt: !!evt, prompt: () => evt?.prompt(), ios };
+  const prompt = async (): Promise<InstallOutcome> => {
+    const event = state.installPrompt;
+    if (!event) return "unavailable";
+    await event.prompt();
+    const choice = await event.userChoice;
+    set({ installPrompt: null });
+    return choice.outcome;
+  };
+  return {
+    standalone: current.standalone,
+    canPrompt: !!current.installPrompt,
+    offlineReady: current.offlineReady,
+    registered: current.registered,
+    prompt,
+    ios,
+  };
 }

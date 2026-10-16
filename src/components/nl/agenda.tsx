@@ -33,7 +33,7 @@ import type { AgendaItem, Status } from "@/domain/routine";
 import { minToHHMM } from "@/domain/schedule";
 import { cn } from "@/lib/utils";
 import { MealLogSheet } from "./MealLog";
-import { useActiveSession } from "./Shell";
+import { useActiveSession } from "@/data/session-hooks";
 
 const timeLabel = (i: AgendaItem) =>
   i.floating

@@ -2,6 +2,7 @@
  * Usage (run from the repo root, with bun):
  *   bun scripts/catalogue/cli.ts fetch  [--fresh]            # download wger English exercises into .catalogue-cache/
  *   bun scripts/catalogue/cli.ts build  [--dry-run]          # write public/catalogue/v1/* and catalogue/quarantine.json
+ *   npm run catalogue:media                                  # self-host licensed catalogue images after a build
  * `build --dry-run` prints the diff against the committed snapshot and writes nothing.
  */
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";

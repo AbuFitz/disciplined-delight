@@ -1,14 +1,8 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { getScope, sameScope, scopeDbName, setScope, type Scope } from "./scope";
+import { ScopeContext } from "./scope-context";
 import { useAuth } from "@/lib/auth";
 import { isSupabaseConfigured } from "@/lib/supabase";
-
-const ScopeCtx = createContext<Scope | null>(null);
-export const useScope = (): Scope => {
-  const s = useContext(ScopeCtx);
-  if (!s) throw new Error("useScope must be used inside <ScopeGate>");
-  return s;
-};
 
 /**
  * Decides whose data is on screen. The transition is atomic from the user's point of view:
@@ -37,8 +31,8 @@ export function ScopeGate({ children, fallback }: { children: ReactNode; fallbac
   const applied = getScope();
   if (!desired || !applied || !sameScope(applied, desired)) return <>{fallback}</>;
   return (
-    <ScopeCtx.Provider value={applied} key={scopeDbName(applied)}>
+    <ScopeContext.Provider value={applied} key={scopeDbName(applied)}>
       {children}
-    </ScopeCtx.Provider>
+    </ScopeContext.Provider>
   );
 }

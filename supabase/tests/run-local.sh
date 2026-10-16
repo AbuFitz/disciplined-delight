@@ -21,8 +21,9 @@ run_test() {
   local name="$1" file="$2"
   DB=postgres q -c "drop database if exists t" -c "drop role if exists anon" -c "drop role if exists authenticated" -c "drop role if exists service_role" -c "create database t" >/dev/null 2>&1
   DB=t q -f "$ROOT/supabase/tests/auth-env.sql" >/dev/null
-  for m in 0001_init 0002_body_weight_and_checklist 0003_sync 0004_push_reminders 0005_profiles; do
-    DB=t q -f "$ROOT/supabase/migrations/$m.sql" >/dev/null 2>"$DIR/mig.err" || { echo "MIGRATION $m FAILED: $(head -3 "$DIR/mig.err")"; fail=1; }
+  for mf in "$ROOT"/supabase/migrations/*.sql; do
+    m=$(basename "$mf" .sql)
+    DB=t q -f "$mf" >/dev/null 2>"$DIR/mig.err" || { echo "MIGRATION $m FAILED: $(head -3 "$DIR/mig.err")"; fail=1; }
   done
   local out
   out=$(psql -h "$DIR" -p $PORT -U postgres -d t -X -q -t -A -F '|' -f "$ROOT/supabase/tests/$file" 2>&1 || true)
@@ -30,7 +31,5 @@ run_test() {
   printf '%s\n' "$out" | grep -i 'fail' | head -5 || true
   if printf '%s\n' "$out" | grep -qi 'fail'; then fail=1; fi
 }
-run_test sync sync_rls.test.sql
-run_test reminders reminders.test.sql
-run_test profiles profiles.test.sql
+for tf in "$ROOT"/supabase/tests/*.test.sql; do run_test "$(basename "$tf" .test.sql)" "$(basename "$tf")"; done
 exit $fail

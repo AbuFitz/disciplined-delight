@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight } from "lucide-react";
 import type { ReactNode } from "react";
 import { PageHeader } from "@/components/nl/ui";
-import { useFoodData } from "@/components/nl/MealLog";
+import { useFoodData } from "@/data/food-hooks";
 import { useCollection, useToday } from "@/data/hooks";
 import { activeTemplates, plannedTemplateFor, weekTraining } from "@/data/selectors";
 import { COL, type Session, type WeighIn, type WorkoutTemplate } from "@/data/types";

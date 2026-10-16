@@ -519,5 +519,3 @@ function BatchSheet({
     </Sheet>
   );
 }
-
-export { recipeNutrition };

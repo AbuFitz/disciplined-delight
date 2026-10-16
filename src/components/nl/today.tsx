@@ -28,9 +28,10 @@ import {
   TextInput,
   Segmented,
 } from "./ui";
-import { MealLogSheet, useFoodData } from "./MealLog";
+import { MealLogSheet } from "./MealLog";
 import { PrayerList } from "./prayer";
-import { useActiveSession } from "./Shell";
+import { useActiveSession } from "@/data/session-hooks";
+import { useFoodData } from "@/data/food-hooks";
 import {
   DEFAULT_WIDGETS,
   resetLayout,
@@ -599,6 +600,7 @@ export function TimelineWidget({ today, now }: Ctx) {
   const ex = useCollection<RoutineException>(COL.routineExceptions).items;
   const templates = useCollection<WorkoutTemplate>(COL.templates).items;
   const prayer = usePrayer(now);
+  const prayerLookup = prayer.lookup;
   const planned = plannedTemplateFor(templates, today);
   const nowMin = localMinutes(now, prayer.tz);
   const wd = weekdayIndex(today);
@@ -626,12 +628,12 @@ export function TimelineWidget({ today, now }: Ctx) {
         detail: b.detail,
       });
     }
-    const day = prayer.lookup(today);
+    const day = prayerLookup(today);
     if (day)
       for (const p of PRAYERS)
         out.push({ key: `p-${p}`, time: day.start[p], label: PRAYER_LABEL[p], kind: "prayer" });
     return out.sort((a, b) => a.time.localeCompare(b.time));
-  }, [blocks, ex, prayer.lookup, today, wd, templates, planned]);
+  }, [blocks, ex, prayerLookup, today, wd]);
 
   const hasGymBlock = rows.some((r) => /gym/i.test(r.label));
   return (
@@ -824,5 +826,3 @@ export function EditTodaySheet({
     </Sheet>
   );
 }
-
-export { DEFAULT_WIDGETS, resolveLayout };

@@ -1,7 +1,7 @@
 # Database tests
 
 **Run them all:** `supabase/tests/run-local.sh` starts a throwaway Postgres 16, applies the simulated auth stand-in
-and migrations `0001`–`0005`, runs every `*.test.sql` and prints pass/fail counts. Needs root and the Postgres 16
+and migrations every migration, runs every `*.test.sql` and prints pass/fail counts. Needs root and the Postgres 16
 binaries. It tests SQL logic against a **simulated** Supabase auth schema, not a real project: see
 `docs/SUPABASE-SETUP.md` for what has to be verified on the real one.
 
@@ -25,3 +25,16 @@ insert into auth.users(id) values ('11111111-1111-1111-1111-111111111111'), ('22
 Then apply `0001`–`0003` and run `psql -f sync_rls.test.sql`. Every row should read `PASS`.
 This checks policy and function logic. It is not a substitute for testing against your real Supabase project
 (Supabase's own auth service issues the JWTs in production).
+
+`profiles.test.sql`, `reminders.test.sql` and `circle.test.sql` cover their matching later migrations. Circle's checks
+prove explicit sharing, connection-only feeds, request direction, kudos visibility, block/unblock behaviour, blocked
+direct writes and anonymous denial. Run them against a disposable database after applying migrations through
+`0007_circle_chat.sql`; they create profiles for the three fixed test users from `auth-env.sql`.
+
+`circle-chat.test.sql` targets `0007_circle_chat.sql` in a fresh disposable database. It covers accepted-connection
+gating, unread/read state, bidirectional messages, tombstones, guessed-thread denial, block shutdown, direct-write
+denial and anonymous denial. Chat is RLS-private but intentionally documented as not end-to-end encrypted.
+
+`circle-challenges.test.sql` targets `0008_circle_challenges.sql`. It covers explicit invitations, acceptance,
+self-reported progress totals, participant-only check-ins, target bounds, correction ownership, guessed-ID denial,
+RLS reads, direct-write denial, connection removal through blocking and anonymous denial.

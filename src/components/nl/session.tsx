@@ -53,7 +53,7 @@ import type {
 import { formatSet, trackingOf } from "@/domain/tracking";
 import { cn } from "@/lib/utils";
 
-export const fmtClock = (ms: number) => {
+const fmtClock = (ms: number) => {
   const s = Math.max(0, Math.round(ms / 1000));
   const h = Math.floor(s / 3600),
     m = Math.floor((s % 3600) / 60),
@@ -139,7 +139,7 @@ export function RestBar({ session, now }: { session: Session; now: number }) {
   );
 }
 
-export const startRest = (s: Session, seconds = 90): Session => ({
+const startRest = (s: Session, seconds = 90): Session => ({
   ...s,
   rest: { durationMs: seconds * 1000, endsAt: Date.now() + seconds * 1000 },
 });

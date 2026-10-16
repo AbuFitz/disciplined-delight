@@ -80,8 +80,8 @@ the repository's own conventions were followed.
 - Recovery: Settings → Your data → Download original data, or export a backup. `runMigration` only runs once
   (`meta: migration:legacy`).
 - **Database.** Migrations `0001`/`0002` are untouched and unused by the new client (archive, don't drop).
-  `0003_sync.sql` and `0004_push_reminders.sql` are new and **have not been applied to any Supabase project**. Apply them
-  with the Supabase SQL editor or CLI when you want sync. Review them first.
+  Migrations `0003_sync.sql` through `0008_circle_challenges.sql` are new and **have not been applied to any Supabase
+  project**. Apply them with the Supabase SQL editor or CLI when you want accounts, sync and Circle. Review them first.
 
 ## Configuration still required (names only)
 
@@ -98,8 +98,8 @@ build; the default stays the Vercel preset.
 
 ## Verification: what was run and what it showed
 
-Automated (all passing at hand-off): **80 vitest tests in 14 files**, `tsc --noEmit` clean, `eslint src` 0 errors
-(19 warnings: fast-refresh export style and a few hook-dependency notes), production build succeeds. Run `bun run test`,
+Automated (all passing at hand-off): **216 Vitest tests in 36 files**, `tsc --noEmit` clean, `eslint src` clean
+with zero warnings, and the production build succeeds. Run `bun run test`,
 `bun run typecheck`, `bun run lint`.
 
 Real Postgres 16 (simulated `auth` schema; see `supabase/tests/README.md`): 19 sync checks and 9 reminder checks
@@ -171,9 +171,9 @@ prayer times are a method's output and may differ from your mosque. Notification
 
 # Continuation: accounts and the VAYVOR rebrand
 
-Status after the second pass. Phases follow the product masterplan (accounts, catalogue and generator, routines,
-circle, chat and games, release). **Only Phase 1 and the rebrand are done.** Phases 2 to 6 have not been started, so
-nothing in them should be treated as built.
+Status after the current pass. Phases follow the product masterplan (accounts, catalogue and generator, routines,
+circle, chat and games, release). Account ownership, the catalogue and generator, connected routines, Circle and
+one-to-one chat and private accountability pacts are built. The final release pass remains.
 
 ## Security fix on the way
 
@@ -207,7 +207,7 @@ Evidence
   14 of 15 assertions passed; the 15th was a case-sensitive regex in my own test (the heading renders in capitals).
 
 **Not verified**: anything against a real Supabase project; real confirmation and recovery emails; Google sign-in;
-session expiry in the wild; migration `0005`.
+session expiry in the wild; migrations `0005` through `0008`.
 
 ## The Supabase project blocker
 
@@ -215,7 +215,7 @@ The only project the connector can see is "TruetoDetail System" (inactive, a dif
 VAYVOR project and **nothing was applied to it**. Activation needs a decision from you:
 
 1. Create or choose the VAYVOR Supabase project.
-2. Apply `supabase/migrations/0003` to `0005` (review first; `0001`/`0002` are legacy and unused by the new client).
+2. Apply `supabase/migrations/0003` to `0008` (review first; `0001`/`0002` are legacy and unused by the new client).
 3. Set Site URL and Redirect URLs (`<origin>/auth/callback`, `<origin>/auth/reset`) to the real working origin.
 4. Configure custom SMTP and paste `supabase/templates/*` (see its README).
 5. Set `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` on Vercel; add `VITE_AUTH_PROVIDERS=google` only after Google is configured.
@@ -308,7 +308,7 @@ Keyboard: tab order and visible focus checked on eight routes, dialog focus trap
 | Production build (`NITRO_PRESET=node-server`)                                          | builds; served on a local port                                                                                                                                                                     |
 | Offline on the **production build with the service worker active** (headless Chromium) | SW controls the page; catalogue snapshot cached; offline Library shows 879 exercises, search and credits work; a workout set logged offline survives a reload                                      |
 | Browser flows on the dev server (headless Chromium)                                    | builder gating (remove main lift → blocked → fill → saved), regenerate with required choice, archive and restore, routine builder, tick/undo/skip/undo/move/pause/resume, Salah optional, old URLs |
-| Database SQL tests, local Postgres 16, **simulated** auth schema                       | `supabase/tests/run-local.sh`: sync 21, reminders 8, profiles 18, all pass (includes private `mind` and prayer rows unreadable by another user)                                                    |
+| Database SQL tests, local Postgres 16, **simulated** auth schema                       | `supabase/tests/run-local.sh` after merging Circle: sync 21, reminders 8, profiles 18, circle 21, circle-chat 15, circle-challenges 12 = 95, all pass (includes private `mind` and prayer rows unreadable by another user)                                                    |
 | Design sweep                                                                           | see Design; final screenshots in `docs/screenshots/phase3/` (final sweep: no overflow, small-target, unlabelled-control or clipping findings at 320/390/768/1440 px, dark and light, 200% text, and reduced motion at 390 px)                                                                                                                                        |
 
 **Simulated vs real:** nothing was run against a real Supabase project (none exists for VAYVOR), real email, Google sign-in,
@@ -327,3 +327,48 @@ exercised; its checks have only been run against an incomplete local simulation,
    (self-hosting selected images is the proper fix and is not done).
 5. vayvor.com registration, trademark search, embroidery test sew.
 6. Later phases: friends/crews/challenges/medals, chat and Four in a Row with dares, release verification.
+
+## Parallel work pushed to this branch by the repository owner (Circle, chat, pacts, self-hosted media)
+
+These commits were made on the same branch while the section above was being written. They build on it. Their own summary of Phase 2 and 3 duplicated the section above and is not repeated; where numbers differ (for example the count of curated exercises, now including media-curation records), **this section and `catalogue/overrides.json` are authoritative**. Circle is therefore no longer a placeholder.
+
+## Phase 4: Circle foundation
+
+Built:
+
+- Exact-handle/display-name discovery without email or contact-book lookup; directed requests become mutual connections only after acceptance.
+- A connection-only feed with explicit, manually written shares, optional highlights, kudos and removal. Workouts, meals, prayers, mood and journal records are never posted automatically or read by Circle.
+- Blocking removes an existing request/connection in both directions, hides both people from discovery and feeds, and has a reviewable unblock list.
+- `0006_circle.sql` owns the social tables and security-definer RPCs. All tables have RLS, direct writes are revoked, anonymous calls are denied and guessed post IDs cannot be used for kudos outside an accepted connection.
+- The unconfigured/signed-out interface is an honest setup state, not fake people or activity. The live feed, people search, request actions, share composer and privacy controls appear only for a signed-in account with a completed profile.
+
+## Phase 5: connection-only chat and accountability pacts
+
+Built:
+
+- Private one-to-one threads exist only between accepted, unblocked Circle connections. There are no stranger inboxes,
+  sample conversations, group chat or attachments.
+- Threads show the latest message and unread count. Conversations support messages up to 1,000 characters, read state,
+  five-second foreground refresh and sender removal with an honest tombstone instead of pretending the record vanished.
+- Blocking closes a thread in both directions immediately. Database reads are participant-only under RLS; all mutations
+  go through authenticated security-definer RPCs and direct writes are revoked.
+- The interface states the actual security model: provider encryption in transit and at rest, but no end-to-end encryption.
+  It explicitly warns against sharing passwords, financial details, medical records or emergency information.
+- `0007_circle_chat.sql` owns the message table and chat RPCs. `circle-chat.test.sql` covers connection gating, unread/read
+  state, bidirectional messages, tombstones, guessed-thread denial, block shutdown, direct-write denial and anonymous denial.
+- Pacts are private, one-to-one challenges between accepted connections. The creator chooses a concrete target, unit and
+  end date; the other person must explicitly accept. Both participants then add correctable, self-reported check-ins.
+- Pacts deliberately avoid a public leaderboard and never infer progress from private workouts, meals, Mind entries or
+  Salah. The UI labels check-ins as honest self-reports rather than pretending they prove performance.
+- `0008_circle_challenges.sql` bounds targets and duration, serializes concurrent progress against the target, restricts
+  visibility to both participants while they remain connected and unblocked, and revokes direct writes. Blocking or
+  removing the connection hides the pact and stops further check-ins.
+
+Current verification (16 October 2026): 216 Vitest tests pass, TypeScript passes, ESLint passes with zero warnings, and the Vercel-preset production build succeeds. Browser checks cover every main and legacy route at 320 px and 768 px, the five primary routes at 390 px, and Today at 1440 px; no horizontal overflow or console errors were observed. A separate 200%-text pass covered every primary/legacy route, auth and onboarding states, all six builder steps including a full generated-plan preview, Edit Today, meal logging and the routine editor. It fixed a Today card action escaping its column, Settings columns crushing controls and long display headings breaking mid-word; the corrected layouts were rechecked at 390 px and 1440 px with no overflow or browser errors. The complete builder produced a credible 3-day, 30-minute home-dumbbell plan and remained overflow-free at 320, 390, 768 and 200% text; emptying a session disabled acceptance and exposed specific repair actions. Light theme at 320 px and keyboard traversal with a visible 2 px focus outline were also checked. A check-in saved successfully and appeared in private History. Circle, Chat and Pacts configuration gates were rendered at 390 and 1440 px without overflow or console errors. Mobile and desktop screenshots showed coherent navigation and usable empty states. The local production-preview path now builds Nitro's node-server output before serving it. Settings now captures Chromium's one-shot install prompt from app startup, reports installed/offline status, and gives an iPhone/iPad Home Screen path when a native prompt is unavailable. Its production-rendered fallback was verified at 390 × 844 and 1440 × 1000 with no overflow or console errors. Production responses for the document, manifest and service worker were also checked directly: they deny framing and unused camera, geolocation and microphone capabilities, suppress referrer data and MIME sniffing, and retain the service worker's `no-cache` policy. With that production server stopped, the library retained all 879 exercises and a self-hosted exercise image, and a newly created workout could record and complete a set; after reconnect and reload the completed session appeared exactly once. Every one of the first import's 253 allowed exercise images was reviewed at full-card scale. Four wrong exercise associations and 14 byte-identical same-exercise frames were removed through durable catalogue overrides, leaving 235 self-hosted images across 186 exercises. `media-manifest.json` retains their original wger URLs, authors, licences, byte sizes and SHA-256 checksums; automated tests now enforce manifest/file parity, reviewed exclusions and no repeated bytes within an exercise. The 20 original curated meal/exercise PNGs were visually compared after WebP conversion and reduced from 7,886,544 bytes to 637,346 bytes (7,249,198 bytes saved). Two previously broken meal-photo paths now use purpose-made shake and tuna-lunch images; an automated check prevents any public meal-image reference from silently breaking again. Reduced-motion CSS globally collapses animation/transition durations and disables smooth scrolling; an automated guard now prevents that rule being removed.
+
+Still required before calling the rebuild complete:
+
+- Repeat one visual reduced-motion sanity check in a browser/device that exposes `prefers-reduced-motion` emulation. This browser surface did not expose that setting; the global override and its automated regression guard pass.
+- Re-run `npm run catalogue:media` and repeat the semantic image review after any upstream catalogue refresh; automated checks preserve the current reviewed exclusions and detect repeated bytes, but cannot judge a newly added image's movement semantics.
+- Obtain qualified coach/clinician review of the training rules and curated catalogue. Real Supabase queued sync and Circle RLS/RPC tests, SMTP, Google sign-in, push, account isolation on the real project, Vercel deployment/domain and real iPhone installation remain external verification dependencies.
+- Phase 6 external release verification remains: real credentials/backend, deployment/domain, iPhone installation and a visual reduced-motion sanity check. The 200%-text and initial semantic exercise-image reviews are complete.

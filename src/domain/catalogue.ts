@@ -190,6 +190,8 @@ export type Override = Partial<{
   curated: "new" | "some";
   equipmentAdd: EquipmentId[];
   equipmentRemove: EquipmentId[];
+  /** Removes provider media that failed human semantic review or duplicates another frame. */
+  mediaRemove: string[];
   note: string;
 }>;
 export type Overrides = Record<string, Override>;
@@ -351,8 +353,11 @@ export function applyOverride(
     secondaryMuscles: o.secondaryMuscles ?? e.secondaryMuscles,
     equipment: [...equipment],
     equipmentDerived: replaced ? [] : e.equipmentDerived,
+    media: o.mediaRemove?.length
+      ? e.media.filter((item) => !o.mediaRemove!.includes(item.id))
+      : e.media,
     tier: o.curated && e.tier === "generator" ? "generator" : "library",
     level: o.curated && e.tier === "generator" ? o.curated : undefined,
-    flags: [...e.flags, "overridden"],
+    flags: [...e.flags, "overridden", ...(o.mediaRemove?.length ? ["media_curated"] : [])],
   };
 }

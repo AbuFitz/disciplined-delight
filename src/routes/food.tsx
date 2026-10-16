@@ -14,7 +14,8 @@ import {
   Skeleton,
   Switch,
 } from "@/components/nl/ui";
-import { MealLogSheet, useFoodData } from "@/components/nl/MealLog";
+import { MealLogSheet } from "@/components/nl/MealLog";
+import { useFoodData } from "@/data/food-hooks";
 import { WeekPlanner } from "@/components/nl/food-plan";
 import { MealsTab } from "@/components/nl/food-manage";
 import { ShoppingTab } from "@/components/nl/shopping";

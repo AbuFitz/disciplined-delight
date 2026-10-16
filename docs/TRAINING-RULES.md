@@ -76,6 +76,6 @@ and the wording of the health confirmations. Residual catalogue misclassificatio
 
 ## Media
 
-wger images require a connection: they are hotlinked and the host sends no CORS headers, so they cannot be cached
-offline without large opaque-response quota costs. Text, sets and logging work offline. Self-hosting selected images
-(CC-BY-SA, with attribution) is the proper fix and is a pipeline decision for a later stage.
+wger images are licensed, self-hosted copies with original source and attribution metadata, so reviewed catalogue media can be cached
+offline without large opaque-response quota costs. Text, sets and logging work offline. The catalogue pipeline preserves
+the CC-BY-SA attribution and human-reviewed exclusions on refresh.

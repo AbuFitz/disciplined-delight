@@ -1,8 +1,8 @@
 import { Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Button, Chip, ConfirmDialog, Field, Sheet, Switch, TextInput } from "./ui";
-import { useScope } from "@/data/account";
+import { useScope } from "@/data/scope-context";
 import { ProfileApiError, profileApi, useAccountProfile } from "@/data/account-profile";
 import { deleteScopeData, getScopeDB, listLocalScopes, outboxCount } from "@/data/db";
 import { getScope, sameScope, type Scope } from "@/data/scope";
@@ -51,7 +51,7 @@ function GuestView() {
     { scope: Scope & { kind: "user" }; label: string }[]
   >([]);
   const [remove, setRemove] = useState<(Scope & { kind: "user" }) | null>(null);
-  const load = async () => {
+  const load = useCallback(async () => {
     const out: typeof remembered = [];
     for (const s of await listLocalScopes()) {
       if (s.kind !== "user") continue;
@@ -66,10 +66,10 @@ function GuestView() {
       });
     }
     setRemembered(out);
-  };
+  }, []);
   useEffect(() => {
     void load();
-  }, []);
+  }, [load]);
   return (
     <div className="grid gap-4">
       <div className="flex flex-wrap items-center gap-2">

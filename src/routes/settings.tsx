@@ -25,6 +25,7 @@ import { COL, type ChecklistItem, type PrayerSettings, type Profile } from "@/da
 import { DataSection } from "@/components/nl/data-section";
 import { AccountSection } from "@/components/nl/account-section";
 import { RemindersSection } from "@/components/nl/reminders-section";
+import { InstallSection } from "@/components/nl/install-section";
 import { getThemePref, setThemePref, type ThemePref } from "@/lib/theme";
 
 export const Route = createFileRoute("/settings")({ component: SettingsPage });
@@ -39,12 +40,12 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <section className="border-t border-line py-8 first:border-t-0 md:grid md:grid-cols-[16rem_1fr] md:gap-10">
-      <div className="mb-4 md:mb-0">
+    <section className="grid gap-x-10 border-t border-line py-8 [grid-template-columns:repeat(auto-fit,minmax(min(100%,20rem),1fr))] first:border-t-0">
+      <div className="mb-4">
         <h2 className="font-display text-2xl font-semibold">{title}</h2>
         {hint && <p className="mt-1 text-sm text-muted-foreground">{hint}</p>}
       </div>
-      <div className="grid max-w-xl gap-4">{children}</div>
+      <div className="grid min-w-0 max-w-xl gap-4">{children}</div>
     </section>
   );
 }
@@ -358,6 +359,10 @@ function SettingsPage() {
           ]}
         />
         <p className="text-xs text-muted-foreground">Saved on this device.</p>
+      </Section>
+
+      <Section title="Install VAYVOR" hint="App-like launch and an offline shell on this device.">
+        <InstallSection />
       </Section>
 
       <Section title="Reminders" hint="Opt in per type. Off by default.">

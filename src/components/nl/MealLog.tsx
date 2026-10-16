@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { Check, Trash2, Undo2 } from "lucide-react";
 import {
@@ -12,43 +12,20 @@ import {
   Sheet,
   TextInput,
 } from "./ui";
-import { useCollection } from "@/data/hooks";
+import { useFoodData } from "@/data/food-hooks";
 import { logMeal, unlogMeal } from "@/data/actions";
 import { put } from "@/data/db";
 import { COL, type MealPlanEntry } from "@/data/types";
-import { bySlot } from "@/data/selectors";
 import {
   recipeCost,
   recipeNutrition,
   scaleMacros,
-  type Ingredient,
   type MealLog,
   type Recipe,
 } from "@/domain/nutrition";
 import type { ISODate } from "@/domain/dates";
 
 const PORTIONS = [0.5, 1, 1.5, 2];
-
-export function useFoodData(date: ISODate) {
-  const recipes = useCollection<Recipe>(COL.recipes);
-  const ings = useCollection<Ingredient>(COL.ingredients);
-  const plan = useCollection<MealPlanEntry>(COL.mealPlan);
-  const logs = useCollection<MealLog>(COL.mealLogs);
-  const recipeMap = useMemo(() => new Map(recipes.items.map((r) => [r.id, r])), [recipes.items]);
-  const ingMap = useMemo(() => new Map(ings.items.map((i) => [i.id, i])), [ings.items]);
-  return {
-    ready: recipes.ready && ings.ready && plan.ready && logs.ready,
-    recipes: recipes.items.filter((r) => !r.archivedAt),
-    recipeMap,
-    ingMap,
-    ingredients: ings.items,
-    allRecipes: recipes.items,
-    plan: plan.items.filter((p) => p.date === date).sort(bySlot),
-    allPlan: plan.items,
-    logs: logs.items.filter((l) => l.date === date).sort((a, b) => a.loggedAt - b.loggedAt),
-    allLogs: logs.items,
-  };
-}
 
 export function MealLogSheet({
   open,
