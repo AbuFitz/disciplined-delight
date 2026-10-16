@@ -3,10 +3,19 @@ import { Check, ChevronDown, Dumbbell, Play } from "lucide-react";
 import { useState } from "react";
 import { Button, Chip, EmptyState, PageHeader, Panel, Row, Skeleton } from "@/components/nl/ui";
 import { startSession } from "@/data/actions";
+import { restoreTemplate } from "@/data/plan-actions";
+import { toast } from "sonner";
+import { Link } from "@tanstack/react-router";
 import { useCollection, useToday } from "@/data/hooks";
 import { activeTemplates, weekTraining } from "@/data/selectors";
 import { sessionSummary } from "@/data/session-logic";
-import { COL, type LegacyDayLog, type Session, type WorkoutTemplate } from "@/data/types";
+import {
+  COL,
+  type LegacyDayLog,
+  type PlanRecord,
+  type Session,
+  type WorkoutTemplate,
+} from "@/data/types";
 import { WEEKDAY_SHORT, formatDateLong, to12h } from "@/domain/dates";
 import { exerciseImage, workoutImage } from "@/lib/exercise-media";
 import { useActiveSession } from "@/components/nl/Shell";
@@ -24,7 +33,14 @@ function TrainPage() {
   const active = useActiveSession();
   const [open, setOpen] = useState<string | null>(null);
   const [editing, setEditing] = useState<WorkoutTemplate | null>(null);
+  const plans = useCollection<PlanRecord>(COL.plans);
+  const [restoring, setRestoring] = useState<string | null>(null);
+  const [showArchived, setShowArchived] = useState(false);
   const templates = activeTemplates(t.items);
+  const archived = t.items.filter((x) => x.archivedAt);
+  const livePlans = plans.items.filter(
+    (p) => p.status === "active" && p.templateIds.some((id) => templates.some((x) => x.id === id)),
+  );
   const week = weekTraining(t.items, s.items, today);
   const history = s.items
     .filter((x) => x.status === "completed" || x.status === "ended-early")
@@ -184,6 +200,90 @@ function TrainPage() {
           );
         })}
       </div>
+
+      {livePlans.length > 0 && (
+        <section className="mt-10" aria-label="Generated plans">
+          <h2 className="eyebrow mb-2">Generated plans</h2>
+          <ul className="grid gap-2">
+            {livePlans.map((p) => (
+              <li
+                key={p.id}
+                className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-line bg-surface p-4"
+              >
+                <div className="min-w-0">
+                  <p className="font-display text-lg font-bold">
+                    {p.programmeId.replace(/-/g, " ")}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Made {p.createdAt.slice(0, 10)} · rules {p.rulesVersion}
+                    {p.generation ? ` · version ${p.generation + 1}` : ""}
+                  </p>
+                </div>
+                <Link
+                  to="/train/build"
+                  search={{ from: p.id }}
+                  className="inline-flex min-h-11 items-center rounded-full border border-input px-5 text-sm font-semibold hover:bg-surface-2"
+                >
+                  Regenerate
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {archived.length > 0 && (
+        <section className="mt-10" aria-label="Archived workouts">
+          <button
+            className="eyebrow inline-flex min-h-11 items-center gap-2"
+            aria-expanded={showArchived}
+            onClick={() => setShowArchived((v) => !v)}
+          >
+            Archived workouts ({archived.length})
+            <ChevronDown className={cn("size-4 transition", showArchived && "rotate-180")} />
+          </button>
+          {showArchived && (
+            <ul className="mt-1 grid gap-2">
+              {archived.map((a) => (
+                <li
+                  key={a.id}
+                  className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-line p-4"
+                >
+                  <div className="min-w-0">
+                    <p className="font-display text-lg font-bold [overflow-wrap:anywhere]">
+                      {a.title}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {a.exercises.length} exercises · archived {a.archivedAt!.slice(0, 10)}
+                    </p>
+                  </div>
+                  <Button
+                    size="sm"
+                    busy={restoring === a.id}
+                    onClick={async () => {
+                      setRestoring(a.id);
+                      try {
+                        const r = await restoreTemplate(a.id);
+                        toast.success(
+                          r.scheduled
+                            ? "Restored on its day."
+                            : "Restored, unscheduled (its day is taken). Place it from Edit.",
+                        );
+                      } catch {
+                        toast.error("Couldn't restore it. Nothing was changed; try again.");
+                      } finally {
+                        setRestoring(null);
+                      }
+                    }}
+                  >
+                    Restore
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      )}
 
       <section className="mt-10" aria-label="Session history">
         <h2 className="eyebrow mb-2">Recent sessions</h2>

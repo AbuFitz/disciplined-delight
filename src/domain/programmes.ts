@@ -187,12 +187,20 @@ const legs: SessionBlueprint = {
   ],
 };
 
+/** Two-day plans need chest work in both sessions to reach a useful weekly dose. */
+const fullB2: SessionBlueprint = {
+  ...fullB,
+  slots: fullB.slots.map((s) =>
+    s.key === "push_v" ? { ...s, patterns: ["push_horizontal", "push_vertical"] as Pattern[] } : s,
+  ),
+};
+
 export const PROGRAMMES: Programme[] = [
   {
     id: "fullbody-2",
     name: "Full body, 2 days",
     daysPerWeek: 2,
-    sessions: [fullA, fullB],
+    sessions: [fullA, fullB2],
     summary: "Two whole-body sessions a week. A simple base for returning or time-short weeks.",
   },
   {
@@ -275,9 +283,9 @@ export function setsFor(role: SlotRole, goal: Goal, experience: Experience): num
 
 /** Hard sets per muscle per week: inclusive guard rails used by validation (primary muscles count 1, secondary 0.5). */
 export const WEEKLY_SETS: Record<Experience, { min: number; max: number }> = {
-  new: { min: 4, max: 14 },
-  returning: { min: 4, max: 14 },
-  some: { min: 8, max: 20 },
+  new: { min: 4, max: 10 },
+  returning: { min: 4, max: 10 },
+  some: { min: 8, max: 18 },
 };
 
 /** Beginners and people returning get shorter sessions: fewer exercises, dropped by slot priority. */
@@ -290,8 +298,17 @@ export const TIMING = {
   secondsPerRep: 3.5,
 };
 
-/** Names we never pick automatically (they stay browsable). Conservative and reviewable. */
-export const AUTO_AVOID =
-  /behind (the )?neck|good morning|upright row|kipping|snatch|clean|jerk|pistol|muscle[- ]?up|handstand|planche|lever|dislocate|deficit|sissy|archer|one[- ]arm|single[- ]arm pull|bear walk|isometric wipers|jefferson|hercules|fingerboard|sloper|rest \(|devil|vacuum|quadrup|quadrip|clap push|russian push|plank shoulder|glute drive|sky reach/i;
-export const ADVANCED_ONLY =
-  /one[- ]leg|single[- ]leg deadlift|weighted dip|hang(ing)? (power|leg)|ring|trx/i;
+/**
+ * Hard-set credit per set, by movement pattern, for the compound patterns. Upstream data lists many muscles as
+ * "primary" for one lift (a squat lists quads, glutes and hamstrings), which double-counts when summed. Isolation work
+ * uses the catalogue's primary muscles at 1 and secondary at 0.5. Draft numbers: they need qualified review.
+ */
+export const PATTERN_CREDIT: Partial<Record<Pattern, Partial<Record<MuscleId, number>>>> = {
+  squat: { quads: 1, glutes: 0.5 },
+  lunge: { quads: 1, glutes: 0.5 },
+  hinge: { glutes: 1, hamstrings: 1 },
+  push_horizontal: { chest: 1, triceps: 0.5, shoulders: 0.5 },
+  push_vertical: { shoulders: 1, triceps: 0.5 },
+  pull_horizontal: { lats: 1, traps: 0.5, biceps: 0.5 },
+  pull_vertical: { lats: 1, biceps: 0.5 },
+};

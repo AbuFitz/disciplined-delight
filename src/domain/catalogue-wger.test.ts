@@ -97,15 +97,28 @@ describe("wger adapter (real entries)", () => {
     expect(r.ok && r.exercise.pattern).toBe("chest_isolation");
     expect(normaliseWger(byName("Bench Press"), { [id]: { hide: true } }).ok).toBe(false);
   });
-  it("marks only fully-gated exercises as generator-eligible", () => {
+  it("never marks an exercise generator-eligible without a hand-reviewed override", () => {
     const e = ok("Bench Press");
-    expect(e.tier).toBe(
-      e.flags.includes("pattern_unknown") ||
-        e.flags.includes("instructions_short") ||
-        e.flags.includes("no_primary_muscle")
-        ? "library"
-        : "generator",
-    );
+    expect(e.tier).toBe("library");
+    const id = e.id;
+    const r = normaliseWger(byName("Bench Press"), { [id]: { curated: "new" } });
+    expect(r.ok && r.exercise.tier).toBe("generator");
+    expect(r.ok && r.exercise.level).toBe("new");
+  });
+  it("replaces wrong upstream equipment, tracking and muscles when corrected", () => {
+    const id = ok("Bench Press").id;
+    const r = normaliseWger(byName("Bench Press"), {
+      [id]: {
+        equipment: ["machine"],
+        tracking: "bodyweight_reps",
+        primaryMuscles: ["triceps"],
+        curated: "some",
+      },
+    });
+    expect(r.ok && r.exercise.equipment).toEqual(["machine"]);
+    expect(r.ok && r.exercise.equipmentDerived).toEqual([]);
+    expect(r.ok && r.exercise.tracking).toBe("bodyweight_reps");
+    expect(r.ok && r.exercise.primaryMuscles).toEqual(["triceps"]);
   });
 });
 

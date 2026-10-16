@@ -161,6 +161,8 @@ export type CatalogueExercise = {
   media: MediaItem[];
   /** "generator" = passes every quality gate and may be used by the plan builder; "library" = browsable only. */
   tier: "generator" | "library";
+  /** Set only on curated exercises: the lowest experience the generator may use it for. */
+  level?: "new" | "some";
   flags: string[];
 };
 
@@ -180,6 +182,12 @@ export type Override = Partial<{
   aliases: string[];
   pattern: Pattern;
   tracking: TrackingType;
+  /** Replaces the equipment list outright (use when upstream data is wrong, not merely incomplete). */
+  equipment: EquipmentId[];
+  primaryMuscles: MuscleId[];
+  secondaryMuscles: MuscleId[];
+  /** Marks the exercise as hand-reviewed for automatic programmes and sets the lowest experience it suits. */
+  curated: "new" | "some";
   equipmentAdd: EquipmentId[];
   equipmentRemove: EquipmentId[];
   note: string;
@@ -327,18 +335,24 @@ export function applyOverride(
   e: CatalogueExercise,
   o: Override | undefined,
 ): CatalogueExercise | null {
-  if (!o) return e;
+  if (!o) return e.tier === "generator" ? { ...e, tier: "library" } : e; // not hand-reviewed: browsable only
   if (o.hide) return null;
-  const equipment = new Set(e.equipment);
+  const equipment = new Set(o.equipment ?? e.equipment);
   o.equipmentAdd?.forEach((x) => equipment.add(x));
   o.equipmentRemove?.forEach((x) => equipment.delete(x));
+  const replaced = !!(o.equipment || o.equipmentAdd || o.equipmentRemove);
   return {
     ...e,
     name: o.name ?? e.name,
     aliases: o.aliases ?? e.aliases,
     pattern: o.pattern ?? e.pattern,
     tracking: o.tracking ?? e.tracking,
+    primaryMuscles: o.primaryMuscles ?? e.primaryMuscles,
+    secondaryMuscles: o.secondaryMuscles ?? e.secondaryMuscles,
     equipment: [...equipment],
-    flags: o.note ? [...e.flags, "overridden"] : [...e.flags, "overridden"],
+    equipmentDerived: replaced ? [] : e.equipmentDerived,
+    tier: o.curated && e.tier === "generator" ? "generator" : "library",
+    level: o.curated && e.tier === "generator" ? o.curated : undefined,
+    flags: [...e.flags, "overridden"],
   };
 }

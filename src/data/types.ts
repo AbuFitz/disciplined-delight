@@ -295,3 +295,26 @@ export type TodayLayout = {
 
 /** Marks a day as fully food-logged, so intake isn't misread as a partial day. */
 export type FoodDay = { id: string; date: string; complete: boolean };
+
+/** An accepted generated plan: the inputs, rule version and what it produced, so it can be regenerated or audited. */
+export type PlanRecord = {
+  id: string;
+  createdAt: string;
+  rulesVersion: string;
+  programmeId: string;
+  input: import("@/domain/planner").PlanInput;
+  seed: string;
+  /** How many times this lineage has been regenerated (changes the seed so the result can differ). */
+  generation: number;
+  regeneratedFrom?: string;
+  status: "active" | "replaced";
+  supersededBy?: string;
+  templateIds: string[];
+  /** What the templates contained when accepted; used to tell whether the person has edited them since. */
+  snapshot: {
+    templateId: string;
+    title: string;
+    exercises: { catalogueId?: string; name: string; sets: number; schemeText: string }[];
+  }[];
+  attribution: string;
+};

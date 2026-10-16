@@ -1,6 +1,16 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, ArrowRight, Check, Repeat, Trash2 } from "lucide-react";
-import { useMemo, useState, type ReactNode } from "react";
+import {
+  AlertTriangle,
+  ArrowLeft,
+  ArrowRight,
+  Check,
+  Plus,
+  Repeat,
+  Shuffle,
+  Trash2,
+} from "lucide-react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { toast } from "sonner";
 import {
   Button,
   Chip,
@@ -12,33 +22,45 @@ import {
   Switch,
 } from "@/components/nl/ui";
 import { useCatalogue, useEquipmentProfile, useFavourites } from "@/data/catalogue-runtime";
-import { newId, put } from "@/data/db";
+import { acceptPlan, NeedsChoice, type HandleExisting } from "@/data/plan-actions";
 import { useCollection } from "@/data/hooks";
 import { activeTemplates } from "@/data/selectors";
-import { COL, type Session, type WorkoutTemplate } from "@/data/types";
+import { COL, type PlanRecord, type Session, type WorkoutTemplate } from "@/data/types";
 import {
   EQUIPMENT,
   EQUIPMENT_LABEL,
   MUSCLE_LABEL,
+  type CatalogueExercise,
   type EquipmentId,
   type MuscleId,
   type Pattern,
 } from "@/domain/catalogue";
+import { WEEKDAY_SHORT } from "@/domain/dates";
+import { diffPlans, editedSince, toKey } from "@/domain/plan-diff";
+import { schemeText } from "@/domain/plan-templates";
 import {
-  estimateMinutes,
+  assessPlan,
+  fillSlot,
   generatePlan,
+  removeExercise,
+  slotCandidates,
   substitutes,
-  validatePlan,
+  swapExercise,
+  weeklyCredits,
+  type Fix,
   type Plan,
   type PlanInput,
   type Style,
 } from "@/domain/planner";
-import { planToTemplates, schemeText } from "@/domain/plan-templates";
 import type { Experience, Goal } from "@/domain/programmes";
-import { WEEKDAY_SHORT } from "@/domain/dates";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/train/build")({ component: Builder });
+export const Route = createFileRoute("/train/build")({
+  component: Builder,
+  validateSearch: (s: Record<string, unknown>): { from?: string } => ({
+    from: typeof s.from === "string" ? s.from : undefined,
+  }),
+});
 
 const GOALS: { id: Goal; title: string; body: string }[] = [
   { id: "build_muscle", title: "Build muscle", body: "Moderate reps, steady volume." },
@@ -93,6 +115,7 @@ const PRIORITY: MuscleId[] = [
   "triceps",
   "abs",
 ];
+const nice = (s: string) => s.replace(/_/g, " ");
 
 function Choice({
   selected,
@@ -111,13 +134,16 @@ function Choice({
       aria-checked={selected}
       onClick={onClick}
       className={cn(
-        "min-h-20 rounded-[1.5rem] border-2 p-4 text-left transition active:scale-[0.99]",
+        "min-h-20 rounded-[1.25rem] border p-4 text-left transition active:scale-[0.99]",
         selected
-          ? "loud loud-green border-transparent"
+          ? "border-primary bg-primary/10 ring-1 ring-primary"
           : "border-line bg-surface hover:border-foreground/40",
       )}
     >
-      <span className="display-title block text-2xl">{title}</span>
+      <span className="flex items-center justify-between gap-3">
+        <span className="font-display text-xl font-bold leading-tight">{title}</span>
+        {selected && <Check className="size-5 shrink-0 text-primary" aria-hidden />}
+      </span>
       {body && <span className="mt-1 block text-sm text-muted-foreground">{body}</span>}
     </button>
   );
@@ -138,13 +164,13 @@ function Pill({
       aria-checked={on}
       onClick={onClick}
       className={cn(
-        "min-h-11 rounded-full border-2 px-4 text-sm font-semibold transition",
+        "min-h-11 rounded-full border px-4 text-sm font-semibold transition",
         on
           ? "border-primary bg-primary text-primary-foreground"
           : "border-line text-foreground hover:border-foreground/40",
       )}
     >
-      {on && <Check className="mr-1 inline size-4" />}
+      {on && <Check className="mr-1 inline size-4" aria-hidden />}
       {children}
     </button>
   );
@@ -152,12 +178,16 @@ function Pill({
 
 function Builder() {
   const nav = useNavigate();
+  const { from } = Route.useSearch();
   const cat = useCatalogue();
   const kit = useEquipmentProfile();
   const favs = useFavourites();
   const templates = useCollection<WorkoutTemplate>(COL.templates);
   const sessions = useCollection<Session>(COL.sessions);
-  const [step, setStep] = useState(0);
+  const plans = useCollection<PlanRecord>(COL.plans);
+  const prior = from ? plans.items.find((p) => p.id === from) : undefined;
+
+  const [step, setStep] = useState(from ? 5 : 0);
   const [goal, setGoal] = useState<Goal>("general_fitness");
   const [level, setLevel] = useState<Experience>("new");
   const [days, setDays] = useState(3);
@@ -169,12 +199,42 @@ function Builder() {
   const [avoid, setAvoid] = useState<Pattern[]>([]);
   const [adult, setAdult] = useState(false);
   const [clear, setClear] = useState(false);
+  const [variant, setVariant] = useState(0);
   const [draft, setDraft] = useState<Plan | null>(null);
-  const [replacing, setReplacing] = useState<number | null>(null);
-  const [mode, setMode] = useState<"add" | "replace">("add");
+  const [handle, setHandle] = useState<HandleExisting | null>(null);
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [swap, setSwap] = useState<{ si: number; slotKey: string } | null>(null);
+  const [fill, setFill] = useState<{ si: number; slotKey: string } | null>(null);
+  const [seeded, setSeeded] = useState(false);
+
+  // Regeneration: start from the answers the plan was made with.
+  useEffect(() => {
+    if (!prior || seeded) return;
+    const i = prior.input;
+    setGoal(i.goal);
+    setLevel(i.experience);
+    setDays(i.daysPerWeek);
+    setMinutes(i.sessionMinutes);
+    setHave(i.equipment);
+    setStyle(i.style ?? "mixed");
+    setPriority(i.priorityMuscles ?? []);
+    setAvoid(i.avoidPatterns ?? []);
+    setPicked(i.preferredDays ?? []);
+    setAdult(true);
+    setClear(true);
+    setVariant(prior.generation + 1);
+    setSeeded(true);
+  }, [prior, seeded]);
 
   const equipment = have ?? kit.have;
+  const history = useMemo(() => {
+    const h: Record<string, number> = {};
+    for (const s of sessions.items)
+      for (const e of s.exercises)
+        if (e.catalogueId) h[e.catalogueId] = (h[e.catalogueId] ?? 0) + 1;
+    return h;
+  }, [sessions.items]);
   const input: PlanInput = {
     goal,
     experience: level,
@@ -186,82 +246,95 @@ function Builder() {
     priorityMuscles: priority,
     avoidPatterns: avoid,
     favourites: favs.ids,
-    history: useMemo(() => {
-      const h: Record<string, number> = {};
-      for (const s of sessions.items)
-        for (const e of s.exercises)
-          if (e.catalogueId) h[e.catalogueId] = (h[e.catalogueId] ?? 0) + 1;
-      return h;
-    }, [sessions.items]),
+    history,
     adult,
     clinicianRestricted: !clear,
-    seed: "vayvor",
+    seed: variant ? `${prior?.seed.split(":")[0] ?? "vayvor"}:${variant}` : "vayvor",
+    allowPartial: true,
   };
-
-  const result = useMemo(
+  const sig = JSON.stringify({ ...input, history: undefined, favourites: undefined });
+  const generated = useMemo(
     () =>
-      step === 5 && cat.snapshot
+      step === 5 && cat.snapshot && (!from || seeded)
         ? generatePlan(
-            { ...input, allowPartial: true },
+            input,
             cat.exercises.filter((e) => e.source.provider !== "custom"),
           )
         : null,
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [step, cat.snapshot, JSON.stringify({ ...input, history: undefined })],
+    [step, cat.snapshot, sig, from, seeded],
   );
-  const plan = draft && step === 5 ? draft : result && result.ok ? result.plan : null;
-  const issues = plan ? validatePlan(plan, cat.exercises) : [];
+  useEffect(() => {
+    setDraft(generated && generated.ok ? generated.plan : null);
+    setSaveError(null);
+  }, [generated]);
+  const plan = draft;
+  const assessment = useMemo(
+    () => (plan ? assessPlan(plan, cat.exercises) : null),
+    [plan, cat.exercises],
+  );
+
   const existing = activeTemplates(templates.items);
+  const oldTemplates = prior ? existing.filter((t) => prior.templateIds.includes(t.id)) : [];
+  const handled = prior ? oldTemplates : existing;
+  const edited = prior ? editedSince(prior.snapshot, templates.items) : false;
+  const diff = useMemo(
+    () =>
+      prior && plan
+        ? diffPlans(
+            oldTemplates.map((t) => ({ title: t.title, exercises: t.exercises.map(toKey) })),
+            plan.sessions.map((s) => ({
+              title: s.title,
+              exercises: s.exercises.map((x) => ({
+                catalogueId: x.exerciseId,
+                name: x.name,
+                sets: x.sets,
+                schemeText: schemeText(x),
+              })),
+            })),
+          )
+        : null,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [prior, plan, templates.items],
+  );
+  const loggedCount = prior
+    ? sessions.items.filter((s) => prior.templateIds.includes(s.templateId)).length
+    : 0;
 
   const go = (n: number) => {
-    setDraft(null);
     setStep(n);
     window.scrollTo({ top: 0 });
   };
   const canNext = step === 4 ? adult && clear : true;
-  const editSession = (
-    si: number,
-    fn: (xs: Plan["sessions"][number]["exercises"]) => Plan["sessions"][number]["exercises"],
-  ) => {
-    if (!plan) return;
-    const sessionsNext = plan.sessions.map((s, i) => {
-      if (i !== si) return s;
-      const exercises = fn(s.exercises);
-      return { ...s, exercises, estimatedMinutes: estimateMinutes(exercises) };
-    });
-    setDraft({ ...plan, sessions: sessionsNext });
+  const needsChoice = handled.length > 0;
+  const blocked = !plan || !assessment?.canAccept || (needsChoice && !handle);
+
+  const applyFix = (f: Fix) => {
+    if (f.kind === "fill_slot") setFill({ si: f.sessionIndex, slotKey: f.slotKey });
+    else if (f.kind === "add_equipment") setHave([...equipment, f.equipment]);
+    else setMinutes(f.minutes);
   };
 
   const accept = async () => {
-    if (!plan) return;
+    if (!plan || !assessment?.canAccept) return;
     setSaving(true);
+    setSaveError(null);
     try {
-      const maxOrder = templates.items.reduce((m, t) => Math.max(m, t.order), -1);
-      const made = planToTemplates(plan, cat.byId, newId, maxOrder + 1).map((t) =>
-        existing.length && mode === "add" ? { ...t, weekday: null } : t,
-      );
-      if (existing.length && mode === "replace") {
-        for (const t of existing)
-          await put(COL.templates, t.id, { ...t, archivedAt: new Date().toISOString() });
-      }
-      for (const t of made) await put(COL.templates, t.id, t);
-      const id = newId();
-      await put(COL.plans, id, {
-        id,
-        createdAt: new Date().toISOString(),
-        rulesVersion: plan.rulesVersion,
-        programmeId: plan.programmeId,
-        input: plan.input,
-        templateIds: made.map((t) => t.id),
-        seed: plan.input.seed,
-        exercises: plan.sessions.flatMap((s) =>
-          s.exercises.map((x) => ({ id: x.exerciseId, name: x.name })),
-        ),
-        attribution:
-          "Exercise data: wger.de contributors, licensed CC-BY-SA. See the Library for each exercise's credit.",
+      await acceptPlan({
+        plan,
+        byId: cat.byId,
+        handle: needsChoice ? (handle ?? undefined) : undefined,
+        from: prior,
+        equipment: !kit.configured || have ? equipment : undefined,
       });
-      if (!kit.configured || have) await kit.save(equipment);
+      toast.success(prior ? "New plan saved. Your history is untouched." : "Plan saved.");
       nav({ to: "/train" });
+    } catch (e) {
+      setSaveError(
+        e instanceof NeedsChoice
+          ? e.message
+          : "Nothing was changed: your schedule is exactly as it was. Check your connection to storage and try again.",
+      );
     } finally {
       setSaving(false);
     }
@@ -270,20 +343,37 @@ function Builder() {
   return (
     <>
       <PageHeader
-        eyebrow={`Plan builder · step ${step + 1} of ${STEPS.length}`}
-        title={step === 5 ? "Your plan" : "Build my plan"}
+        eyebrow={prior ? "Regenerate plan" : `Plan builder · step ${step + 1} of ${STEPS.length}`}
+        title={step === 5 ? (prior ? "A fresh take" : "Your plan") : "Build my plan"}
       />
-      <ol className="mb-6 flex gap-1.5" aria-label="Progress">
-        {STEPS.map((s, i) => (
-          <li
-            key={s}
-            aria-current={i === step ? "step" : undefined}
-            className={cn("h-2 flex-1 rounded-full", i <= step ? "bg-primary" : "bg-foreground/15")}
-          >
-            <span className="sr-only">{s}</span>
-          </li>
-        ))}
-      </ol>
+      {!prior && (
+        <ol className="mb-6 flex gap-1.5" aria-label="Progress">
+          {STEPS.map((s, i) => (
+            <li
+              key={s}
+              aria-current={i === step ? "step" : undefined}
+              className={cn(
+                "h-1.5 flex-1 rounded-full",
+                i <= step ? "bg-primary" : "bg-foreground/15",
+              )}
+            >
+              <span className="sr-only">{s}</span>
+            </li>
+          ))}
+        </ol>
+      )}
+
+      {from && !prior && plans.ready && (
+        <EmptyState
+          title="That plan isn't here"
+          body="It may have been replaced already."
+          action={
+            <Link to="/train" className="font-semibold underline">
+              Back to Train
+            </Link>
+          }
+        />
+      )}
 
       {step === 0 && (
         <section aria-label="Goal" className="grid gap-3 md:grid-cols-2" role="radiogroup">
@@ -312,7 +402,8 @@ function Builder() {
             />
           ))}
           <p className="text-sm text-muted-foreground">
-            This sets how many sets you start with. You can always add more later.
+            This sets how many sets you start with and which exercises are suggested. You can always
+            add more later.
           </p>
         </section>
       )}
@@ -331,8 +422,10 @@ function Builder() {
                     setPicked([]);
                   }}
                   className={cn(
-                    "stat-sm grid size-20 place-items-center rounded-[1.5rem] border-2",
-                    days === n ? "loud loud-green border-transparent" : "border-line bg-surface",
+                    "grid size-16 place-items-center rounded-[1.25rem] border font-display text-3xl font-extrabold",
+                    days === n
+                      ? "border-primary bg-primary/10 text-primary ring-1 ring-primary"
+                      : "border-line bg-surface",
                   )}
                 >
                   {n}
@@ -359,7 +452,7 @@ function Builder() {
                   aria-checked={minutes === n}
                   onClick={() => setMinutes(n)}
                   className={cn(
-                    "min-h-12 rounded-full border-2 px-5 font-semibold",
+                    "min-h-12 rounded-full border px-5 font-semibold",
                     minutes === n
                       ? "border-primary bg-primary text-primary-foreground"
                       : "border-line",
@@ -377,7 +470,7 @@ function Builder() {
             <h2 className="eyebrow mb-2">Pick your days (optional)</h2>
             <div className="flex flex-wrap gap-2">
               {WEEKDAY_SHORT.map((d, i) => {
-                const idx = (i + 1) % 7; // Mon-first labels -> 0 = Sunday
+                const idx = (i + 1) % 7;
                 return (
                   <Pill
                     key={d}
@@ -502,6 +595,7 @@ function Builder() {
           </Panel>
         </section>
       )}
+
       {step === 5 && (
         <section aria-label="Plan" className="grid gap-4">
           {cat.status === "loading" && <Skeleton className="h-64" />}
@@ -512,57 +606,22 @@ function Builder() {
               action={<Button onClick={cat.retry}>Try again</Button>}
             />
           )}
-          {result && !result.ok && result.kind !== "conflict" && (
+          {generated && !generated.ok && (
             <EmptyState
               title="Can't build that"
-              body={result.message}
+              body={generated.message}
               action={
-                <Button onClick={() => go(result.kind === "unsupported" ? 4 : 2)}>
+                <Button onClick={() => go(generated.kind === "unsupported" ? 4 : 2)}>
                   Change answers
                 </Button>
               }
             />
           )}
-          {result && !result.ok && result.kind === "conflict" && plan === null && null}
-          {result && (result.ok || result.kind === "conflict") && plan && (
+
+          {plan && assessment && (
             <>
-              {(() => {
-                const conflicts = result.ok ? result.plan.conflicts : result.conflicts;
-                const sugg = result.ok ? [] : result.suggestions;
-                if (!conflicts.length) return null;
-                return (
-                  <Panel tone="warm" aria-label="Gaps">
-                    <h2 className="display-title text-3xl">Some gaps</h2>
-                    <ul className="mt-2 list-disc pl-5">
-                      {conflicts.map((c, i) => (
-                        <li key={i}>
-                          {c.session}: {c.message}
-                        </li>
-                      ))}
-                    </ul>
-                    {sugg.length > 0 && (
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        {sugg
-                          .filter((s) => s.equipment)
-                          .map((s) => (
-                            <Button
-                              key={s.equipment}
-                              variant="primary"
-                              onClick={() => setHave([...equipment, s.equipment!])}
-                            >
-                              Add {EQUIPMENT_LABEL[s.equipment!]}
-                            </Button>
-                          ))}
-                      </div>
-                    )}
-                    <p className="mt-3 text-sm">
-                      You can still use this plan; the missing slots are just left out.
-                    </p>
-                  </Panel>
-                );
-              })()}
-              <Panel tone="green">
-                <h2 className="display-title text-[clamp(2.25rem,10vw,3.5rem)]">
+              <Panel tone="green" aria-label="Summary">
+                <h2 className="display-title text-[clamp(1.9rem,8vw,3rem)]">
                   {plan.programmeName}
                 </h2>
                 <ul className="mt-3 grid gap-1">
@@ -573,73 +632,243 @@ function Builder() {
                 <p className="mt-3 text-sm">
                   <strong>Effort:</strong> {plan.effort}
                 </p>
+                <div className="mt-4">
+                  <Button onClick={() => setVariant((v) => v + 1)}>
+                    <Shuffle className="size-4" />
+                    Try a different mix
+                  </Button>
+                </div>
               </Panel>
+
+              {assessment.blockers.length > 0 && (
+                <Panel aria-label="To fix before saving" className="border-warn/60">
+                  <h3 className="flex items-center gap-2 font-display text-2xl font-bold">
+                    <AlertTriangle className="size-5 text-warn" aria-hidden />
+                    To fix before saving
+                  </h3>
+                  <ul className="mt-3 grid gap-4" role="list">
+                    {assessment.blockers.map((b, i) => (
+                      <li key={i}>
+                        <p>{b.message}</p>
+                        {b.fixes.length > 0 ? (
+                          <div className="mt-2 flex flex-wrap gap-2">
+                            {b.fixes.map((f, k) => (
+                              <Button
+                                key={k}
+                                size="sm"
+                                variant="primary"
+                                onClick={() => applyFix(f)}
+                              >
+                                {f.label}
+                              </Button>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="mt-1 text-sm text-muted-foreground">
+                            Swap or remove the exercise, or change your kit in the Kit step.
+                          </p>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                  {plan.suggestions.filter(
+                    (s) =>
+                      s.kind === "add_equipment" && s.equipment && !equipment.includes(s.equipment),
+                  ).length > 0 && (
+                    <div className="mt-4 border-t border-line pt-3">
+                      <p className="eyebrow mb-2">Kit that would open up more options</p>
+                      <div className="flex flex-wrap gap-2">
+                        {plan.suggestions
+                          .filter(
+                            (s) =>
+                              s.kind === "add_equipment" &&
+                              s.equipment &&
+                              !equipment.includes(s.equipment),
+                          )
+                          .map((s) => (
+                            <Button
+                              key={s.equipment}
+                              size="sm"
+                              onClick={() => setHave([...equipment, s.equipment!])}
+                            >
+                              Add {EQUIPMENT_LABEL[s.equipment!]}
+                            </Button>
+                          ))}
+                      </div>
+                    </div>
+                  )}
+                </Panel>
+              )}
+
+              {diff && (
+                <Panel aria-label="What changes">
+                  <h3 className="font-display text-2xl font-bold">What changes</h3>
+                  {edited && (
+                    <p className="mt-1 text-sm text-warn">
+                      You've edited this plan's workouts since it was created. Choosing "Replace"
+                      archives your edited versions too (they stay recoverable).
+                    </p>
+                  )}
+                  <ul className="mt-3 grid gap-3">
+                    {diff.sessions.map((d) => (
+                      <li key={d.title}>
+                        <p className="font-semibold">{d.title}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {d.added.length === 0 && d.removed.length === 0 && d.changed.length === 0
+                            ? "No changes."
+                            : null}
+                        </p>
+                        {d.added.map((x) => (
+                          <p key={"a" + x} className="text-sm">
+                            + {x}
+                          </p>
+                        ))}
+                        {d.removed.map((x) => (
+                          <p key={"r" + x} className="text-sm text-muted-foreground line-through">
+                            {x}
+                          </p>
+                        ))}
+                        {d.changed.map((x) => (
+                          <p key={"c" + x.name} className="text-sm">
+                            {x.name}: {x.from} → {x.to}
+                          </p>
+                        ))}
+                      </li>
+                    ))}
+                    {diff.sessionsAdded.map((t) => (
+                      <li key={t} className="text-sm">
+                        + New workout: {t}
+                      </li>
+                    ))}
+                    {diff.sessionsRemoved.map((t) => (
+                      <li key={t} className="text-sm text-muted-foreground">
+                        Workout no longer in the plan: {t}
+                      </li>
+                    ))}
+                  </ul>
+                  <p className="mt-3 text-sm text-muted-foreground">
+                    {loggedCount} logged {loggedCount === 1 ? "session stays" : "sessions stay"} in
+                    your history whatever you choose.
+                  </p>
+                </Panel>
+              )}
+
               {plan.sessions.map((s, si) => (
                 <Panel key={s.title + si} aria-label={s.title}>
                   <div className="flex items-baseline justify-between gap-3">
-                    <h3 className="display-title text-3xl">{s.title}</h3>
-                    <span className="eyebrow shrink-0">
+                    <h3 className="font-display text-2xl font-extrabold uppercase tracking-tight">
+                      {s.title}
+                    </h3>
+                    <span
+                      className={cn(
+                        "eyebrow shrink-0",
+                        s.estimatedMinutes > minutes && "!text-destructive",
+                      )}
+                    >
                       ~{s.estimatedMinutes} min · {WEEKDAY_SHORT[(s.weekday + 6) % 7]}
                     </span>
                   </div>
                   <p className="text-sm text-muted-foreground">{s.focus}</p>
                   {s.dropped.length > 0 && (
                     <p className="mt-1 text-xs text-muted-foreground">
-                      Left out to fit {minutes} minutes: {s.dropped.join(", ")}.
+                      Left out to fit your time or weekly limits: {s.dropped.join(", ")}.
                     </p>
                   )}
                   <ul className="mt-3 grid">
-                    {s.exercises.map((x, xi) => (
-                      <li
-                        key={x.slotKey + x.exerciseId}
-                        className="flex items-center gap-3 border-t border-line py-3 first:border-t-0"
-                      >
-                        <div className="min-w-0 flex-1">
-                          <p className="font-display text-lg font-bold leading-tight">{x.name}</p>
-                          <p className="tnum text-sm text-muted-foreground">
-                            {schemeText(x)} · rest{" "}
-                            {Math.round(x.restSec / 15) * 15 >= 60
-                              ? `${Math.round(x.restSec / 30) / 2} min`
-                              : `${x.restSec}s`}
-                            {x.superset && (
-                              <>
-                                {" "}
-                                · <Chip>Superset</Chip>
-                              </>
-                            )}
-                          </p>
-                        </div>
-                        <Button
-                          size="sm"
-                          aria-label={`Swap ${x.name}`}
-                          onClick={() => setReplacing(si * 100 + xi)}
+                    {s.slots.map((slot) => {
+                      const x = s.exercises.find((e) => e.slotKey === slot.key);
+                      if (!x) {
+                        if (slot.priority > 2) return null;
+                        return (
+                          <li
+                            key={slot.key}
+                            className="flex items-center gap-3 border-t border-dashed border-warn/60 py-3 first:border-t-0"
+                          >
+                            <p className="min-w-0 flex-1 text-sm text-muted-foreground">
+                              Missing: main {nice(slot.patterns[0]!)} exercise
+                            </p>
+                            <Button
+                              size="sm"
+                              variant="primary"
+                              onClick={() => setFill({ si, slotKey: slot.key })}
+                            >
+                              <Plus className="size-4" />
+                              Choose
+                            </Button>
+                          </li>
+                        );
+                      }
+                      return (
+                        <li
+                          key={slot.key}
+                          className="flex items-center gap-3 border-t border-line py-3 first:border-t-0"
                         >
-                          <Repeat className="size-4" />
-                          Swap
-                        </Button>
-                        <button
-                          aria-label={`Remove ${x.name}`}
-                          className="grid size-11 place-items-center rounded-full hover:bg-surface-2"
-                          onClick={() => editSession(si, (xs) => xs.filter((_, k) => k !== xi))}
-                        >
-                          <Trash2 className="size-4" />
-                        </button>
-                      </li>
-                    ))}
+                          <div className="min-w-0 flex-1">
+                            <p className="font-display text-lg font-bold leading-tight [overflow-wrap:anywhere]">
+                              {x.name}
+                            </p>
+                            <p className="tnum text-sm text-muted-foreground">
+                              {schemeText(x)} · rest{" "}
+                              {x.restSec >= 60
+                                ? `${Math.round((x.restSec / 60) * 2) / 2} min`
+                                : `${x.restSec}s`}
+                              {x.superset && (
+                                <>
+                                  {" "}
+                                  · <Chip>Superset</Chip>
+                                </>
+                              )}
+                            </p>
+                          </div>
+                          <Button
+                            size="sm"
+                            aria-label={`Swap ${x.name}`}
+                            onClick={() => setSwap({ si, slotKey: slot.key })}
+                          >
+                            <Repeat className="size-4" />
+                            Swap
+                          </Button>
+                          <button
+                            aria-label={`Remove ${x.name}`}
+                            className="grid size-11 shrink-0 place-items-center rounded-full hover:bg-surface-2"
+                            onClick={() => setDraft(removeExercise(plan, si, slot.key))}
+                          >
+                            <Trash2 className="size-4" />
+                          </button>
+                        </li>
+                      );
+                    })}
                   </ul>
+                  {s.slots.some(
+                    (slot) => !s.exercises.some((e) => e.slotKey === slot.key) && slot.priority > 2,
+                  ) && (
+                    <div className="mt-2 flex flex-wrap gap-2 border-t border-line pt-3">
+                      {s.slots
+                        .filter(
+                          (slot) =>
+                            !s.exercises.some((e) => e.slotKey === slot.key) && slot.priority > 2,
+                        )
+                        .map((slot) => (
+                          <Button
+                            key={slot.key}
+                            size="sm"
+                            onClick={() => setFill({ si, slotKey: slot.key })}
+                          >
+                            <Plus className="size-4" />
+                            {nice(slot.patterns[0]!)}
+                          </Button>
+                        ))}
+                    </div>
+                  )}
                 </Panel>
               ))}
-              {issues.length > 0 && (
-                <Panel aria-label="Checks">
+
+              {assessment.warnings.length > 0 && (
+                <Panel aria-label="Worth knowing">
                   <h3 className="eyebrow mb-2">Worth knowing</h3>
-                  <ul className="grid gap-1 text-sm">
-                    {issues.map((i, k) => (
-                      <li
-                        key={k}
-                        className={
-                          i.severity === "error" ? "text-destructive" : "text-muted-foreground"
-                        }
-                      >
+                  <ul className="grid gap-1 text-sm text-muted-foreground">
+                    {assessment.warnings.map((i, k) => (
+                      <li key={k}>
                         {i.session ? `${i.session}: ` : ""}
                         {i.message}
                       </li>
@@ -647,167 +876,208 @@ function Builder() {
                   </ul>
                 </Panel>
               )}
+              <Panel aria-label="Weekly volume">
+                <h3 className="eyebrow mb-2">Hard sets per muscle per week (estimate)</h3>
+                <p className="tnum text-sm text-muted-foreground">
+                  {[...weeklyCredits(plan.sessions)]
+                    .filter(([, n]) => n >= 1)
+                    .sort((a, b) => b[1] - a[1])
+                    .map(([m, n]) => `${MUSCLE_LABEL[m]} ${Math.round(n * 10) / 10}`)
+                    .join(" · ")}
+                </p>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  Draft rules, not yet reviewed by a qualified coach (see docs/TRAINING-RULES.md).
+                </p>
+              </Panel>
               <Panel>
                 <h3 className="eyebrow mb-2">Starting weights</h3>
                 <p className="text-sm">
                   None are set. Find a weight where the last reps are hard but clean, then log it;
                   VAYVOR suggests when to go up.
                 </p>
-                {existing.length > 0 && (
+                {needsChoice && (
                   <div
                     className="mt-4 grid gap-2"
                     role="radiogroup"
                     aria-label="What to do with your current workouts"
                   >
+                    <p className="text-sm font-semibold">
+                      Your current {prior ? "plan's " : ""}workouts ({handled.length}): choose what
+                      happens to them
+                    </p>
                     <Choice
-                      selected={mode === "add"}
-                      onClick={() => setMode("add")}
-                      title="Add alongside what I have"
-                      body="Your current programme stays as it is. The new workouts are added unscheduled; place them on the week yourself."
+                      selected={handle === "add"}
+                      onClick={() => setHandle("add")}
+                      title="Keep them, add these unscheduled"
+                      body="Nothing about your current schedule changes. Place the new workouts on the week yourself."
                     />
                     <Choice
-                      selected={mode === "replace"}
-                      onClick={() => setMode("replace")}
-                      title="Replace my schedule"
-                      body={`Archives your ${existing.length} current workouts (they leave your list; there is no restore screen yet) and schedules these.`}
+                      selected={handle === "replace"}
+                      onClick={() => setHandle("replace")}
+                      title="Replace them with this plan"
+                      body="The old workouts are archived, not deleted: restore them any time from Train. Logged sessions are never changed."
                     />
                   </div>
                 )}
               </Panel>
             </>
           )}
+          {saveError && (
+            <Panel role="alert" aria-live="assertive" className="border-destructive/60">
+              <p className="font-semibold text-destructive">Couldn't save</p>
+              <p className="mt-1 text-sm">{saveError}</p>
+              <div className="mt-3">
+                <Button variant="primary" onClick={() => void accept()}>
+                  Try again
+                </Button>
+              </div>
+            </Panel>
+          )}
         </section>
       )}
 
-      <div className="mt-6 flex items-center justify-between gap-3">
-        {step > 0 ? (
-          <Button onClick={() => go(step - 1)}>
-            <ArrowLeft className="size-4" />
-            Back
-          </Button>
-        ) : (
-          <Link
-            to="/train"
-            className="min-h-11 py-3 text-sm font-semibold underline underline-offset-4"
-          >
-            Cancel
-          </Link>
+      <div className="mt-6 grid gap-2">
+        {step === 5 && plan && assessment && !assessment.canAccept && (
+          <p className="text-sm text-muted-foreground" role="status">
+            Resolve the items above to save this plan.
+          </p>
         )}
-        {step < 5 ? (
-          <Button variant="primary" size="lg" disabled={!canNext} onClick={() => go(step + 1)}>
-            Next
-            <ArrowRight className="size-4" />
-          </Button>
-        ) : (
-          <Button
-            variant="primary"
-            size="lg"
-            disabled={!plan || plan.sessions.every((s) => s.exercises.length === 0)}
-            busy={saving}
-            onClick={() => void accept()}
-          >
-            Use this plan
-          </Button>
+        {step === 5 && plan && needsChoice && !handle && assessment?.canAccept && (
+          <p className="text-sm text-muted-foreground" role="status">
+            Choose what happens to your current workouts to continue.
+          </p>
         )}
+        <div className="flex items-center justify-between gap-3">
+          {step > 0 && !(prior && step === 5) ? (
+            <Button onClick={() => go(step - 1)}>
+              <ArrowLeft className="size-4" />
+              Back
+            </Button>
+          ) : (
+            <Link
+              to="/train"
+              className="inline-flex min-h-11 items-center text-sm font-semibold underline underline-offset-4"
+            >
+              Cancel
+            </Link>
+          )}
+          {step < 5 ? (
+            <Button variant="primary" size="lg" disabled={!canNext} onClick={() => go(step + 1)}>
+              Next
+              <ArrowRight className="size-4" />
+            </Button>
+          ) : (
+            <Button
+              variant="primary"
+              size="lg"
+              disabled={blocked}
+              busy={saving}
+              onClick={() => void accept()}
+            >
+              {prior ? "Use this version" : "Use this plan"}
+            </Button>
+          )}
+        </div>
       </div>
 
-      <SwapSheet
-        plan={plan}
-        target={replacing}
-        onClose={() => setReplacing(null)}
-        all={cat.exercises}
-        onPick={(si, xi, id) => {
-          const e = cat.byId.get(id);
-          if (!e) return;
-          editSession(si, (xs) =>
-            xs.map((x, k) =>
-              k === xi
-                ? {
-                    ...x,
-                    exerciseId: e.id,
-                    name: e.name,
-                    pattern: e.pattern,
-                    tracking: e.tracking,
-                    primaryMuscles: e.primaryMuscles,
-                    secondaryMuscles: e.secondaryMuscles,
-                    equipment: e.equipment,
-                    ...(e.tracking === "time"
-                      ? { seconds: x.seconds ?? 30, repMin: undefined, repMax: undefined }
-                      : { repMin: x.repMin ?? 8, repMax: x.repMax ?? 12, seconds: undefined }),
-                  }
-                : x,
-            ),
-          );
-          setReplacing(null);
+      <PickSheet
+        title="Swap exercise"
+        open={!!swap}
+        onClose={() => setSwap(null)}
+        busyFilter
+        options={(busy) => {
+          if (!plan || !swap) return [];
+          const s = plan.sessions[swap.si]!;
+          const cur = s.exercises.find((x) => x.slotKey === swap.slotKey);
+          const e = cur ? cat.byId.get(cur.exerciseId) : undefined;
+          return e
+            ? substitutes(e, cat.exercises, plan.input, {
+                inSession: s.exercises.map((x) => x.exerciseId),
+                unavailable: busy,
+                limit: 8,
+              }).map((x) => ({ e: x.exercise, why: x.reason }))
+            : [];
+        }}
+        onPick={(e) => {
+          if (plan && swap) setDraft(swapExercise(plan, swap.si, swap.slotKey, e));
+          setSwap(null);
+        }}
+      />
+      <PickSheet
+        title="Choose an exercise"
+        open={!!fill}
+        onClose={() => setFill(null)}
+        options={() =>
+          plan && fill
+            ? slotCandidates(plan, fill.si, fill.slotKey, cat.exercises, 10).map((e) => ({
+                e,
+                why: `Works ${e.primaryMuscles.map((m) => MUSCLE_LABEL[m]).join(", ")}${e.equipment.length ? ` with ${e.equipment.map((m) => EQUIPMENT_LABEL[m]).join(", ")}` : ", no kit needed"}.`,
+              }))
+            : []
+        }
+        onPick={(e) => {
+          if (plan && fill) setDraft(fillSlot(plan, fill.si, fill.slotKey, e));
+          setFill(null);
         }}
       />
     </>
   );
 }
 
-function SwapSheet({
-  plan,
-  target,
+function PickSheet({
+  title,
+  open,
   onClose,
-  all,
+  options,
   onPick,
+  busyFilter,
 }: {
-  plan: Plan | null;
-  target: number | null;
+  title: string;
+  open: boolean;
   onClose: () => void;
-  all: ReturnType<typeof useCatalogue>["exercises"];
-  onPick: (si: number, xi: number, id: string) => void;
+  options: (busy: EquipmentId[]) => { e: CatalogueExercise; why: string }[];
+  onPick: (e: CatalogueExercise) => void;
+  busyFilter?: boolean;
 }) {
   const [busy, setBusy] = useState<EquipmentId[]>([]);
-  const si = target == null ? -1 : Math.floor(target / 100);
-  const xi = target == null ? -1 : target % 100;
-  const cur = plan && target != null ? plan.sessions[si]?.exercises[xi] : undefined;
-  const curEx = cur ? all.find((e) => e.id === cur.exerciseId) : undefined;
-  const subs = useMemo(
-    () =>
-      plan && curEx
-        ? substitutes(curEx, all, plan.input, {
-            inSession: plan.sessions[si]!.exercises.map((e) => e.exerciseId),
-            unavailable: busy,
-            limit: 8,
-          })
-        : [],
-    [plan, curEx, all, si, busy],
-  );
+  const opts = open ? options(busy) : [];
   return (
     <Sheet
-      open={target != null && !!cur}
+      open={open}
       onOpenChange={(o) => !o && onClose()}
-      title={cur ? `Swap ${cur.name}` : "Swap"}
-      description="Same movement, equipment you have."
+      title={title}
+      description="Only exercises that fit your kit and this movement."
     >
       <div className="grid gap-3 pb-2">
-        <div className="flex flex-wrap gap-2">
-          {(["machine", "cable", "barbell", "dumbbell"] as EquipmentId[]).map((q) => (
-            <Pill
-              key={q}
-              on={busy.includes(q)}
-              onClick={() => setBusy((b) => (b.includes(q) ? b.filter((x) => x !== q) : [...b, q]))}
-            >
-              {EQUIPMENT_LABEL[q]} busy
-            </Pill>
-          ))}
-        </div>
-        {subs.length === 0 ? (
+        {busyFilter && (
+          <div className="flex flex-wrap gap-2">
+            {(["machine", "cable", "barbell", "dumbbell"] as EquipmentId[]).map((q) => (
+              <Pill
+                key={q}
+                on={busy.includes(q)}
+                onClick={() =>
+                  setBusy((b) => (b.includes(q) ? b.filter((x) => x !== q) : [...b, q]))
+                }
+              >
+                {EQUIPMENT_LABEL[q]} busy
+              </Pill>
+            ))}
+          </div>
+        )}
+        {opts.length === 0 ? (
           <EmptyState
-            title="No other options"
-            body="Nothing else fits that movement with your kit."
+            title="No options with your kit"
+            body="Add equipment in the Kit step to unlock more."
           />
         ) : (
           <ul className="grid">
-            {subs.map((s) => (
-              <li key={s.exercise.id} className="border-t border-line first:border-t-0">
-                <button
-                  className="min-h-14 w-full py-3 text-left"
-                  onClick={() => onPick(si, xi, s.exercise.id)}
-                >
-                  <span className="block font-display text-lg font-bold">{s.exercise.name}</span>
-                  <span className="block text-sm text-muted-foreground">{s.reason}</span>
+            {opts.map(({ e, why }) => (
+              <li key={e.id} className="border-t border-line first:border-t-0">
+                <button className="min-h-14 w-full py-3 text-left" onClick={() => onPick(e)}>
+                  <span className="block font-display text-lg font-bold [overflow-wrap:anywhere]">
+                    {e.name}
+                  </span>
+                  <span className="block text-sm text-muted-foreground">{why}</span>
                 </button>
               </li>
             ))}

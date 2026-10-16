@@ -5,9 +5,8 @@
  */
 import type { CatalogueExercise, EquipmentId, MuscleId, Pattern, TrackingType } from "./catalogue";
 import {
-  ADVANCED_ONLY,
-  AUTO_AVOID,
   MAX_EXERCISES,
+  PATTERN_CREDIT,
   PROGRAMMES,
   REPS,
   REST_SECONDS,
@@ -71,13 +70,28 @@ export type PlannedExercise = {
   equipment: EquipmentId[];
 };
 
+export type SlotRef = {
+  key: string;
+  patterns: Pattern[];
+  role: SlotRole;
+  scheme: RepScheme;
+  priority: number;
+  pairWith?: string;
+};
+
 export type PlannedSession = {
   title: string;
   focus: string;
   /** 0 = Sunday. */
   weekday: number;
   exercises: PlannedExercise[];
+  /** Every slot the programme defines for this session; a slot with no exercise and not in `droppedSlots` is a gap. */
+  slots: SlotRef[];
+  /** Slots deliberately left out (time or weekly-volume limits). They are not gaps. */
+  droppedSlots: string[];
   estimatedMinutes: number;
+  /** False when even the shortest version of the session is longer than the requested duration. */
+  fits: boolean;
   dropped: string[];
 };
 
@@ -102,6 +116,8 @@ export type Plan = {
   sessions: PlannedSession[];
   rationale: string[];
   conflicts: Conflict[];
+  /** Ways to resolve gaps found while generating (for example, equipment that would unlock options). */
+  suggestions: Suggestion[];
   /** How hard to work, expressed without a load. */
   effort: string;
 };
@@ -144,8 +160,7 @@ function baseOk(e: CatalogueExercise, input: PlanInput): boolean {
   if (!SETS_TRACKED.includes(e.tracking)) return false;
   if (input.excludedExercises?.includes(e.id)) return false;
   if (input.avoidPatterns?.includes(e.pattern)) return false;
-  if (AUTO_AVOID.test(e.name)) return false;
-  if (input.experience !== "some" && ADVANCED_ONLY.test(e.name)) return false;
+  if (e.level === "some" && input.experience !== "some") return false;
   return true;
 }
 
@@ -186,6 +201,100 @@ function score(
   s -= (used.get(e.id) ?? 0) * 50; // variety across the week
   s += fnv(`${e.id}|${seed}|${slot.key}`); // stable tie-break in [0,1]
   return s;
+}
+
+const slotRef = (s: Slot): SlotRef => ({
+  key: s.key,
+  patterns: s.patterns,
+  role: s.role,
+  scheme: s.scheme,
+  priority: s.priority,
+  pairWith: s.pairWith,
+});
+
+function buildPlanned(slot: SlotRef, e: CatalogueExercise, input: PlanInput): PlannedExercise {
+  const r = repsFor(input.goal, slot.scheme);
+  let sets = setsFor(slot.role, input.goal, input.experience);
+  if (
+    input.experience === "some" &&
+    slot.role === "accessory" &&
+    e.primaryMuscles.some((m) => input.priorityMuscles?.includes(m))
+  )
+    sets = Math.min(4, sets + 1);
+  const timed = e.tracking === "time";
+  return {
+    slotKey: slot.key,
+    role: slot.role,
+    scheme: slot.scheme,
+    priority: slot.priority,
+    exerciseId: e.id,
+    name: e.name,
+    pattern: e.pattern,
+    tracking: e.tracking,
+    sets,
+    ...(timed
+      ? { seconds: input.experience === "some" ? 45 : 30 }
+      : { repMin: r.min, repMax: r.max }),
+    restSec: REST_SECONDS[input.goal][slot.role],
+    pairWith: slot.pairWith,
+    primaryMuscles: e.primaryMuscles,
+    secondaryMuscles: e.secondaryMuscles,
+    equipment: e.equipment,
+  };
+}
+
+/** Hard-set credit one set of this exercise gives each muscle (see PATTERN_CREDIT). */
+export function creditFor(
+  x: Pick<PlannedExercise, "pattern" | "primaryMuscles" | "secondaryMuscles">,
+): Map<MuscleId, number> {
+  const out = new Map<MuscleId, number>();
+  const table = PATTERN_CREDIT[x.pattern];
+  if (table) {
+    for (const [m, c] of Object.entries(table)) out.set(m as MuscleId, c!);
+    return out;
+  }
+  for (const m of x.primaryMuscles) out.set(m, 1);
+  for (const m of x.secondaryMuscles) if (!out.has(m)) out.set(m, 0.5);
+  return out;
+}
+
+export function weeklyCredits(sessions: PlannedSession[]): Map<MuscleId, number> {
+  const w = new Map<MuscleId, number>();
+  for (const s of sessions)
+    for (const x of s.exercises)
+      for (const [m, c] of creditFor(x)) w.set(m, (w.get(m) ?? 0) + c * x.sets);
+  return w;
+}
+
+/**
+ * Keeps weekly hard sets inside the experience bound by trimming the least important contributors (fewer sets first,
+ * then dropping accessories). If only main lifts remain over the bound, the warning stays: the bound is never widened.
+ */
+function balanceVolume(sessions: PlannedSession[], experience: Experience) {
+  const max = WEEKLY_SETS[experience].max;
+  for (let guard = 0; guard < 60; guard++) {
+    const w = weeklyCredits(sessions);
+    const over = [...w.entries()].filter(([, n]) => n > max).sort((a, b) => b[1] - a[1])[0];
+    if (!over) return;
+    const [muscle] = over;
+    const contributors = sessions
+      .flatMap((s) => s.exercises.map((x) => ({ s, x })))
+      .filter(({ x }) => (creditFor(x).get(muscle) ?? 0) > 0)
+      .sort(
+        (a, b) =>
+          b.x.priority - a.x.priority ||
+          (creditFor(b.x).get(muscle) ?? 0) - (creditFor(a.x).get(muscle) ?? 0),
+      );
+    const target =
+      contributors.find(({ x }) => x.sets > 2) ?? contributors.find(({ x }) => x.priority >= 3);
+    if (!target) return;
+    if (target.x.sets > 2) target.x.sets -= 1;
+    else {
+      target.s.exercises = target.s.exercises.filter((x) => x !== target.x);
+      target.s.droppedSlots.push(target.x.slotKey);
+      target.s.dropped.push(target.x.name);
+    }
+  }
 }
 
 function repsFor(goal: Goal, scheme: RepScheme) {
@@ -243,6 +352,12 @@ function chooseWeekdays(n: number, preferred?: number[]): number[] {
     return [...preferred].sort((a, b) => monFirst(a) - monFirst(b));
   }
   return SPREAD[n] ?? SPREAD[5]!;
+}
+
+/** Days between two weekdays (Monday-first indexes), wrapping across Sunday into Monday. */
+function dayGap(a: number, b: number) {
+  const d = Math.abs(a - b);
+  return Math.min(d, 7 - d);
 }
 
 function wholeBody(p: Programme) {
@@ -364,38 +479,15 @@ export function generatePlan(input: PlanInput, catalogue: CatalogueExercise[]): 
         .sort((a, b) => b.s - a.s || a.e.id.localeCompare(b.e.id))[0]!.e;
       inSession.add(best.id);
       usedWeek.set(best.id, (usedWeek.get(best.id) ?? 0) + 1);
-      const r = repsFor(input.goal, slot.scheme);
-      let sets = setsFor(slot.role, input.goal, input.experience);
-      if (
-        input.experience === "some" &&
-        slot.role === "accessory" &&
-        best.primaryMuscles.some((m) => input.priorityMuscles?.includes(m))
-      )
-        sets = Math.min(4, sets + 1);
-      const timed = best.tracking === "time";
-      chosen.push({
-        slotKey: slot.key,
-        role: slot.role,
-        scheme: slot.scheme,
-        priority: slot.priority,
-        exerciseId: best.id,
-        name: best.name,
-        pattern: best.pattern,
-        tracking: best.tracking,
-        sets,
-        ...(timed
-          ? { seconds: input.experience === "some" ? 45 : 30 }
-          : { repMin: r.min, repMax: r.max }),
-        restSec: REST_SECONDS[input.goal][slot.role],
-        pairWith: slot.pairWith,
-        primaryMuscles: best.primaryMuscles,
-        secondaryMuscles: best.secondaryMuscles,
-        equipment: best.equipment,
-      });
+      chosen.push(buildPlanned(slotRef(slot), best, input));
     }
+    const droppedSlots: string[] = [];
+    const dropped: string[] = [];
     while (chosen.length > MAX_EXERCISES[input.experience]) {
       const worst = [...chosen].sort((a, b) => b.priority - a.priority)[0]!;
       chosen.splice(chosen.indexOf(worst), 1);
+      droppedSlots.push(worst.slotKey);
+      dropped.push(worst.name);
     }
     // Restore the blueprint's order (primary lifts first by authoring).
     chosen.sort(
@@ -403,19 +495,24 @@ export function generatePlan(input: PlanInput, catalogue: CatalogueExercise[]): 
         bp.slots.findIndex((s) => s.key === a.slotKey) -
         bp.slots.findIndex((s) => s.key === b.slotKey),
     );
-    const sess: PlannedSession = {
+    sessions.push({
       title: bp.title,
       focus: bp.focus,
       weekday: weekdays[si]!,
       exercises: chosen,
+      slots: bp.slots.map(slotRef),
+      droppedSlots,
       estimatedMinutes: estimateMinutes(chosen),
-      dropped: [],
-    };
-    sessions.push(
-      sess.estimatedMinutes > input.sessionMinutes
-        ? shortenSession(sess, input.sessionMinutes).session
-        : sess,
-    );
+      fits: true,
+      dropped,
+    });
+  });
+
+  balanceVolume(sessions, input.experience);
+  sessions.forEach((s, i) => {
+    s.estimatedMinutes = estimateMinutes(s.exercises);
+    if (s.estimatedMinutes > input.sessionMinutes)
+      sessions[i] = shortenSession(s, input.sessionMinutes).session;
   });
 
   const effort =
@@ -441,6 +538,7 @@ export function generatePlan(input: PlanInput, catalogue: CatalogueExercise[]): 
     sessions,
     rationale,
     conflicts,
+    suggestions,
     effort,
   };
 
@@ -474,6 +572,7 @@ export function shortenSession(
 ): { session: PlannedSession; fits: boolean } {
   let exs = session.exercises.map((x) => ({ ...x, superset: undefined as string | undefined }));
   const dropped = [...session.dropped];
+  const droppedSlots = [...session.droppedSlots];
   const est = () => estimateMinutes(exs);
 
   const pair = () => {
@@ -505,6 +604,7 @@ export function shortenSession(
     if (worst.priority <= 1) break;
     exs = exs.filter((x) => x !== worst);
     dropped.push(worst.name);
+    droppedSlots.push(worst.slotKey);
     for (const y of exs)
       if (y.superset && exs.filter((z) => z.superset === y.superset).length < 2)
         y.superset = undefined;
@@ -515,7 +615,14 @@ export function shortenSession(
     trim.sets -= 1;
   }
   return {
-    session: { ...session, exercises: exs, estimatedMinutes: est(), dropped },
+    session: {
+      ...session,
+      exercises: exs,
+      estimatedMinutes: est(),
+      dropped,
+      droppedSlots,
+      fits: est() <= minutes,
+    },
     fits: est() <= minutes,
   };
 }
@@ -583,7 +690,7 @@ export function rescheduleMissed(
   const others = weekdays.filter((_, i) => i !== missedIndex).map(monFirst);
   const t = monFirst(today);
   for (let d = t; d <= 6; d++) {
-    if (others.every((o) => Math.abs(o - d) >= gap)) {
+    if (others.every((o) => dayGap(o, d) >= gap)) {
       return {
         action: "move",
         weekday: (d + 1) % 7,
@@ -606,7 +713,7 @@ export function validatePlan(plan: Plan, catalogue: CatalogueExercise[]): Issue[
   const issues: Issue[] = [];
   const byId = new Map(catalogue.map((e) => [e.id, e]));
   const have = new Set<EquipmentId>([...plan.input.equipment, ...ALWAYS]);
-  const weekly = new Map<MuscleId, number>();
+  const weekly = weeklyCredits(plan.sessions);
   for (const s of plan.sessions) {
     const ids = new Set<string>();
     for (const x of s.exercises) {
@@ -651,12 +758,10 @@ export function validatePlan(plan: Plan, catalogue: CatalogueExercise[]): Issue[
             message: `${e.name} has a starting load.`,
             session: s.title,
           });
-      for (const m of x.primaryMuscles) weekly.set(m, (weekly.get(m) ?? 0) + x.sets);
-      for (const m of x.secondaryMuscles) weekly.set(m, (weekly.get(m) ?? 0) + x.sets * 0.5);
     }
-    if (s.estimatedMinutes > plan.input.sessionMinutes + 5)
+    if (s.estimatedMinutes > plan.input.sessionMinutes)
       issues.push({
-        severity: "warn",
+        severity: "error",
         code: "session_too_long",
         message: `${s.title} is about ${s.estimatedMinutes} min, over your ${plan.input.sessionMinutes}.`,
         session: s.title,
@@ -668,7 +773,7 @@ export function validatePlan(plan: Plan, catalogue: CatalogueExercise[]): Issue[
       issues.push({
         severity: "warn",
         code: "volume_high",
-        message: `${m}: about ${n} hard sets a week is above the usual ${bounds.max} for your level.`,
+        message: `${m}: about ${Math.round(n * 10) / 10} hard sets a week is above the usual ${bounds.max} for your level.`,
       });
   }
   for (const m of ["chest", "lats", "quads", "hamstrings", "shoulders", "glutes"] as MuscleId[]) {
@@ -676,19 +781,211 @@ export function validatePlan(plan: Plan, catalogue: CatalogueExercise[]): Issue[
       issues.push({
         severity: "warn",
         code: "volume_low",
-        message: `${m}: only about ${weekly.get(m) ?? 0} hard sets a week.`,
+        message: `${m}: only about ${Math.round((weekly.get(m) ?? 0) * 10) / 10} hard sets a week.`,
       });
   }
   const p = PROGRAMMES.find((x) => x.id === plan.programmeId);
   if (p && wholeBody(p)) {
     const days = plan.sessions.map((s) => monFirst(s.weekday)).sort((a, b) => a - b);
-    for (let i = 1; i < days.length; i++)
-      if (days[i]! - days[i - 1]! < 2)
-        issues.push({
-          severity: "warn",
-          code: "recovery",
-          message: "Whole-body sessions on back-to-back days leave little time to recover.",
-        });
+    const gaps = days
+      .map((d, i) => dayGap(d, days[(i + 1) % days.length]!))
+      .filter(() => days.length > 1);
+    if (gaps.some((g) => g < 2))
+      issues.push({
+        severity: "warn",
+        code: "recovery",
+        message:
+          "Whole-body sessions on back-to-back days (including Sunday into Monday) leave little time to recover.",
+      });
   }
   return issues;
+}
+
+/* ------------------------------ editing and assessment ------------------------------ */
+
+export type Fix =
+  | { kind: "fill_slot"; sessionIndex: number; slotKey: string; label: string }
+  | { kind: "add_equipment"; equipment: EquipmentId; label: string }
+  | { kind: "more_time"; minutes: number; label: string };
+
+export type Blocker = {
+  code: "empty_session" | "missing_slot" | "session_too_long" | "invalid";
+  session?: string;
+  slotKey?: string;
+  message: string;
+  fixes: Fix[];
+};
+
+export type Assessment = {
+  /** Anything here stops the plan being accepted. */
+  blockers: Blocker[];
+  /** Worth knowing, never blocking. */
+  warnings: Issue[];
+  canAccept: boolean;
+};
+
+const label = (s: string) => s.replace(/_/g, " ");
+
+/**
+ * The single gate for "Use this plan". Recomputed from the plan as it stands (after any swap, removal or fill), never
+ * cached: unresolved main-lift gaps, validation errors, empty sessions and sessions that cannot fit the requested time
+ * all block, each with ways to resolve it.
+ */
+export function assessPlan(plan: Plan, catalogue: CatalogueExercise[]): Assessment {
+  const blockers: Blocker[] = [];
+  plan.sessions.forEach((s, si) => {
+    if (s.exercises.length === 0) {
+      blockers.push({
+        code: "empty_session",
+        session: s.title,
+        message: `${s.title} has no exercises.`,
+        fixes: s.slots
+          .filter((x) => !s.droppedSlots.includes(x.key))
+          .slice(0, 3)
+          .map((x) => ({
+            kind: "fill_slot" as const,
+            sessionIndex: si,
+            slotKey: x.key,
+            label: `Add a ${label(x.patterns[0]!)} exercise`,
+          })),
+      });
+    }
+    for (const slot of s.slots) {
+      if (slot.priority > 2 || s.droppedSlots.includes(slot.key)) continue;
+      if (s.exercises.some((x) => x.slotKey === slot.key)) continue;
+      const cands = slotCandidates(plan, si, slot.key, catalogue, 1);
+      const fixes: Fix[] = [];
+      if (cands.length)
+        fixes.push({
+          kind: "fill_slot",
+          sessionIndex: si,
+          slotKey: slot.key,
+          label: `Choose a ${label(slot.patterns[0]!)} exercise`,
+        });
+      else
+        for (const q of neededEquipment(slot as Slot, plan.input, catalogue))
+          fixes.push({ kind: "add_equipment", equipment: q, label: `Add ${label(q)} to your kit` });
+      blockers.push({
+        code: "missing_slot",
+        session: s.title,
+        slotKey: slot.key,
+        message: `${s.title} has no main ${label(slot.patterns[0]!)} exercise.`,
+        fixes,
+      });
+    }
+  });
+  const warnings: Issue[] = [];
+  for (const i of validatePlan(plan, catalogue)) {
+    if (i.severity === "warn") {
+      warnings.push(i);
+      continue;
+    }
+    const si = plan.sessions.findIndex((s) => s.title === i.session);
+    const fixes: Fix[] = [];
+    if (i.code === "session_too_long" && si >= 0) {
+      const mins = Math.ceil(plan.sessions[si]!.estimatedMinutes / 5) * 5;
+      fixes.push({ kind: "more_time", minutes: mins, label: `Allow ${mins} minutes` });
+    }
+    blockers.push({
+      code: i.code === "session_too_long" ? "session_too_long" : "invalid",
+      session: i.session,
+      message: i.message,
+      fixes,
+    });
+  }
+  return { blockers, warnings, canAccept: blockers.length === 0 };
+}
+
+/** Exercises that could fill a slot, best first: same movement patterns, your kit, not already in that session. */
+export function slotCandidates(
+  plan: Plan,
+  sessionIndex: number,
+  slotKey: string,
+  catalogue: CatalogueExercise[],
+  limit = 8,
+): CatalogueExercise[] {
+  const s = plan.sessions[sessionIndex];
+  const slot = s?.slots.find((x) => x.key === slotKey);
+  if (!s || !slot) return [];
+  const inSession = new Set(s.exercises.map((x) => x.exerciseId));
+  const used = new Map<string, number>();
+  for (const ss of plan.sessions)
+    for (const x of ss.exercises) used.set(x.exerciseId, (used.get(x.exerciseId) ?? 0) + 1);
+  return catalogue
+    .filter(
+      (e) =>
+        baseOk(e, plan.input) &&
+        slot.patterns.includes(e.pattern) &&
+        available(e, plan.input.equipment) &&
+        !inSession.has(e.id),
+    )
+    .map((e) => ({
+      e,
+      s: score(e, slot as Slot, plan.input, plan.input.seed ?? "vayvor", used, []),
+    }))
+    .sort((a, b) => b.s - a.s || a.e.id.localeCompare(b.e.id))
+    .slice(0, limit)
+    .map((x) => x.e);
+}
+
+function withSession(plan: Plan, si: number, fn: (s: PlannedSession) => PlannedSession): Plan {
+  return { ...plan, sessions: plan.sessions.map((s, i) => (i === si ? fn(s) : s)) };
+}
+
+function refreshed(s: PlannedSession, exercises: PlannedExercise[]): PlannedSession {
+  const order = (k: string) => s.slots.findIndex((x) => x.key === k);
+  const sorted = [...exercises].sort((a, b) => order(a.slotKey) - order(b.slotKey));
+  return { ...s, exercises: sorted, estimatedMinutes: estimateMinutes(sorted) };
+}
+
+/** Put an exercise into an empty slot (clears any "dropped" note for it). Pure. */
+export function fillSlot(
+  plan: Plan,
+  sessionIndex: number,
+  slotKey: string,
+  e: CatalogueExercise,
+): Plan {
+  return withSession(plan, sessionIndex, (s) => {
+    const slot = s.slots.find((x) => x.key === slotKey);
+    if (!slot) return s;
+    const kept = s.exercises.filter((x) => x.slotKey !== slotKey);
+    return {
+      ...refreshed(s, [...kept, buildPlanned(slot, e, plan.input)]),
+      droppedSlots: s.droppedSlots.filter((k) => k !== slotKey),
+    };
+  });
+}
+
+/** Replace the exercise in a slot, keeping its sets, reps and rest unless the tracking type changes. Pure. */
+export function swapExercise(
+  plan: Plan,
+  sessionIndex: number,
+  slotKey: string,
+  e: CatalogueExercise,
+): Plan {
+  return withSession(plan, sessionIndex, (s) => {
+    const old = s.exercises.find((x) => x.slotKey === slotKey);
+    const slot = s.slots.find((x) => x.key === slotKey);
+    if (!old || !slot) return s;
+    const fresh = buildPlanned(slot, e, plan.input);
+    const next: PlannedExercise =
+      old.tracking === e.tracking ? { ...fresh, sets: old.sets, superset: old.superset } : fresh;
+    return refreshed(
+      s,
+      s.exercises.map((x) => (x.slotKey === slotKey ? next : x)),
+    );
+  });
+}
+
+/** Remove an exercise. A removed main lift becomes a gap the assessment reports. Pure. */
+export function removeExercise(plan: Plan, sessionIndex: number, slotKey: string): Plan {
+  return withSession(plan, sessionIndex, (s) => {
+    const kept = s.exercises.filter((x) => x.slotKey !== slotKey);
+    const next = kept.map((x) =>
+      x.superset && kept.filter((y) => y.superset === x.superset).length < 2
+        ? { ...x, superset: undefined }
+        : x,
+    );
+    return refreshed(s, next);
+  });
 }

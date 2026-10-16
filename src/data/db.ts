@@ -1,5 +1,6 @@
 import { openDB, type DBSchema, type IDBPDatabase } from "idb";
 import {
+  assertGeneration,
   getScope,
   GUEST_DB,
   requireScope,
@@ -168,6 +169,78 @@ export async function put<T>(
   await tx.done;
   notify([collection]);
   return rec;
+}
+
+export type BatchOp =
+  | { collection: string; id: string; op: "put"; data: unknown }
+  | { collection: string; id: string; op: "delete" };
+
+/**
+ * Apply several writes as ONE transaction over records and outbox: either every record and its sync mutation is
+ * stored or none is. If `generation` is given and the account scope has changed, nothing is written.
+ */
+export async function applyBatch(
+  ops: BatchOp[],
+  opts: { generation?: number } = {},
+): Promise<void> {
+  const db = await getDB();
+  if (opts.generation !== undefined) assertGeneration(opts.generation);
+  const tx = db.transaction(["records", "outbox"], "readwrite");
+  const done = tx.done.catch(() => undefined);
+  const cols = new Set<string>();
+  try {
+    for (const o of ops) {
+      const existing = (await tx.objectStore("records").get([o.collection, o.id])) as
+        | StoredRecord
+        | undefined;
+      const ts = Date.now();
+      if (o.op === "put") {
+        await tx.objectStore("records").put({
+          collection: o.collection,
+          id: o.id,
+          data: o.data,
+          rev: (existing?.rev ?? 0) + 1,
+          serverRev: existing?.serverRev,
+          updatedAt: ts,
+          deletedAt: null,
+        } as StoredRecord);
+        await tx.objectStore("outbox").add({
+          mid: newId(),
+          collection: o.collection,
+          id: o.id,
+          op: "put",
+          baseServerRev: existing?.serverRev ?? 0,
+          data: o.data,
+          ts,
+          attempts: 0,
+        });
+      } else if (existing) {
+        await tx
+          .objectStore("records")
+          .put({ ...existing, rev: existing.rev + 1, deletedAt: ts, updatedAt: ts });
+        await tx.objectStore("outbox").add({
+          mid: newId(),
+          collection: o.collection,
+          id: o.id,
+          op: "delete",
+          baseServerRev: existing.serverRev ?? 0,
+          ts,
+          attempts: 0,
+        });
+      }
+      cols.add(o.collection);
+    }
+  } catch (e) {
+    try {
+      tx.abort();
+    } catch {
+      /* already finished */
+    }
+    await done;
+    throw e;
+  }
+  await tx.done;
+  notify(cols);
 }
 
 /** Soft delete (tombstone) so deletes can sync and be undone. */

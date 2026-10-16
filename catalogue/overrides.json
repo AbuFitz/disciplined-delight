@@ -1,0 +1,571 @@
+{
+ "wger:03f7fc27-e64f-4417-ab0c-a52adac60fda": {
+  "curated": "new"
+ },
+ "wger:04e7d7e4-f8d2-406d-97df-3df3bceec22c": {
+  "curated": "some"
+ },
+ "wger:0a5a7661-1e24-4c15-bb2b-503672141307": {
+  "curated": "new"
+ },
+ "wger:0c30c543-e2cc-499b-bc31-8c28db445ed2": {
+  "curated": "new"
+ },
+ "wger:0d79f259-3b28-4258-8a08-cffec062a710": {
+  "curated": "new"
+ },
+ "wger:0ecfec6f-5d0f-4e8a-8d37-f6203a8923b8": {
+  "curated": "new"
+ },
+ "wger:10b0684c-1c48-4be6-913e-19bf1419107b": {
+  "curated": "new"
+ },
+ "wger:139772c6-e401-4281-8aa6-c7ff7fb49f6a": {
+  "curated": "new"
+ },
+ "wger:141bc870-56be-4749-a3b9-e56d5d5618b4": {
+  "curated": "new",
+  "equipment": [
+   "machine"
+  ],
+  "name": "Machine shoulder press",
+  "tracking": "weight_reps"
+ },
+ "wger:1842e1be-ac67-4f34-a527-4ca2b72d8e11": {
+  "curated": "new",
+  "equipment": [
+   "bodyweight"
+  ]
+ },
+ "wger:19133a0d-e6b2-4d57-8a84-8aac3d962a99": {
+  "curated": "new"
+ },
+ "wger:19a289c0-33af-4055-bb34-3570c2975d3d": {
+  "curated": "some",
+  "pattern": "glute"
+ },
+ "wger:19a9f67b-60f5-4367-9134-b805f3e73956": {
+  "curated": "new"
+ },
+ "wger:19fba43a-8363-4da3-82c6-d8a14628b5e7": {
+  "curated": "new"
+ },
+ "wger:203a6fee-7436-4313-858f-c1e364136793": {
+  "curated": "some",
+  "equipment": [
+   "bodyweight"
+  ]
+ },
+ "wger:25cbc266-aa84-44f5-989b-53c9cc8fdc77": {
+  "curated": "new"
+ },
+ "wger:270e108d-3cd2-45a9-807b-c357317eb15c": {
+  "curated": "some",
+  "name": "Barbell shrug",
+  "primaryMuscles": [
+   "traps"
+  ]
+ },
+ "wger:28321cf3-70e6-48a4-ade1-d11382180cb3": {
+  "curated": "new"
+ },
+ "wger:29175281-afaf-4ffd-85e8-cfc38493e304": {
+  "curated": "new"
+ },
+ "wger:2b61df61-f71e-4b8f-9f95-6a565238a8ae": {
+  "curated": "new"
+ },
+ "wger:3284fd27-5402-4821-9c32-29066d4e2667": {
+  "curated": "new"
+ },
+ "wger:32c129f7-cc28-4ebc-8465-e4fa62e220b1": {
+  "curated": "some",
+  "equipment": [
+   "barbell"
+  ],
+  "name": "T-bar row",
+  "tracking": "weight_reps"
+ },
+ "wger:3642933c-d078-4fb6-a544-d1772fa0cc9d": {
+  "curated": "new"
+ },
+ "wger:3717d144-7815-4a97-9a56-956fb889c996": {
+  "curated": "some"
+ },
+ "wger:37f6bd56-815a-4975-99af-05e749fae4b2": {
+  "curated": "new",
+  "equipment": [
+   "bench"
+  ],
+  "name": "Back extension",
+  "pattern": "glute",
+  "primaryMuscles": [
+   "glutes",
+   "hamstrings"
+  ],
+  "secondaryMuscles": [],
+  "tracking": "bodyweight_reps"
+ },
+ "wger:39c13706-6a8c-4ab5-b605-b9b716665a20": {
+  "curated": "new",
+  "name": "Reverse cable fly",
+  "pattern": "shoulder_isolation"
+ },
+ "wger:3bc8b411-a28d-4e1c-a6d1-769e18fe9881": {
+  "curated": "new",
+  "equipment": [
+   "machine"
+  ],
+  "name": "Lying leg curl (machine)",
+  "tracking": "weight_reps"
+ },
+ "wger:3e9b3bb0-7958-4836-89a5-ed0c5f7eeb03": {
+  "curated": "new"
+ },
+ "wger:401989e0-64c3-459d-bc47-2c171ab4f41d": {
+  "curated": "new"
+ },
+ "wger:42227131-9b1e-4220-b082-c523f0651057": {
+  "curated": "new"
+ },
+ "wger:43e85cb8-51d0-4892-b1bf-80a3cb111ff6": {
+  "curated": "new"
+ },
+ "wger:440cf10c-effb-4b63-a6e0-182fe47376f6": {
+  "curated": "new"
+ },
+ "wger:4621b41f-0d32-4033-acff-dc079c792606": {
+  "curated": "new"
+ },
+ "wger:46e0f60c-fdc0-489a-82e4-a5b7476a5c21": {
+  "curated": "new"
+ },
+ "wger:47b244f0-ebc6-4498-9d9f-7e7bff47322e": {
+  "curated": "new"
+ },
+ "wger:48836f44-efcd-4471-a456-5f024936025a": {
+  "curated": "new",
+  "equipment": [
+   "machine"
+  ],
+  "name": "Leg curl (machine)",
+  "primaryMuscles": [
+   "hamstrings"
+  ],
+  "secondaryMuscles": [],
+  "tracking": "weight_reps"
+ },
+ "wger:4aa7e2a7-86ad-4322-978f-ff8b391f556c": {
+  "curated": "new",
+  "equipment": [
+   "bench"
+  ],
+  "name": "Incline push-up",
+  "tracking": "bodyweight_reps"
+ },
+ "wger:51a2d520-b510-4b6e-bd65-9fc40365e8de": {
+  "curated": "new"
+ },
+ "wger:55ff32e6-24ab-4303-9b50-176d60d48796": {
+  "curated": "new"
+ },
+ "wger:57e17672-52b9-43cf-8d0d-4b3f06a0c0d0": {
+  "curated": "new"
+ },
+ "wger:58ca3e51-ea64-4771-a74a-a74d29f5c40c": {
+  "curated": "new"
+ },
+ "wger:5915fabe-c941-4dac-b196-bc4e8c7ce57b": {
+  "curated": "new"
+ },
+ "wger:5b4fb3ec-53a1-4525-a58a-c070798ea86e": {
+  "curated": "new"
+ },
+ "wger:5d0e0a8b-1940-4034-b4ae-b965859f1ff0": {
+  "curated": "some"
+ },
+ "wger:5d244235-cd56-472a-876e-6e530a899ef2": {
+  "curated": "new"
+ },
+ "wger:5d5122e0-65f3-4afc-ac36-21955e2c7dde": {
+  "curated": "new"
+ },
+ "wger:5d8d3581-bce5-4a28-868f-8b299eaedbdd": {
+  "curated": "new"
+ },
+ "wger:60d2c34b-43a1-48a3-b43b-160e4c0157f2": {
+  "curated": "some"
+ },
+ "wger:616f9026-1a1d-4ed8-b068-cfbb81b6a000": {
+  "curated": "new"
+ },
+ "wger:62170477-90ec-463c-907e-9e523abc0a15": {
+  "curated": "new",
+  "equipment": [
+   "machine"
+  ],
+  "name": "Leg extension (machine)",
+  "tracking": "weight_reps"
+ },
+ "wger:63375f5b-2d81-471c-bea4-fc3d207e96cb": {
+  "curated": "new"
+ },
+ "wger:6349365e-e901-4280-a1b7-65734986f47d": {
+  "curated": "new"
+ },
+ "wger:65d12ecf-54b8-466d-a412-e55c396cad69": {
+  "curated": "new"
+ },
+ "wger:66a42396-c207-44da-bc75-758a89d32404": {
+  "curated": "new"
+ },
+ "wger:6995c30a-037f-4de3-ac4a-45384a1f38f9": {
+  "curated": "new"
+ },
+ "wger:6b6bd3ce-c40d-486c-9c47-21a3c639626d": {
+  "curated": "new"
+ },
+ "wger:6c671e43-497f-4863-8d78-b592f3b5e7c6": {
+  "curated": "new"
+ },
+ "wger:6ce25688-ae91-4dc7-9b17-0b66a47151fa": {
+  "curated": "some"
+ },
+ "wger:6e00afb6-272d-44a2-8ae3-e7fa41b50f06": {
+  "curated": "new"
+ },
+ "wger:70c99a4e-3340-4993-a7f1-2d2709dada1a": {
+  "curated": "new"
+ },
+ "wger:72129e4f-df97-4869-9561-33a1ba3c9186": {
+  "curated": "some"
+ },
+ "wger:72a945ec-3a7f-424b-9a05-1616ef7dce91": {
+  "curated": "new",
+  "name": "Dumbbell shrug",
+  "primaryMuscles": [
+   "traps"
+  ]
+ },
+ "wger:75e34967-b0ec-40d5-811e-b474b234a7a9": {
+  "curated": "new"
+ },
+ "wger:76965848-9776-4be5-b879-e3c97033b80f": {
+  "curated": "new",
+  "equipment": [
+   "cable"
+  ],
+  "name": "Underhand lat pulldown (cable)",
+  "tracking": "weight_reps"
+ },
+ "wger:7b99a081-6b1a-4aa5-b86a-5a935d083a35": {
+  "curated": "new"
+ },
+ "wger:7bf4e131-d4a3-44c0-8fca-9e10002492e7": {
+  "curated": "new",
+  "name": "Band face pull",
+  "pattern": "shoulder_isolation",
+  "primaryMuscles": [
+   "shoulders"
+  ],
+  "secondaryMuscles": [
+   "traps"
+  ]
+ },
+ "wger:7c8eb1ac-2d7e-4ca7-919a-1848ba38e0f4": {
+  "curated": "new",
+  "equipment": [
+   "bench"
+  ],
+  "name": "Bench dips",
+  "pattern": "arms_triceps",
+  "tracking": "bodyweight_reps"
+ },
+ "wger:7cc24acf-3fc9-4d14-a461-cd00d1d18f0e": {
+  "curated": "some",
+  "pattern": "glute"
+ },
+ "wger:7ce443b6-eb84-4f65-b05f-461c1cc8bcc0": {
+  "curated": "new",
+  "equipment": [
+   "bodyweight"
+  ]
+ },
+ "wger:81942f3d-d92c-431c-b9d0-0da12918d1e4": {
+  "curated": "new"
+ },
+ "wger:821e289e-bd39-4410-b436-6f2a43bc3649": {
+  "curated": "new"
+ },
+ "wger:83af8d94-319b-456b-92d8-75cec821a195": {
+  "curated": "new"
+ },
+ "wger:87affa4b-395b-437c-9581-2bd20ea5aa7c": {
+  "curated": "new"
+ },
+ "wger:87e6abc5-a701-442a-b4fb-bb2a7598a754": {
+  "curated": "some",
+  "tracking": "bodyweight_reps"
+ },
+ "wger:893c07ea-2e24-49b6-92e4-d0033eedec62": {
+  "curated": "new"
+ },
+ "wger:8b0a0371-c0a9-42a7-aab7-68d520542fb2": {
+  "curated": "some"
+ },
+ "wger:8b311259-4f67-4dbf-9574-8c38faa92160": {
+  "curated": "some"
+ },
+ "wger:8bc4c616-e76b-4291-9074-186ecbbb3cfd": {
+  "curated": "new"
+ },
+ "wger:8cc84753-e638-4c43-91c6-51c097813ca4": {
+  "curated": "new",
+  "name": "Banded clamshell",
+  "tracking": "time"
+ },
+ "wger:8d56eb18-b000-41ff-8b31-c74df3a4b34b": {
+  "curated": "new"
+ },
+ "wger:8e420408-0682-4ab6-89f5-2681e54c7ce0": {
+  "curated": "some",
+  "tracking": "bodyweight_reps"
+ },
+ "wger:920692b2-0842-428a-b925-ba0daf6b41db": {
+  "curated": "new",
+  "equipment": [
+   "machine"
+  ],
+  "name": "Machine chest press (decline)",
+  "tracking": "weight_reps"
+ },
+ "wger:94a5c406-7bcd-47f3-9687-bdf92a763932": {
+  "curated": "new"
+ },
+ "wger:95a7e546-e8f8-4521-a76b-983d94161b25": {
+  "curated": "new"
+ },
+ "wger:95a9cc46-270e-45f2-8a17-5665a23ff70b": {
+  "curated": "new"
+ },
+ "wger:95d226ad-3bf7-4cd6-aa64-2f26b526d8b6": {
+  "curated": "new"
+ },
+ "wger:99449eae-0eae-44ab-a57f-fc094bbdda13": {
+  "curated": "new"
+ },
+ "wger:99846da5-5dc8-4de1-ba55-ae2b4c03c30d": {
+  "curated": "new"
+ },
+ "wger:9b0f7101-b78a-4c47-b680-fbef15469a8a": {
+  "curated": "some",
+  "name": "Nordic hamstring curl",
+  "pattern": "leg_isolation",
+  "primaryMuscles": [
+   "hamstrings"
+  ]
+ },
+ "wger:9b5f8c6e-2436-4ded-aea9-8c698b0c8768": {
+  "curated": "new"
+ },
+ "wger:9bcc7b4f-4172-4db7-be95-d7b659c486f5": {
+  "curated": "new"
+ },
+ "wger:9c35594c-bbcc-4656-bdcb-376814c90e96": {
+  "curated": "new"
+ },
+ "wger:9dfce8f0-39fc-4204-9f84-500ec42074e9": {
+  "curated": "new"
+ },
+ "wger:9e34bc01-9cec-4ee2-a9bb-9c937a471c24": {
+  "curated": "new",
+  "equipment": [
+   "mat"
+  ],
+  "tracking": "bodyweight_reps"
+ },
+ "wger:9e6dae29-5d03-440a-bdf1-2cb25a5179c2": {
+  "curated": "new"
+ },
+ "wger:a2f5b6ef-b780-49c0-8d96-fdaff23e27ce": {
+  "curated": "some",
+  "name": "Barbell back squat"
+ },
+ "wger:a45123c6-34c2-43cf-b6bf-914a8f40995a": {
+  "curated": "new"
+ },
+ "wger:a630de17-9170-434c-b486-96a6b8705506": {
+  "curated": "some"
+ },
+ "wger:ab872d04-ca20-4341-b3c9-76763b25ef42": {
+  "curated": "new"
+ },
+ "wger:af77220c-098c-47c2-9f8c-92a651998903": {
+  "curated": "new",
+  "pattern": "glute"
+ },
+ "wger:b144ac00-ec0c-4c43-898f-b2ac65048d98": {
+  "curated": "new",
+  "equipment": [
+   "machine"
+  ],
+  "name": "Seated hip abduction (machine)",
+  "tracking": "weight_reps"
+ },
+ "wger:b16e3e5d-8401-4d2b-919c-15b536f9ec5e": {
+  "curated": "new"
+ },
+ "wger:b186f1f8-4957-44dc-bf30-d0b00064ce6f": {
+  "curated": "new",
+  "equipment": [
+   "mat"
+  ],
+  "tracking": "bodyweight_reps"
+ },
+ "wger:b2025776-2397-4de7-a49e-296321169481": {
+  "curated": "some",
+  "tracking": "bodyweight_reps"
+ },
+ "wger:b2865908-b93e-4507-ada4-a5bb9317566c": {
+  "curated": "new"
+ },
+ "wger:b2b40a54-e42b-49ec-97da-4c929ae41d42": {
+  "curated": "new"
+ },
+ "wger:b5726562-82ed-451a-89d8-8c8b13c5019a": {
+  "curated": "new"
+ },
+ "wger:b7c6a444-90ea-4f5b-9fea-748311606eaa": {
+  "curated": "new"
+ },
+ "wger:bcb7020c-8678-496d-8f4d-aad0e233a5bd": {
+  "curated": "new"
+ },
+ "wger:c0d9fe98-f4fe-49f3-8037-05e1984e7d2d": {
+  "curated": "new"
+ },
+ "wger:c2078aac-e4e2-4103-a845-6252a3eb795e": {
+  "curated": "new"
+ },
+ "wger:c302fd80-ce74-4202-9eee-30834872cffb": {
+  "curated": "new",
+  "name": "Seated rear delt raise",
+  "primaryMuscles": [
+   "shoulders"
+  ],
+  "secondaryMuscles": [
+   "traps"
+  ]
+ },
+ "wger:c867836d-2929-4977-b23c-014bc21ec08d": {
+  "curated": "new"
+ },
+ "wger:c9e57bbe-e839-44c6-861d-1c8dd2845e36": {
+  "curated": "new"
+ },
+ "wger:ceb0c2d0-06ac-4a49-89e7-8d7b1c1e5672": {
+  "curated": "new"
+ },
+ "wger:d059c63d-0a81-48a3-912a-44070c0def2e": {
+  "curated": "some"
+ },
+ "wger:d46287e9-00a9-44c7-88a4-d1eb00fbe561": {
+  "curated": "new"
+ },
+ "wger:d4db2355-4c99-4d80-a179-6aeced7c7fed": {
+  "curated": "new"
+ },
+ "wger:d5116fbd-bf14-492a-86b3-140035cb48b2": {
+  "curated": "new"
+ },
+ "wger:d7a418d4-d0cb-4f85-8a7c-1e9d97152cbd": {
+  "curated": "new",
+  "name": "Cable face pull",
+  "pattern": "shoulder_isolation",
+  "primaryMuscles": [
+   "shoulders"
+  ],
+  "secondaryMuscles": [
+   "traps"
+  ]
+ },
+ "wger:d8bddb58-91b0-4d7b-8ec1-cd742584b607": {
+  "curated": "new"
+ },
+ "wger:dc87b735-016c-410b-915c-e3521fea4be7": {
+  "curated": "new"
+ },
+ "wger:dcc6e237-a8bb-4eca-bbc5-7fb852636f6a": {
+  "curated": "new",
+  "name": "Dumbbell walking lunges",
+  "tracking": "weight_reps"
+ },
+ "wger:dd9dcfd2-879f-422a-ad06-d2c187c58d1f": {
+  "curated": "new"
+ },
+ "wger:e1b99153-0102-47fc-b0cd-c21509827b0b": {
+  "curated": "new"
+ },
+ "wger:e22c4320-7753-49c6-b7f7-4be21b025fb6": {
+  "curated": "new"
+ },
+ "wger:e4966cb8-9089-4595-9c78-99a27821e6ff": {
+  "curated": "new"
+ },
+ "wger:e68f6d51-fe02-4175-b277-dec0c1521f36": {
+  "curated": "new"
+ },
+ "wger:ea63d85c-8579-4dda-b99f-c4c8930f9af6": {
+  "curated": "new"
+ },
+ "wger:edc3f6b7-96b0-4967-90d7-bba9d7d442cb": {
+  "curated": "new"
+ },
+ "wger:ee8e8db4-2d82-49e1-ab7f-891e9a354934": {
+  "curated": "some",
+  "name": "Barbell deadlift",
+  "primaryMuscles": [
+   "glutes",
+   "hamstrings"
+  ],
+  "secondaryMuscles": [
+   "lats",
+   "traps"
+  ]
+ },
+ "wger:ef2df6a2-41df-4a25-b2e0-4808dc2c3305": {
+  "curated": "new"
+ },
+ "wger:f2e17c8d-7285-4fd5-bfe8-26f407802850": {
+  "curated": "new"
+ },
+ "wger:f38e9c23-031d-44d0-ac27-7f1026212c73": {
+  "curated": "new"
+ },
+ "wger:f3ef220b-a070-449c-a463-876d30cd9b14": {
+  "curated": "new"
+ },
+ "wger:f462df26-3264-48c2-b5aa-2374d0670c24": {
+  "curated": "some"
+ },
+ "wger:f5b84269-18af-4464-a61f-b767cbcd81dc": {
+  "curated": "new"
+ },
+ "wger:f9a0a918-3c0c-464e-bbba-1bd309d4a519": {
+  "curated": "new"
+ },
+ "wger:fc608f0e-d754-4911-ae59-8856952e7064": {
+  "curated": "new"
+ },
+ "wger:fcf5039b-7784-4f82-830a-b213b597a646": {
+  "curated": "new"
+ },
+ "wger:fff05d7a-f374-4c8a-9885-39f49076918f": {
+  "curated": "new",
+  "equipment": [
+   "cable"
+  ],
+  "name": "Lat pulldown (cable)",
+  "tracking": "weight_reps"
+ }
+}
