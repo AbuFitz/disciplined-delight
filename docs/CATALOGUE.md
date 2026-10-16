@@ -25,8 +25,8 @@ Pilot run 16 October 2026 against the live wger public API. Numbers below come f
 
 ## Rights obligations (to confirm with the owner)
 
-- Attribution is stored with every record (`attribution`, `author`, `licence`, source URL) and per image. The library must show it.
-- ShareAlike: text we adapt (we only strip HTML and normalise formatting) must be offered under the same or a compatible licence. Practically: the catalogue snapshot (`public/catalogue/v1/exercises.json`) is a CC BY-SA derivative; app code is unaffected, but the owner should decide how to publish the snapshot under that licence and put a credits page in the app.
+- Attribution is stored with every record (`attribution`, `author`, `licence`, source URL) and per image. The Library shows the exact credit on every exercise; `/credits` exposes the snapshot source, aggregate contributor counts and every licence represented in the shipped data.
+- ShareAlike: text we adapt (we only strip HTML and normalise formatting) must be offered under the same or a compatible licence. The catalogue snapshot (`public/catalogue/v1/exercises.json`) is a CC BY-SA derivative; app code is unaffected. The in-app credits page links the applicable CC BY-SA 3.0, CC BY-SA 4.0 and CC0 1.0 terms and directs people to each record's exact attribution.
 - Images are self-hosted at `/catalogue/media/` for reliable same-origin/offline use. `media-manifest.json` retains each original wger URL, author, licence, byte count and SHA-256 checksum; the app still renders the required credit. This is redistribution of the licensed media, so the licence and attribution obligations remain.
 - A reviewer with the right expertise should check any instruction text shown as safety-relevant guidance. "Generator-eligible" means passes automated gates, **not** that a qualified person has reviewed it.
 

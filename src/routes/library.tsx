@@ -133,12 +133,20 @@ function LibraryPage() {
           <Switch checked={mine} onChange={setMine} label="Only what I can do with my kit" />
           <Switch checked={onlyFav} onChange={setOnlyFav} label="Favourites only" />
         </div>
-        <Link
-          to="/train/build"
-          className="min-h-11 py-2 text-sm font-semibold underline underline-offset-4"
-        >
-          Build me a plan from my kit
-        </Link>
+        <div className="flex flex-wrap gap-x-5">
+          <Link
+            to="/train/build"
+            className="min-h-11 py-2 text-sm font-semibold underline underline-offset-4"
+          >
+            Build me a plan from my kit
+          </Link>
+          <Link
+            to="/credits"
+            className="min-h-11 py-2 text-sm font-semibold underline underline-offset-4"
+          >
+            Credits & licences
+          </Link>
+        </div>
       </div>
 
       {cat.status === "loading" && <Skeleton className="h-64" />}

@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as BodyRouteImport } from './routes/body'
 import { Route as CircleRouteImport } from './routes/circle'
+import { Route as CreditsRouteImport } from './routes/credits'
 import { Route as FoodRouteImport } from './routes/food'
 import { Route as LibraryRouteImport } from './routes/library'
 import { Route as MindRouteImport } from './routes/mind'
@@ -48,6 +49,11 @@ const BodyRoute = BodyRouteImport.update({
 const CircleRoute = CircleRouteImport.update({
   id: '/circle',
   path: '/circle',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CreditsRoute = CreditsRouteImport.update({
+  id: '/credits',
+  path: '/credits',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FoodRoute = FoodRouteImport.update({
@@ -165,6 +171,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/body': typeof BodyRoute
   '/circle': typeof CircleRoute
+  '/credits': typeof CreditsRoute
   '/food': typeof FoodRoute
   '/library': typeof LibraryRoute
   '/mind': typeof MindRoute
@@ -192,6 +199,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/body': typeof BodyRoute
   '/circle': typeof CircleRoute
+  '/credits': typeof CreditsRoute
   '/food': typeof FoodRoute
   '/library': typeof LibraryRoute
   '/mind': typeof MindRoute
@@ -219,6 +227,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/body': typeof BodyRoute
   '/circle': typeof CircleRoute
+  '/credits': typeof CreditsRoute
   '/food': typeof FoodRoute
   '/library': typeof LibraryRoute
   '/mind': typeof MindRoute
@@ -248,6 +257,7 @@ export interface FileRouteTypes {
     | '/'
     | '/body'
     | '/circle'
+    | '/credits'
     | '/food'
     | '/library'
     | '/mind'
@@ -275,6 +285,7 @@ export interface FileRouteTypes {
     | '/'
     | '/body'
     | '/circle'
+    | '/credits'
     | '/food'
     | '/library'
     | '/mind'
@@ -301,6 +312,7 @@ export interface FileRouteTypes {
     | '/'
     | '/body'
     | '/circle'
+    | '/credits'
     | '/food'
     | '/library'
     | '/mind'
@@ -329,6 +341,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   BodyRoute: typeof BodyRoute
   CircleRoute: typeof CircleRoute
+  CreditsRoute: typeof CreditsRoute
   FoodRoute: typeof FoodRoute
   LibraryRoute: typeof LibraryRoute
   MindRoute: typeof MindRoute
@@ -371,6 +384,13 @@ declare module '@tanstack/react-router' {
       path: '/circle'
       fullPath: '/circle'
       preLoaderRoute: typeof CircleRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/credits': {
+      id: '/credits'
+      path: '/credits'
+      fullPath: '/credits'
+      preLoaderRoute: typeof CreditsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/food': {
@@ -548,6 +568,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BodyRoute: BodyRoute,
   CircleRoute: CircleRoute,
+  CreditsRoute: CreditsRoute,
   FoodRoute: FoodRoute,
   LibraryRoute: LibraryRoute,
   MindRoute: MindRoute,
