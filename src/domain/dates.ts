@@ -6,6 +6,15 @@ export const DEFAULT_TZ = "Europe/London";
 
 export type ISODate = string; // "YYYY-MM-DD"
 
+/** The device's IANA timezone, falling back to the default when the browser can't say. */
+export function deviceTz(): string {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone || DEFAULT_TZ;
+  } catch {
+    return DEFAULT_TZ;
+  }
+}
+
 const fmtCache = new Map<string, Intl.DateTimeFormat>();
 function fmt(tz: string): Intl.DateTimeFormat {
   let f = fmtCache.get(tz);

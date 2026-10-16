@@ -141,13 +141,7 @@
   --panel-green: linear-gradient(160deg, #123a2c 0%, #0d2a20 100%);
   --panel-dusk: linear-gradient(160deg, #272650 0%, #181a30 100%);
   --panel-warm: linear-gradient(160deg, #3a2b1a 0%, #231a10 100%);
-  /* Loud blocks: solid, saturated, high contrast. Children inherit inverted tokens (see .loud). */
-  --loud-green-bg: #4fd9a0;
-  --loud-green-fg: #06130d;
-  --loud-dusk-bg: #4a40e0;
-  --loud-dusk-fg: #f6f3ff;
-  --loud-warm-bg: #f2a444;
-  --loud-warm-fg: #1c1004;
+  /* Paper-on-charcoal hero (inverts in light). Colour is otherwise reserved for state and a few tints. */
   --loud-ink-bg: #f3efe7;
   --loud-ink-fg: #0e1311;
   --font-display: "Funnel Display Variable", "Hanken Grotesk Variable", system-ui, sans-serif;
@@ -190,12 +184,6 @@
   --panel-dusk: linear-gradient(160deg, #e4e1f6 0%, #d3cff0 100%);
   --panel-warm: linear-gradient(160deg, #f6e6cf 0%, #efd7b4 100%);
   --vital-foreground: #f8f6f1;
-  --loud-green-bg: #0c6a49;
-  --loud-green-fg: #f8f6f1;
-  --loud-dusk-bg: #3b34c4;
-  --loud-dusk-fg: #f6f3ff;
-  --loud-warm-bg: #f2a444;
-  --loud-warm-fg: #1c1004;
   --loud-ink-bg: #0e1311;
   --loud-ink-fg: #f8f6f1;
 }
@@ -264,19 +252,19 @@
   /* The big number: loud, tight, tabular. */
   .stat {
     font-family: var(--font-display);
-    font-weight: 800;
+    font-weight: 700;
     font-variant-numeric: tabular-nums;
-    font-size: clamp(3.75rem, 20vw, 7rem);
+    font-size: clamp(3rem, 13vw, 4.5rem);
     line-height: 0.82;
     letter-spacing: -0.055em;
   }
   .stat-sm {
     font-family: var(--font-display);
-    font-weight: 800;
+    font-weight: 700;
     font-variant-numeric: tabular-nums;
-    font-size: clamp(2.5rem, 12vw, 4rem);
-    line-height: 0.9;
-    letter-spacing: -0.045em;
+    font-size: clamp(2rem, 9vw, 3rem);
+    line-height: 0.95;
+    letter-spacing: -0.04em;
   }
   /* A loud panel re-points the semantic tokens so every child (buttons, muted text, chips) stays legible. */
   .loud {
@@ -294,17 +282,14 @@
     color: var(--loud-fg);
     border-color: transparent;
   }
-  .loud-green {
-    --loud-bg: var(--loud-green-bg);
-    --loud-fg: var(--loud-green-fg);
+  .tint-green {
+    background-image: var(--panel-green);
   }
-  .loud-dusk {
-    --loud-bg: var(--loud-dusk-bg);
-    --loud-fg: var(--loud-dusk-fg);
+  .tint-dusk {
+    background-image: var(--panel-dusk);
   }
-  .loud-warm {
-    --loud-bg: var(--loud-warm-bg);
-    --loud-fg: var(--loud-warm-fg);
+  .tint-warm {
+    background-image: var(--panel-warm);
   }
   .loud-ink {
     --loud-bg: var(--loud-ink-bg);
@@ -312,7 +297,7 @@
   }
   .display-title {
     font-family: var(--font-display);
-    font-weight: 800;
+    font-weight: 700;
     text-transform: uppercase;
     letter-spacing: -0.035em;
     line-height: 0.92;

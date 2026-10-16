@@ -14,12 +14,41 @@ import {
 import { startSession } from "@/data/actions";
 import { newId, put } from "@/data/db";
 import { COL, type RoutineBlock, type RoutineException, type WorkoutTemplate } from "@/data/types";
-import { formatDateLong, WEEKDAY_SHORT, type ISODate } from "@/domain/dates";
+import { addDays, formatDateLong, WEEKDAY_SHORT, type ISODate } from "@/domain/dates";
+import { usePrayer } from "@/data/prayer-hooks";
 import { PRAYER_LABEL, PRAYERS, type PrayerName } from "@/domain/prayer";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "@tanstack/react-router";
 
-const KINDS: RoutineBlock["kind"][] = ["routine", "work", "sleep", "meal-prep", "personal"];
+const KINDS: { value: RoutineBlock["kind"]; label: string }[] = [
+  { value: "routine", label: "Routine" },
+  { value: "workout", label: "Workout" },
+  { value: "meal", label: "Meal" },
+  { value: "meal-prep", label: "Meal prep" },
+  { value: "mind", label: "Mind" },
+  { value: "soul", label: "Soul" },
+  { value: "personal", label: "Personal" },
+  { value: "work", label: "Work (context)" },
+  { value: "sleep", label: "Sleep (context)" },
+];
+
+type LinkKey = "manual" | "workout" | "meal" | "checkin" | "reflection" | "focus" | PrayerName;
+const linkKey = (l: RoutineBlock["link"]): LinkKey =>
+  !l || l.type === "manual"
+    ? "manual"
+    : l.type === "prayer"
+      ? l.prayer
+      : l.type === "mind"
+        ? l.kind
+        : l.type;
+const keyToLink = (k: LinkKey): RoutineBlock["link"] =>
+  k === "manual"
+    ? { type: "manual" }
+    : k === "workout" || k === "meal"
+      ? { type: k }
+      : k === "checkin" || k === "reflection" || k === "focus"
+        ? { type: "mind", kind: k }
+        : { type: "prayer", prayer: k };
 
 /** Edit a recurring block. When opened from a date, a single occurrence can be skipped or moved without changing the series. */
 export function BlockSheet({
@@ -71,17 +100,24 @@ export function BlockSheet({
     toast.success(isNew ? "Block added" : "Series updated");
     onClose();
   };
-  const saveDay = async (kind: "skip" | "move") => {
+  const saveDay = async (kind: "skip" | "move" | "rest") => {
     const ex: RoutineException = {
       id: `${b.id}:${date}`,
       blockId: b.id!,
       date: date!,
-      kind,
+      kind: kind === "move" ? "move" : "skip",
+      reason: kind === "rest" ? "rest" : kind === "skip" ? "skip" : undefined,
       start: kind === "move" ? oStart : undefined,
       end: kind === "move" ? oEnd || undefined : undefined,
     };
     await put(COL.routineExceptions, ex.id, ex);
-    toast.success(kind === "skip" ? "Skipped for this day" : "Moved for this day");
+    toast.success(
+      kind === "move"
+        ? "Moved for this day"
+        : kind === "rest"
+          ? "Marked as a rest day"
+          : "Skipped for this day",
+    );
     onClose();
   };
 
@@ -96,7 +132,10 @@ export function BlockSheet({
         scope === "day" && occurrenceMode ? (
           <div className="flex gap-2">
             <Button variant="secondary" onClick={() => saveDay("skip")}>
-              Skip this day
+              Skip
+            </Button>
+            <Button variant="secondary" onClick={() => saveDay("rest")}>
+              Rest day
             </Button>
             <Button
               className="flex-1"
@@ -183,10 +222,37 @@ export function BlockSheet({
                 onChange={(e) => set({ kind: e.target.value as RoutineBlock["kind"] })}
               >
                 {KINDS.map((k) => (
-                  <option key={k}>{k}</option>
+                  <option key={k.value} value={k.value}>
+                    {k.label}
+                  </option>
                 ))}
               </Select>
             </Field>
+            {b.kind !== "work" && b.kind !== "sleep" && (
+              <Field
+                label="Counts as done when"
+                hint="Linked activities complete themselves when you log the real thing, so there is nothing separate to tick."
+                htmlFor="b-link"
+              >
+                <Select
+                  id="b-link"
+                  value={linkKey(b.link)}
+                  onChange={(e) => set({ link: keyToLink(e.target.value as LinkKey) })}
+                >
+                  <option value="manual">I tick it off myself</option>
+                  <option value="workout">A workout is finished</option>
+                  <option value="meal">A meal is logged</option>
+                  <option value="checkin">I save a Mind check-in</option>
+                  <option value="reflection">I save a reflection</option>
+                  <option value="focus">I finish a focus session</option>
+                  {PRAYERS.map((p) => (
+                    <option key={p} value={p}>
+                      {PRAYER_LABEL[p]} is logged as prayed
+                    </option>
+                  ))}
+                </Select>
+              </Field>
+            )}
             <fieldset>
               <legend className="mb-1 text-sm font-medium">Repeats on</legend>
               <div className="flex flex-wrap gap-1.5">
@@ -211,6 +277,7 @@ export function BlockSheet({
                 })}
               </div>
             </fieldset>
+            {!isNew && <PauseControl b={b} set={set} />}
             <Switch
               label="Time relative to a prayer"
               hint="Follows the prayer through the year, like 40 minutes before Fajr."
@@ -393,5 +460,53 @@ export function WorkoutSheet({
         </div>
       )}
     </Sheet>
+  );
+}
+
+/** Pause a series without losing it, and resume it again. Pausing never deletes past records. */
+function PauseControl({
+  b,
+  set,
+}: {
+  b: Partial<RoutineBlock>;
+  set: (p: Partial<RoutineBlock>) => void;
+}) {
+  const today = usePrayer(Date.now()).today;
+  const paused =
+    !!b.pausedFrom && (b.pausedUntil == null || b.pausedUntil > today) && b.pausedFrom <= today;
+  const scheduled = !!b.pausedFrom && !paused && b.pausedFrom > today;
+  return (
+    <fieldset className="rounded-2xl border border-line p-3">
+      <legend className="px-1 text-sm font-medium">Pause</legend>
+      {paused || scheduled ? (
+        <div className="flex flex-wrap items-center gap-3">
+          <p className="text-sm">
+            {paused ? "Paused" : "Pauses"} from {b.pausedFrom}
+            {b.pausedUntil ? ` until ${b.pausedUntil}` : " until you resume"}.
+          </p>
+          <Button size="sm" onClick={() => set({ pausedFrom: undefined, pausedUntil: undefined })}>
+            Resume
+          </Button>
+        </div>
+      ) : (
+        <div className="grid gap-2">
+          <p className="text-sm text-muted-foreground">
+            Hide it from your days for a while, without deleting it.
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <Button size="sm" onClick={() => set({ pausedFrom: today, pausedUntil: null })}>
+              Pause until I resume
+            </Button>
+            <Button
+              size="sm"
+              onClick={() => set({ pausedFrom: today, pausedUntil: addDays(today, 7) })}
+            >
+              Pause for a week
+            </Button>
+          </div>
+        </div>
+      )}
+      <p className="mt-2 text-xs text-muted-foreground">Choose "Save series" to apply.</p>
+    </fieldset>
   );
 }

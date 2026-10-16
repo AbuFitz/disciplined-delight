@@ -620,7 +620,7 @@ function Builder() {
 
           {plan && assessment && (
             <>
-              <Panel tone="green" aria-label="Summary">
+              <Panel aria-label="Summary" className="tint-green">
                 <h2 className="display-title text-[clamp(1.9rem,8vw,3rem)]">
                   {plan.programmeName}
                 </h2>

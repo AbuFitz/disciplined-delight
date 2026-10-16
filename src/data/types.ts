@@ -28,6 +28,9 @@ export const COL = {
   layout: "layout",
   foodDays: "foodDays",
   reminderPrefs: "reminderPrefs",
+  routineDone: "routineDone",
+  mind: "mind",
+  modules: "modules",
   plans: "plans",
   exercisePrefs: "exercisePrefs",
   customExercises: "customExercises",
@@ -241,7 +244,23 @@ export type RoutineBlock = {
   approx?: boolean;
   highlight?: boolean;
   weekdays: number[]; // 0 = Mon
-  kind: "routine" | "work" | "sleep" | "meal-prep" | "personal";
+  kind:
+    | "routine"
+    | "work"
+    | "sleep"
+    | "meal-prep"
+    | "personal"
+    | "workout"
+    | "meal"
+    | "mind"
+    | "soul";
+  /** What completes this activity. Absent or "manual" = tick it off yourself. Linked kinds complete from the real record. */
+  link?: RoutineLink;
+  /** Planned length in minutes (used when `end` is absent, and by the routine builder). */
+  durationMin?: number;
+  /** Paused from this date (inclusive) until `pausedUntil` (exclusive); open-ended when `pausedUntil` is null. */
+  pausedFrom?: string;
+  pausedUntil?: string | null;
   provisional?: boolean;
   /** Anchor to a prayer instead of a clock time. */
   relativeTo?: { prayer: "fajr" | "dhuhr" | "asr" | "maghrib" | "isha"; offsetMinutes: number };
@@ -250,14 +269,59 @@ export type RoutineBlock = {
   order: number;
 };
 
+export type RoutineLink =
+  | { type: "manual" }
+  | { type: "workout"; templateId?: string }
+  | { type: "prayer"; prayer: "fajr" | "dhuhr" | "asr" | "maghrib" | "isha" }
+  | { type: "meal" }
+  | { type: "mind"; kind: MindKind };
+
 export type RoutineException = {
   id: string;
   blockId: string;
+  /** The date the occurrence normally falls on. */
   date: string;
   kind: "skip" | "move";
+  /** "rest" = a deliberate rest day (shown as such), "skip" = just not doing it this time. */
+  reason?: "rest" | "skip";
+  /** Move to another day (otherwise a move only changes the time). */
+  toDate?: string;
   start?: string;
   end?: string;
 };
+
+/** A manual tick or an acknowledged skip for one occurrence. Linked activities derive done-ness from their own records instead. */
+export type RoutineCompletion = {
+  id: string; // `${blockId}:${date}`
+  blockId: string;
+  date: string;
+  status: "done" | "skipped";
+  at: number;
+};
+
+export type MindKind = "checkin" | "reflection" | "focus";
+
+/** Private by default: owner-only in storage and sync, never read by anything social. */
+export type MindEntry = {
+  id: string;
+  date: string;
+  at: number;
+  kind: MindKind;
+  /** Which space it belongs to (Soul reflections are kept apart from Mind ones). */
+  space: "mind" | "soul";
+  mood?: 1 | 2 | 3 | 4 | 5;
+  energy?: 1 | 2 | 3 | 4 | 5;
+  tags?: string[];
+  prompt?: string;
+  text?: string;
+  minutes?: number;
+  visibility: "private";
+};
+
+export type Modules = { id: "main"; salah?: boolean };
+
+/** Collections that hold personal reflections and religious practice. Nothing social may read these. */
+export const PRIVATE_COLLECTIONS: string[] = ["mind", "prayerLogs", "prayerSettings", "prayerDays"];
 
 export type WeighIn = {
   id: string;

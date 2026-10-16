@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { addDays, localDate } from "@/domain/dates";
+import { addDays, deviceTz, localDate } from "@/domain/dates";
 import { useCollection } from "./hooks";
 import {
   DEFAULT_PRAYER_SETTINGS,
@@ -7,7 +7,7 @@ import {
   refreshPrayerTimes,
   type StoredPrayerDay,
 } from "./prayer";
-import { COL, type PrayerLog, type PrayerSettings } from "./types";
+import { COL, type PrayerLog, type PrayerSettings, type Profile } from "./types";
 import { put } from "./db";
 
 /** Prayer settings, cached days and logs; refreshes the cache when today/tomorrow are missing and online. */
@@ -15,9 +15,10 @@ export function usePrayer(now: number) {
   const s = useCollection<PrayerSettings>(COL.prayerSettings);
   const d = useCollection<StoredPrayerDay>(COL.prayerDays);
   const l = useCollection<PrayerLog>(COL.prayerLogs);
+  const profile = useCollection<Profile>(COL.profile).items[0];
   const settings = s.items[0];
   const lookup = useMemo(() => makeLookup(d.items, settings), [d.items, settings]);
-  const tz = settings?.timezone ?? "Europe/London";
+  const tz = settings?.timezone ?? profile?.timezone ?? deviceTz();
   const today = localDate(now, tz);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);

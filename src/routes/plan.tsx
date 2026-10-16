@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { AlertTriangle, ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { useMemo, useState } from "react";
 import { BlockSheet, WorkoutSheet } from "@/components/nl/plan";
+import { RoutineBuilder } from "@/components/nl/routine-builder";
 import { Button, Chip, PageHeader, Skeleton } from "@/components/nl/ui";
 import { useCollection, useNow } from "@/data/hooks";
 import { usePrayer } from "@/data/prayer-hooks";
@@ -25,6 +26,7 @@ import {
 } from "@/domain/dates";
 import { PRAYER_LABEL, PRAYERS } from "@/domain/prayer";
 import { findConflicts, minToHHMM, occurrencesFor, type Occurrence } from "@/domain/schedule";
+import { resumeBlock } from "@/data/routine-actions";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/plan")({ component: PlanPage });
@@ -48,6 +50,7 @@ function PlanPage() {
   const [sel, setSel] = useState<ISODate | null>(null);
   const [edit, setEdit] = useState<{ block: Partial<RoutineBlock>; date?: ISODate } | null>(null);
   const [wk, setWk] = useState<{ tpl: WorkoutTemplate; date: ISODate } | null>(null);
+  const [building, setBuilding] = useState(false);
   const base = anchor ?? today;
   const days = weekDates(base);
   const selected = sel && days.includes(sel) ? sel : days.includes(today) ? today : days[0]!;
@@ -109,10 +112,15 @@ function PlanPage() {
         eyebrow="Week"
         title="Plan the week"
         actions={
-          <Button variant="primary" onClick={() => setEdit({ block: {} })}>
-            <Plus className="size-4" />
-            Add block
-          </Button>
+          <>
+            <Button variant="secondary" onClick={() => setBuilding(true)}>
+              Build my routine
+            </Button>
+            <Button variant="primary" onClick={() => setEdit({ block: {} })}>
+              <Plus className="size-4" />
+              Add block
+            </Button>
+          </>
         }
       />
       <div className="mb-4 flex items-center gap-1">
@@ -264,6 +272,55 @@ function PlanPage() {
           );
         })}
       </div>
+      <section className="mt-8" aria-label="Your repeating activities">
+        <h2 className="eyebrow mb-2">Your repeating activities</h2>
+        {blocks.items.filter((b) => !b.archivedAt).length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            None yet. Add a block, or build a routine around your day.
+          </p>
+        ) : (
+          <ul className="grid gap-2 md:grid-cols-2">
+            {blocks.items
+              .filter((b) => !b.archivedAt)
+              .sort((a, b) => a.order - b.order)
+              .map((b) => {
+                const paused =
+                  !!b.pausedFrom &&
+                  b.pausedFrom <= today &&
+                  (b.pausedUntil == null || b.pausedUntil > today);
+                return (
+                  <li
+                    key={b.id}
+                    className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-line p-3"
+                  >
+                    <button
+                      className="min-h-11 min-w-0 flex-1 text-left"
+                      onClick={() => setEdit({ block: b })}
+                    >
+                      <span className="block truncate font-medium">{b.label}</span>
+                      <span className="block text-sm text-muted-foreground tnum">
+                        {b.relativeTo
+                          ? "Prayer-linked"
+                          : `${to12h(b.start)}${b.end ? `–${to12h(b.end)}` : ""}`}{" "}
+                        ·{" "}
+                        {b.weekdays.length === 7
+                          ? "Daily"
+                          : b.weekdays.map((d) => WEEKDAY_SHORT[d]).join(", ")}
+                      </span>
+                    </button>
+                    {paused && <Chip tone="warn">Paused</Chip>}
+                    {paused && (
+                      <Button size="sm" onClick={() => void resumeBlock(b.id, today)}>
+                        Resume
+                      </Button>
+                    )}
+                  </li>
+                );
+              })}
+          </ul>
+        )}
+      </section>
+      <RoutineBuilder open={building} onOpenChange={setBuilding} />
       <BlockSheet
         block={edit?.block ?? null}
         date={edit?.date}

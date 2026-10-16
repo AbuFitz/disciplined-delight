@@ -12,7 +12,7 @@ import {
 } from "./types";
 import { DAY_PLANS, SHOPPING, SUPPLEMENTS, WEEKLY_SPLIT, workouts } from "@/lib/sunrise-data";
 import { parseScheme } from "@/domain/progression";
-import { DEFAULT_TZ } from "@/domain/dates";
+import { DEFAULT_TZ, deviceTz } from "@/domain/dates";
 import type { Ingredient, Recipe } from "@/domain/nutrition";
 import { LEGACY_UNITS, parseLegacyItems } from "./legacy-lines";
 
@@ -181,7 +181,7 @@ export function buildSeed() {
 /** A new person's profile: no targets, no goals, nothing assumed. */
 export const blankProfile = (): Profile => ({
   name: "",
-  timezone: DEFAULT_TZ,
+  timezone: deviceTz(),
   goal: { kind: "strength" },
   targets: { status: "unset" },
   setup: { goals: false, routine: false, prayer: false, food: false },

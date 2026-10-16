@@ -9,6 +9,8 @@ import {
   Settings,
   Utensils,
   BookOpen,
+  Brain,
+  Users,
 } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 import { useCollection } from "@/data/hooks";
@@ -17,13 +19,28 @@ import { SYNC_LABEL, useSyncStatus } from "@/data/sync-status";
 import { Wordmark } from "@/components/brand/Wordmark";
 import { cn } from "@/lib/utils";
 
-const PRIMARY = [
-  { to: "/", label: "Today", icon: Home },
-  { to: "/train", label: "Train", icon: Dumbbell },
-  { to: "/food", label: "Food", icon: Utensils },
-  { to: "/salah", label: "Salah", icon: MoonStar },
-  { to: "/progress", label: "Progress", icon: LineChart },
-] as const;
+type NavItem = { to: string; label: string; icon: typeof Home; match: string[] };
+
+/** Today, Body, Mind, Soul, Circle. Older URLs (/train, /food, /salah …) still work and light up their space. */
+const PRIMARY: NavItem[] = [
+  { to: "/", label: "Today", icon: Home, match: [] },
+  {
+    to: "/body",
+    label: "Body",
+    icon: Dumbbell,
+    match: ["/body", "/train", "/food", "/progress", "/library", "/nutrition", "/workouts"],
+  },
+  { to: "/mind", label: "Mind", icon: Brain, match: ["/mind"] },
+  { to: "/soul", label: "Soul", icon: MoonStar, match: ["/soul", "/salah"] },
+  { to: "/circle", label: "Circle", icon: Users, match: ["/circle"] },
+];
+const QUICK: NavItem[] = [
+  { to: "/train", label: "Train", icon: Dumbbell, match: ["/train"] },
+  { to: "/food", label: "Food", icon: Utensils, match: ["/food"] },
+  { to: "/progress", label: "Progress", icon: LineChart, match: ["/progress"] },
+  { to: "/library", label: "Library", icon: BookOpen, match: ["/library"] },
+  { to: "/plan", label: "Week", icon: CalendarDays, match: ["/plan", "/schedule"] },
+];
 
 function useTyping() {
   const [typing, setTyping] = useState(false);
@@ -76,8 +93,10 @@ export function Shell({ children }: { children: ReactNode }) {
   const typing = useTyping();
   const active = useActiveSession();
   const onSession = loc.pathname.startsWith("/train/session");
-  const isActive = (to: string) =>
-    to === "/" ? loc.pathname === "/" : loc.pathname.startsWith(to);
+  const isActive = (to: string, match: string[] = []) =>
+    to === "/"
+      ? loc.pathname === "/"
+      : [to, ...match].some((m) => loc.pathname === m || loc.pathname.startsWith(m + "/"));
 
   return (
     <div className="min-h-dvh lg:grid lg:grid-cols-[15.5rem_1fr]">
@@ -92,23 +111,38 @@ export function Shell({ children }: { children: ReactNode }) {
             <Wordmark className="text-[1.05rem]" />
           </Link>
           <nav aria-label="Primary" className="grid gap-1">
-            {[
-              ...PRIMARY,
-              { to: "/plan", label: "Week", icon: CalendarDays },
-              { to: "/library", label: "Library", icon: BookOpen },
-            ].map((t) => (
+            {PRIMARY.map((t) => (
               <Link
                 key={t.to}
                 to={t.to}
-                aria-current={isActive(t.to) ? "page" : undefined}
+                aria-current={isActive(t.to, t.match) ? "page" : undefined}
                 className={cn(
                   "flex min-h-11 items-center gap-3 rounded-2xl px-3 text-[0.95rem] font-medium transition",
-                  isActive(t.to)
+                  isActive(t.to, t.match)
                     ? "bg-surface text-foreground"
                     : "text-muted-foreground hover:text-foreground",
                 )}
               >
-                <t.icon className="size-5" strokeWidth={isActive(t.to) ? 2.4 : 1.9} />
+                <t.icon className="size-5" strokeWidth={isActive(t.to, t.match) ? 2.4 : 1.9} />
+                {t.label}
+              </Link>
+            ))}
+          </nav>
+          <nav aria-label="Shortcuts" className="mt-6 grid gap-1">
+            <p className="eyebrow mb-1 px-3">Shortcuts</p>
+            {QUICK.map((t) => (
+              <Link
+                key={t.to}
+                to={t.to}
+                aria-current={isActive(t.to, t.match) ? "page" : undefined}
+                className={cn(
+                  "flex min-h-10 items-center gap-3 rounded-2xl px-3 text-sm font-medium transition",
+                  isActive(t.to, t.match)
+                    ? "text-foreground underline underline-offset-4"
+                    : "text-muted-foreground hover:text-foreground",
+                )}
+              >
+                <t.icon className="size-4" strokeWidth={1.9} />
                 {t.label}
               </Link>
             ))}
@@ -197,16 +231,16 @@ export function Shell({ children }: { children: ReactNode }) {
             <li key={t.to} className="flex-1">
               <Link
                 to={t.to}
-                aria-current={isActive(t.to) ? "page" : undefined}
+                aria-current={isActive(t.to, t.match) ? "page" : undefined}
                 className={cn(
                   "flex min-h-[3.75rem] min-w-0 flex-col items-center justify-center gap-0.5 overflow-hidden text-ellipsis whitespace-nowrap px-0.5 text-[0.68rem] font-medium",
-                  isActive(t.to) ? "text-foreground" : "text-muted-foreground",
+                  isActive(t.to, t.match) ? "text-foreground" : "text-muted-foreground",
                 )}
               >
                 <span
                   className={cn(
                     "flex h-7 w-12 items-center justify-center rounded-full transition",
-                    isActive(t.to) && "bg-primary text-primary-foreground",
+                    isActive(t.to, t.match) && "bg-primary text-primary-foreground",
                   )}
                 >
                   <t.icon className="size-[1.15rem]" strokeWidth={2.2} />

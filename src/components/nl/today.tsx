@@ -148,9 +148,9 @@ export function NextActionWidget({ profile, today, now }: Ctx) {
   }
 
   return (
-    <Panel tone="green" className="md:p-8">
+    <Panel tone="ink" className="md:p-8">
       <Eyebrow>Next up</Eyebrow>
-      <h2 className="display-title mt-3 text-[clamp(2.5rem,12vw,5rem)]">{headline}</h2>
+      <h2 className="display-title mt-3 text-[clamp(2.25rem,9vw,3.75rem)]">{headline}</h2>
       <p className="mt-4 max-w-xl text-lg">{sub}</p>
       <div className="mt-5 flex flex-wrap items-center gap-2">
         {primary}
@@ -184,7 +184,7 @@ export function PrayerWidget({ today, now }: Ctx) {
   const curLogged = cur ? prayer.logs.some((l) => l.id === `${today}:${cur}`) : true;
 
   return (
-    <Panel tone="dusk" aria-label="Next prayer">
+    <Panel aria-label="Next prayer">
       <div className="flex items-start justify-between gap-3">
         <Eyebrow className="!text-foreground/70">Next prayer</Eyebrow>
         {prayer.settings && (
@@ -284,7 +284,7 @@ export function FoodWidget({ profile, today }: Ctx) {
   const logged = food.logs.length > 0;
 
   return (
-    <Panel tone="warm" aria-label="Food">
+    <Panel aria-label="Food">
       <div className="flex items-start justify-between gap-3">
         <Eyebrow className="!text-foreground/70">Food</Eyebrow>
         {t.status === "provisional" && <Chip tone="warn">Target not confirmed</Chip>}
@@ -297,7 +297,7 @@ export function FoodWidget({ profile, today }: Ctx) {
             {logged ? (
               <span className="stat">{Math.round(eaten.kcal).toLocaleString("en-GB")}</span>
             ) : (
-              <span className="display-title text-[clamp(2.25rem,11vw,3.5rem)]">Not logged</span>
+              <span className="display-title text-[clamp(1.75rem,8vw,2.5rem)]">Not logged</span>
             )}
             {logged && (
               <span className="text-foreground/75">
@@ -364,7 +364,7 @@ export function TrainingWidget({ today }: Ctx) {
         <div className="mt-3 h-16 animate-pulse rounded-2xl bg-surface-2" />
       ) : (
         <>
-          <p className="display-title mt-3 text-[clamp(2rem,10vw,3.5rem)]">
+          <p className="display-title mt-3 text-[clamp(1.75rem,8vw,2.5rem)]">
             {active
               ? `Workout ${active.templateLetter ?? ""} in progress`.replace("  ", " ")
               : planned

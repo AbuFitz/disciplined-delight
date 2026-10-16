@@ -88,7 +88,7 @@ export function PageHeader({
     <header className="mb-6 flex flex-wrap items-end justify-between gap-x-6 gap-y-3 md:mb-8">
       <div className="min-w-0">
         {eyebrow && <Eyebrow className="mb-2">{eyebrow}</Eyebrow>}
-        <h1 className="display-title text-[clamp(2.75rem,14vw,4.75rem)] md:text-7xl">{title}</h1>
+        <h1 className="display-title text-[clamp(2.25rem,10vw,3.5rem)] md:text-6xl">{title}</h1>
         {sub && <p className="mt-3 max-w-xl text-muted-foreground">{sub}</p>}
       </div>
       {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
@@ -113,7 +113,10 @@ export function Panel({
       className={cn(
         "rounded-[1.75rem] border border-line p-5 md:p-7",
         tone === "plain" && "bg-surface",
-        tone !== "plain" && `loud loud-${tone}`,
+        tone === "ink" && "loud loud-ink",
+        tone === "green" && "tint-green bg-surface",
+        tone === "dusk" && "tint-dusk bg-surface",
+        tone === "warm" && "tint-warm bg-surface",
         className,
       )}
       {...(p as object)}

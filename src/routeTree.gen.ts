@@ -10,8 +10,11 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as BodyRouteImport } from './routes/body'
+import { Route as CircleRouteImport } from './routes/circle'
 import { Route as FoodRouteImport } from './routes/food'
 import { Route as LibraryRouteImport } from './routes/library'
+import { Route as MindRouteImport } from './routes/mind'
 import { Route as NutritionRouteImport } from './routes/nutrition'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as PlanRouteImport } from './routes/plan'
@@ -19,6 +22,7 @@ import { Route as ProgressRouteImport } from './routes/progress'
 import { Route as SalahRouteImport } from './routes/salah'
 import { Route as ScheduleRouteImport } from './routes/schedule'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as SoulRouteImport } from './routes/soul'
 import { Route as TrainRouteImport } from './routes/train'
 import { Route as WelcomeRouteImport } from './routes/welcome'
 import { Route as WorkoutsRouteImport } from './routes/workouts'
@@ -34,6 +38,16 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BodyRoute = BodyRouteImport.update({
+  id: '/body',
+  path: '/body',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CircleRoute = CircleRouteImport.update({
+  id: '/circle',
+  path: '/circle',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const FoodRoute = FoodRouteImport.update({
   id: '/food',
   path: '/food',
@@ -42,6 +56,11 @@ const FoodRoute = FoodRouteImport.update({
 const LibraryRoute = LibraryRouteImport.update({
   id: '/library',
   path: '/library',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MindRoute = MindRouteImport.update({
+  id: '/mind',
+  path: '/mind',
   getParentRoute: () => rootRouteImport,
 } as any)
 const NutritionRoute = NutritionRouteImport.update({
@@ -77,6 +96,11 @@ const ScheduleRoute = ScheduleRouteImport.update({
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SoulRoute = SoulRouteImport.update({
+  id: '/soul',
+  path: '/soul',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TrainRoute = TrainRouteImport.update({
@@ -127,8 +151,11 @@ const TrainSessionRoute = TrainSessionRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/body': typeof BodyRoute
+  '/circle': typeof CircleRoute
   '/food': typeof FoodRoute
   '/library': typeof LibraryRoute
+  '/mind': typeof MindRoute
   '/nutrition': typeof NutritionRoute
   '/onboarding': typeof OnboardingRoute
   '/plan': typeof PlanRoute
@@ -136,6 +163,7 @@ export interface FileRoutesByFullPath {
   '/salah': typeof SalahRoute
   '/schedule': typeof ScheduleRoute
   '/settings': typeof SettingsRoute
+  '/soul': typeof SoulRoute
   '/train': typeof TrainRouteWithChildren
   '/welcome': typeof WelcomeRoute
   '/workouts': typeof WorkoutsRoute
@@ -148,8 +176,11 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/body': typeof BodyRoute
+  '/circle': typeof CircleRoute
   '/food': typeof FoodRoute
   '/library': typeof LibraryRoute
+  '/mind': typeof MindRoute
   '/nutrition': typeof NutritionRoute
   '/onboarding': typeof OnboardingRoute
   '/plan': typeof PlanRoute
@@ -157,6 +188,7 @@ export interface FileRoutesByTo {
   '/salah': typeof SalahRoute
   '/schedule': typeof ScheduleRoute
   '/settings': typeof SettingsRoute
+  '/soul': typeof SoulRoute
   '/welcome': typeof WelcomeRoute
   '/workouts': typeof WorkoutsRoute
   '/auth/callback': typeof AuthCallbackRoute
@@ -169,8 +201,11 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/body': typeof BodyRoute
+  '/circle': typeof CircleRoute
   '/food': typeof FoodRoute
   '/library': typeof LibraryRoute
+  '/mind': typeof MindRoute
   '/nutrition': typeof NutritionRoute
   '/onboarding': typeof OnboardingRoute
   '/plan': typeof PlanRoute
@@ -178,6 +213,7 @@ export interface FileRoutesById {
   '/salah': typeof SalahRoute
   '/schedule': typeof ScheduleRoute
   '/settings': typeof SettingsRoute
+  '/soul': typeof SoulRoute
   '/train': typeof TrainRouteWithChildren
   '/welcome': typeof WelcomeRoute
   '/workouts': typeof WorkoutsRoute
@@ -192,8 +228,11 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/body'
+    | '/circle'
     | '/food'
     | '/library'
+    | '/mind'
     | '/nutrition'
     | '/onboarding'
     | '/plan'
@@ -201,6 +240,7 @@ export interface FileRouteTypes {
     | '/salah'
     | '/schedule'
     | '/settings'
+    | '/soul'
     | '/train'
     | '/welcome'
     | '/workouts'
@@ -213,8 +253,11 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/body'
+    | '/circle'
     | '/food'
     | '/library'
+    | '/mind'
     | '/nutrition'
     | '/onboarding'
     | '/plan'
@@ -222,6 +265,7 @@ export interface FileRouteTypes {
     | '/salah'
     | '/schedule'
     | '/settings'
+    | '/soul'
     | '/welcome'
     | '/workouts'
     | '/auth/callback'
@@ -233,8 +277,11 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/body'
+    | '/circle'
     | '/food'
     | '/library'
+    | '/mind'
     | '/nutrition'
     | '/onboarding'
     | '/plan'
@@ -242,6 +289,7 @@ export interface FileRouteTypes {
     | '/salah'
     | '/schedule'
     | '/settings'
+    | '/soul'
     | '/train'
     | '/welcome'
     | '/workouts'
@@ -255,8 +303,11 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  BodyRoute: typeof BodyRoute
+  CircleRoute: typeof CircleRoute
   FoodRoute: typeof FoodRoute
   LibraryRoute: typeof LibraryRoute
+  MindRoute: typeof MindRoute
   NutritionRoute: typeof NutritionRoute
   OnboardingRoute: typeof OnboardingRoute
   PlanRoute: typeof PlanRoute
@@ -264,6 +315,7 @@ export interface RootRouteChildren {
   SalahRoute: typeof SalahRoute
   ScheduleRoute: typeof ScheduleRoute
   SettingsRoute: typeof SettingsRoute
+  SoulRoute: typeof SoulRoute
   TrainRoute: typeof TrainRouteWithChildren
   WelcomeRoute: typeof WelcomeRoute
   WorkoutsRoute: typeof WorkoutsRoute
@@ -281,6 +333,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/body': {
+      id: '/body'
+      path: '/body'
+      fullPath: '/body'
+      preLoaderRoute: typeof BodyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/circle': {
+      id: '/circle'
+      path: '/circle'
+      fullPath: '/circle'
+      preLoaderRoute: typeof CircleRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/food': {
       id: '/food'
       path: '/food'
@@ -293,6 +359,13 @@ declare module '@tanstack/react-router' {
       path: '/library'
       fullPath: '/library'
       preLoaderRoute: typeof LibraryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mind': {
+      id: '/mind'
+      path: '/mind'
+      fullPath: '/mind'
+      preLoaderRoute: typeof MindRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/nutrition': {
@@ -342,6 +415,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/soul': {
+      id: '/soul'
+      path: '/soul'
+      fullPath: '/soul'
+      preLoaderRoute: typeof SoulRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/train': {
@@ -426,8 +506,11 @@ const TrainRouteWithChildren = TrainRoute._addFileChildren(TrainRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  BodyRoute: BodyRoute,
+  CircleRoute: CircleRoute,
   FoodRoute: FoodRoute,
   LibraryRoute: LibraryRoute,
+  MindRoute: MindRoute,
   NutritionRoute: NutritionRoute,
   OnboardingRoute: OnboardingRoute,
   PlanRoute: PlanRoute,
@@ -435,6 +518,7 @@ const rootRouteChildren: RootRouteChildren = {
   SalahRoute: SalahRoute,
   ScheduleRoute: ScheduleRoute,
   SettingsRoute: SettingsRoute,
+  SoulRoute: SoulRoute,
   TrainRoute: TrainRouteWithChildren,
   WelcomeRoute: WelcomeRoute,
   WorkoutsRoute: WorkoutsRoute,
