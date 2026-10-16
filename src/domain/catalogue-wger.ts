@@ -104,8 +104,7 @@ const ENGLISH = 2;
 const unique = <T>(a: T[]) => [...new Set(a)];
 
 export type Normalised =
-  | { ok: true; exercise: CatalogueExercise }
-  | { ok: false; quarantined: Quarantined };
+  { ok: true; exercise: CatalogueExercise } | { ok: false; quarantined: Quarantined };
 
 function mediaOf(e: WgerExercise, flags: string[]): MediaItem[] {
   const out: MediaItem[] = [];

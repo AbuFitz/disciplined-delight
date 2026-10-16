@@ -303,8 +303,8 @@ Keyboard: tab order and visible focus checked on eight routes, dialog focus trap
 
 | Check                                                                                  | Result                                                                                                                                                                                             |
 | -------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Unit tests (vitest, fake IndexedDB)                                                    | 196 pass: planner, reliability, plan actions (atomic failure, regeneration, restore), diff, routine engine incl. DST, routine actions, tracking, catalogue, backup, sync, accounts                 |
-| `tsc --noEmit`, `eslint`                                                               | clean, 0 errors (22 existing warnings)                                                                                                                                                             |
+| Unit tests (vitest, fake IndexedDB)                                                    | 217 pass: planner, reliability, plan actions (atomic failure, regeneration, restore), diff, routine engine incl. DST, routine actions, tracking, catalogue, backup, sync, accounts                 |
+| `tsc --noEmit`, `eslint`                                                               | clean, 0 errors and 0 warnings                                                                                                                                                                     |
 | Production build (`NITRO_PRESET=node-server`)                                          | builds; served on a local port                                                                                                                                                                     |
 | Offline on the **production build with the service worker active** (headless Chromium) | SW controls the page; catalogue snapshot cached; offline Library shows 879 exercises, search and credits work; a workout set logged offline survives a reload                                      |
 | Browser flows on the dev server (headless Chromium)                                    | builder gating (remove main lift → blocked → fill → saved), regenerate with required choice, archive and restore, routine builder, tick/undo/skip/undo/move/pause/resume, Salah optional, old URLs |
@@ -323,8 +323,8 @@ exercised; its checks have only been run against an incomplete local simulation,
    and the manual email, Google and push checks; real-iPhone and Android PWA checks.
 2. Set Vercel env names, Site/Redirect URLs, SMTP and templates; redeploy to confirm the security-patched TanStack build.
 3. Qualified coach/clinician review of `programmes.ts` and the curated exercise list before offering plans publicly.
-4. Rights decisions for the CC BY-SA catalogue (credits page, snapshot licence); hotlinked exercise images need a connection
-   (self-hosting selected images is the proper fix and is not done).
+4. Owner or legal review of the CC BY-SA snapshot distribution wording before public release. The in-app credits page,
+   per-record attribution and 235 self-hosted images with provenance are now implemented.
 5. vayvor.com registration, trademark search, embroidery test sew.
 6. Later phases: friends/crews/challenges/medals, chat and Four in a Row with dares, release verification.
 
