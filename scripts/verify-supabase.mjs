@@ -6,8 +6,10 @@
  *   node scripts/verify-supabase.mjs                      # read-only checks (anonymous)
  *   ... VERIFY_A_EMAIL=.. VERIFY_A_PASSWORD=.. VERIFY_B_EMAIL=.. VERIFY_B_PASSWORD=.. node scripts/verify-supabase.mjs --write
  *
- * `--write` signs in as two THROWAWAY, already-confirmed test accounts and writes a few rows under the collection
- * "verify". It never uses a service-role key and never prints keys or tokens. Exit code is non-zero if any check fails.
+ * `--write` signs in as two THROWAWAY, already-confirmed test accounts and exercises private sync plus Circle,
+ * chat and challenge records. It cleans up the social relationship and content afterwards, but creates profiles when
+ * absent and leaves sync tombstones. It never uses a service-role key or prints keys/tokens. Exit code is non-zero
+ * if any check fails.
  * Email delivery, Google sign-in, push delivery and real-device behaviour cannot be checked here: see
  * docs/SUPABASE-SETUP.md for the manual steps.
  */
@@ -211,6 +213,13 @@ async function login(prefix) {
   });
   return r.status === 200 ? { token: r.json.access_token, id: r.json.user.id } : null;
 }
+const okResponse = (response) => response.status >= 200 && response.status < 300;
+const rpc = (name, user, body = {}) =>
+  call(`/rest/v1/rpc/${name}`, { method: "POST", token: user.token, body });
+const isUuid = (value) =>
+  typeof value === "string" &&
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+
 if (!write)
   rec(
     "Authenticated checks (isolation, sync, profiles)",
@@ -331,6 +340,146 @@ else {
       avail.json === true,
       JSON.stringify(avail.json),
     );
+
+    const ensureProfile = async (user, suffix) => {
+      const response = await rpc("create_profile", user, {
+        p_username: `verify_${suffix}_${Math.random().toString(36).slice(2, 8)}`,
+        p_display_name: `Verifier ${suffix}`,
+        p_timezone: "Europe/London",
+      });
+      return okResponse(response) || response.json?.message === "profile_exists";
+    };
+    const profilesReady = (await ensureProfile(A, "a")) && (await ensureProfile(B, "b"));
+    rec("Both test accounts have Circle profiles", profilesReady);
+
+    if (profilesReady) {
+      // Throwaway accounts only: start from a known relationship state and clean it again at the end.
+      await rpc("circle_unblock", A, { p_user_id: B.id });
+      await rpc("circle_unblock", B, { p_user_id: A.id });
+      await rpc("circle_remove_connection", A, { p_user_id: B.id });
+
+      const requested = await rpc("circle_send_request", A, { p_user_id: B.id });
+      rec(
+        "A can send B a connection request",
+        requested.json === "outgoing",
+        JSON.stringify(requested.json),
+      );
+      const accepted = await rpc("circle_respond_request", B, {
+        p_user_id: A.id,
+        p_accept: true,
+      });
+      rec(
+        "B can accept A's connection request",
+        accepted.json === "connected",
+        JSON.stringify(accepted.json),
+      );
+
+      const post = await rpc("circle_share", A, {
+        p_kind: "milestone",
+        p_title: "Verifier post",
+        p_body: "Created by the VAYVOR real-project verification script.",
+        p_metric_label: null,
+        p_metric_value: null,
+        p_source_date: null,
+      });
+      rec("A can share a Circle post", isUuid(post.json), JSON.stringify(post.json));
+      const feed = await rpc("circle_feed", B, { p_before: null, p_limit: 20 });
+      rec(
+        "B can see A's post while connected",
+        Array.isArray(feed.json) && feed.json.some((item) => item.id === post.json),
+        `HTTP ${feed.status}`,
+      );
+      const kudos = isUuid(post.json)
+        ? await rpc("circle_toggle_kudos", B, { p_post_id: post.json })
+        : { status: 0, json: null };
+      rec("B can give kudos to A's post", kudos.json === true, JSON.stringify(kudos.json));
+
+      const message = await rpc("circle_chat_send", A, {
+        p_user_id: B.id,
+        p_body: "Verifier message",
+      });
+      rec("A can message B", isUuid(message.json), JSON.stringify(message.json));
+      const messages = await rpc("circle_chat_messages", B, {
+        p_user_id: A.id,
+        p_before: null,
+        p_limit: 10,
+      });
+      rec(
+        "B can read A's message",
+        Array.isArray(messages.json) && messages.json.some((item) => item.id === message.json),
+        `HTTP ${messages.status}`,
+      );
+      const marked = await rpc("circle_chat_mark_read", B, { p_user_id: A.id });
+      rec("B can mark the thread read", Number(marked.json) >= 1, JSON.stringify(marked.json));
+
+      const endsOn = new Date(Date.now() + 2 * 86_400_000).toISOString().slice(0, 10);
+      const challenge = await rpc("circle_challenge_create", A, {
+        p_user_id: B.id,
+        p_title: "Verifier challenge",
+        p_unit: "sessions",
+        p_target: 3,
+        p_ends_on: endsOn,
+      });
+      rec("A can invite B to a challenge", isUuid(challenge.json), JSON.stringify(challenge.json));
+      const challengeAccepted = isUuid(challenge.json)
+        ? await rpc("circle_challenge_respond", B, {
+            p_challenge_id: challenge.json,
+            p_accept: true,
+          })
+        : { status: 0, json: null };
+      rec(
+        "B can accept A's challenge",
+        challengeAccepted.json === "active",
+        JSON.stringify(challengeAccepted.json),
+      );
+      const progress = isUuid(challenge.json)
+        ? await rpc("circle_challenge_add", A, {
+            p_challenge_id: challenge.json,
+            p_amount: 1,
+            p_note: "Verifier progress",
+          })
+        : { status: 0, json: null };
+      rec("A can add challenge progress", isUuid(progress.json), JSON.stringify(progress.json));
+      const challengeList = await rpc("circle_challenges", B);
+      rec(
+        "B sees the accepted challenge and A's progress",
+        Array.isArray(challengeList.json) &&
+          challengeList.json.some(
+            (item) => item.id === challenge.json && Number(item.their_progress) === 1,
+          ),
+        `HTTP ${challengeList.status}`,
+      );
+
+      const directPost = await call("/rest/v1/circle_posts", {
+        method: "POST",
+        token: A.token,
+        body: { author_id: A.id, kind: "milestone", title: "Direct write" },
+      });
+      rec(
+        "Direct Circle table writes are blocked",
+        denied(directPost),
+        `HTTP ${directPost.status}`,
+      );
+
+      const blocked = await rpc("circle_block", B, { p_user_id: A.id });
+      const blockedFeed = await rpc("circle_feed", B, { p_before: null, p_limit: 20 });
+      rec(
+        "Blocking ends the connection and hides A's post",
+        okResponse(blocked) &&
+          Array.isArray(blockedFeed.json) &&
+          !blockedFeed.json.some((item) => item.id === post.json),
+        `block HTTP ${blocked.status}, feed HTTP ${blockedFeed.status}`,
+      );
+
+      await rpc("circle_unblock", B, { p_user_id: A.id });
+      if (isUuid(progress.json))
+        await rpc("circle_challenge_delete_entry", A, { p_entry_id: progress.json });
+      if (isUuid(challenge.json))
+        await rpc("circle_challenge_close", A, { p_challenge_id: challenge.json });
+      if (isUuid(message.json)) await rpc("circle_chat_delete", A, { p_message_id: message.json });
+      if (isUuid(post.json)) await rpc("circle_delete_post", A, { p_post_id: post.json });
+      await rpc("circle_remove_connection", A, { p_user_id: B.id });
+    }
   }
 }
 
