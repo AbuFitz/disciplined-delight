@@ -27,8 +27,8 @@ describe("VAYVOR rebrand", () => {
       ),
       join(root, "public", "manifest.webmanifest"),
       join(root, "public", "sw.js"),
-      ...["0003_sync.sql", "0004_push_reminders.sql", "0005_profiles.sql"].map((f) =>
-        join(root, "supabase", "migrations", f),
+      ...["0003_sync.sql", "0004_push_reminders.sql", "0005_profiles.sql", "0006_circle.sql"].map(
+        (f) => join(root, "supabase", "migrations", f),
       ),
       ...walk(join(root, "supabase", "templates")),
       join(root, ".env.example"),

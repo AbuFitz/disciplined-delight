@@ -207,7 +207,7 @@ Evidence
   14 of 15 assertions passed; the 15th was a case-sensitive regex in my own test (the heading renders in capitals).
 
 **Not verified**: anything against a real Supabase project; real confirmation and recovery emails; Google sign-in;
-session expiry in the wild; migration `0005`.
+session expiry in the wild; migrations `0005` and `0006`.
 
 ## The Supabase project blocker
 
@@ -215,7 +215,7 @@ The only project the connector can see is "TruetoDetail System" (inactive, a dif
 VAYVOR project and **nothing was applied to it**. Activation needs a decision from you:
 
 1. Create or choose the VAYVOR Supabase project.
-2. Apply `supabase/migrations/0003` to `0005` (review first; `0001`/`0002` are legacy and unused by the new client).
+2. Apply `supabase/migrations/0003` to `0006` (review first; `0001`/`0002` are legacy and unused by the new client).
 3. Set Site URL and Redirect URLs (`<origin>/auth/callback`, `<origin>/auth/reset`) to the real working origin.
 4. Configure custom SMTP and paste `supabase/templates/*` (see its README).
 5. Set `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` on Vercel; add `VITE_AUTH_PROVIDERS=google` only after Google is configured.
@@ -249,7 +249,7 @@ Done:
 - Accept, replace and regenerate are account-scoped atomic operations covering templates, archives, plan records, equipment and sync mutations. A failed write preserves the previous schedule. Logged sessions are not rewritten.
 - Archived workouts have a restore view. Regeneration previews added/removed/changed exercises and requires an explicit choice for existing workouts.
 - Tracking types (weight/reps, bodyweight, assisted, time and distance) work in the session logger; only loaded lifts count toward volume/progression.
-- Service worker `nl-v3` keeps a network-first offline catalogue copy. Exercise photos are still hotlinked and therefore online-only.
+- Service worker `nl-v3` keeps network-first offline catalogue and same-origin exercise-media copies.
 
 ## Phase 3: connected daily routine system
 
@@ -258,13 +258,22 @@ Done:
 - Body brings together training, food, shopping/budget, progress, the exercise library and the plan builder.
 - The routine engine supports recurring and one-off activities, skip/rest/move, pause/resume, correcting completion, cross-midnight blocks, prayer-relative activities and timezone-local dates. Linked workouts, meals, prayers and Mind entries complete from their real records rather than a duplicate tick.
 - Today has one next action and a combined timeline. Routine editing is available from Today/Week.
-- Mind has private check-ins, reflections, focus entries and history. Soul keeps Salah optional and stores private reflections. Circle is deliberately an honest later-phase placeholder; it contains no fake people, scores or messages.
+- Mind has private check-ins, reflections, focus entries and history. Soul keeps Salah optional and stores private reflections.
 - Privacy is explicit in the UI and records: Mind entries are forced to `visibility: "private"`; journal, mood and prayer records are not exposed to Circle.
 
-Current verification (16 October 2026): 196 Vitest tests pass, TypeScript passes, ESLint passes with 18 fast-refresh-only warnings and no errors, and the Vercel-preset production build succeeds. Browser checks cover every main and legacy route at 320 px and 768 px, the five primary routes at 390 px, and Today at 1440 px; no horizontal overflow or console errors were observed. The complete builder produced a credible 3-day, 30-minute home-dumbbell plan and remained overflow-free at 320, 390 and 768 px; emptying a session disabled acceptance and exposed specific repair actions. Light theme at 320 px and keyboard traversal with a visible 2 px focus outline were also checked. A check-in saved successfully and appeared in private History. Mobile and desktop screenshots showed coherent navigation and usable empty states. The local production-preview path now builds Nitro's node-server output before serving it. With that production server stopped, the library retained all 879 exercises and a self-hosted exercise image, and a newly created workout could record and complete a set; after reconnect and reload the completed session appeared exactly once. All 253 allowed exercise images are served from `/catalogue/media/`; `media-manifest.json` retains their original wger URLs, authors, licences, byte sizes and SHA-256 checksums.
+## Phase 4: Circle foundation
+
+Built:
+- Exact-handle/display-name discovery without email or contact-book lookup; directed requests become mutual connections only after acceptance.
+- A connection-only feed with explicit, manually written shares, optional highlights, kudos and removal. Workouts, meals, prayers, mood and journal records are never posted automatically or read by Circle.
+- Blocking removes an existing request/connection in both directions, hides both people from discovery and feeds, and has a reviewable unblock list.
+- `0006_circle.sql` owns the social tables and security-definer RPCs. All tables have RLS, direct writes are revoked, anonymous calls are denied and guessed post IDs cannot be used for kudos outside an accepted connection.
+- The unconfigured/signed-out interface is an honest setup state, not fake people or activity. The live feed, people search, request actions, share composer and privacy controls appear only for a signed-in account with a completed profile.
+
+Current verification (16 October 2026): 202 Vitest tests pass, TypeScript passes, ESLint passes with 18 fast-refresh-only warnings and no errors, and the Vercel-preset production build succeeds. Browser checks cover every main and legacy route at 320 px and 768 px, the five primary routes at 390 px, and Today at 1440 px; no horizontal overflow or console errors were observed. The complete builder produced a credible 3-day, 30-minute home-dumbbell plan and remained overflow-free at 320, 390 and 768 px; emptying a session disabled acceptance and exposed specific repair actions. Light theme at 320 px and keyboard traversal with a visible 2 px focus outline were also checked. A check-in saved successfully and appeared in private History. Circle's configuration gate was rendered at 390 and 1440 px without overflow or console errors. Mobile and desktop screenshots showed coherent navigation and usable empty states. The local production-preview path now builds Nitro's node-server output before serving it. With that production server stopped, the library retained all 879 exercises and a self-hosted exercise image, and a newly created workout could record and complete a set; after reconnect and reload the completed session appeared exactly once. All 253 allowed exercise images are served from `/catalogue/media/`; `media-manifest.json` retains their original wger URLs, authors, licences, byte sizes and SHA-256 checksums.
 
 Still required before calling the rebuild complete:
 - Complete the 200%-text and emulated reduced-motion browser sweep, including builders, sheets, long names, errors and all routine editing flows. The global reduced-motion CSS override is present, but this browser surface did not expose motion emulation or text-only zoom.
 - Visually review every imported image/crop and re-run `npm run catalogue:media` after any upstream catalogue refresh; the automated media check verifies presence and provenance, not exercise/image semantic correctness.
-- Obtain qualified coach/clinician review of the training rules and curated catalogue. Real Supabase queued sync, SMTP, Google sign-in, push, account isolation on the real project, Vercel deployment/domain and real iPhone installation remain external verification dependencies.
-- Circle's actual social functionality remains in its planned later phase.
+- Obtain qualified coach/clinician review of the training rules and curated catalogue. Real Supabase queued sync and Circle RLS/RPC tests, SMTP, Google sign-in, push, account isolation on the real project, Vercel deployment/domain and real iPhone installation remain external verification dependencies.
+- Phase 5 chat/games and the Phase 6 release pass remain. They must build on real Circle identities/connections rather than simulated users.

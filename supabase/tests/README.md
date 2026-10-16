@@ -18,3 +18,8 @@ insert into auth.users(id) values ('11111111-1111-1111-1111-111111111111'), ('22
 Then apply `0001`–`0003` and run `psql -f sync_rls.test.sql`. Every row should read `PASS`.
 This checks policy and function logic. It is not a substitute for testing against your real Supabase project
 (Supabase's own auth service issues the JWTs in production).
+
+`profiles.test.sql`, `reminders.test.sql` and `circle.test.sql` cover their matching later migrations. Circle's checks
+prove explicit sharing, connection-only feeds, request direction, kudos visibility, block/unblock behaviour, blocked
+direct writes and anonymous denial. Run them against a disposable database after applying migrations through
+`0006_circle.sql`; they create profiles for the three fixed test users from `auth-env.sql`.
