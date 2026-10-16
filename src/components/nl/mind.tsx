@@ -49,7 +49,11 @@ function Scale({
   onChange: (n: 1 | 2 | 3 | 4 | 5) => void;
 }) {
   return (
-    <div role="radiogroup" aria-label={label} className="grid grid-cols-5 gap-1.5">
+    <div
+      role="radiogroup"
+      aria-label={label}
+      className="grid grid-cols-[repeat(auto-fit,minmax(4.25rem,1fr))] gap-1.5"
+    >
       {LEVELS.map((l, i) => {
         const n = (i + 1) as 1 | 2 | 3 | 4 | 5;
         return (

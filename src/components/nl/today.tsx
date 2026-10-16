@@ -185,7 +185,7 @@ export function PrayerWidget({ today, now }: Ctx) {
 
   return (
     <Panel aria-label="Next prayer">
-      <div className="flex items-start justify-between gap-3">
+      <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-1">
         <Eyebrow className="!text-foreground/70">Next prayer</Eyebrow>
         {prayer.settings && (
           <Chip>
@@ -285,7 +285,7 @@ export function FoodWidget({ profile, today }: Ctx) {
 
   return (
     <Panel aria-label="Food">
-      <div className="flex items-start justify-between gap-3">
+      <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-1">
         <Eyebrow className="!text-foreground/70">Food</Eyebrow>
         {t.status === "provisional" && <Chip tone="warn">Target not confirmed</Chip>}
       </div>
@@ -351,7 +351,7 @@ export function TrainingWidget({ today }: Ctx) {
 
   return (
     <Panel aria-label="Training">
-      <div className="flex items-start justify-between gap-3">
+      <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-1">
         <Eyebrow>Training</Eyebrow>
         <Link
           to="/train"
@@ -570,7 +570,7 @@ export function BudgetWidget({ profile, today }: Ctx) {
   const budget = profile.budgetPencePerWeek!;
   return (
     <Panel aria-label="Food budget">
-      <div className="flex items-start justify-between">
+      <div className="flex flex-wrap items-start justify-between gap-x-3">
         <Eyebrow>Food budget</Eyebrow>
         <Link to="/food" className="eyebrow inline-flex min-h-11 items-center hover:underline">
           Shopping
@@ -689,7 +689,7 @@ export function ChecklistWidget({ today }: Ctx) {
   const done = new Set(logs.items.filter((l) => l.date === today && l.done).map((l) => l.itemId));
   return (
     <Panel aria-label="Reminders">
-      <div className="flex items-start justify-between">
+      <div className="flex flex-wrap items-start justify-between gap-x-3">
         <Eyebrow>Reminders</Eyebrow>
         {active.length > 0 && (
           <span className="eyebrow tnum">

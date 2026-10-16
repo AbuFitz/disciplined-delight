@@ -1,3 +1,10 @@
+# Database tests
+
+**Run them all:** `supabase/tests/run-local.sh` starts a throwaway Postgres 16, applies the simulated auth stand-in
+and migrations `0001`–`0005`, runs every `*.test.sql` and prints pass/fail counts. Needs root and the Postgres 16
+binaries. It tests SQL logic against a **simulated** Supabase auth schema, not a real project: see
+`docs/SUPABASE-SETUP.md` for what has to be verified on the real one.
+
 # Sync schema tests
 
 `sync_rls.test.sql` exercises `0003_sync.sql` against a real Postgres: idempotent retries, optimistic-concurrency

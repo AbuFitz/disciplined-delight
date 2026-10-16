@@ -82,7 +82,7 @@ function LibraryPage() {
         }
       />
 
-      <div className="sticky top-0 z-10 -mx-4 mb-4 grid gap-2 bg-background/95 px-4 py-3 backdrop-blur md:-mx-8 md:px-8">
+      <div className="mb-4 grid gap-2">
         <div className="relative">
           <Search className="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-muted-foreground" />
           <TextInput
@@ -97,7 +97,7 @@ function LibraryPage() {
             className="pl-12"
           />
         </div>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid gap-2 sm:grid-cols-2">
           <Select
             aria-label="Muscle"
             value={muscle}
@@ -348,26 +348,27 @@ function DetailSheet({
             </ul>
           )}
           {!custom && (
-            <p className="rounded-2xl bg-surface-2/60 p-3 text-xs text-muted-foreground">
-              {e.attribution}{" "}
-              <a
-                href={e.licence.url}
-                target="_blank"
-                rel="noreferrer noopener"
-                className="inline-flex items-center gap-1 underline"
-              >
-                {e.licence.short} <ExternalLink className="size-3" />
-              </a>
-              {" · "}
-              <a
-                href={e.source.url}
-                target="_blank"
-                rel="noreferrer noopener"
-                className="inline-flex items-center gap-1 underline"
-              >
-                Source <ExternalLink className="size-3" />
-              </a>
-            </p>
+            <div className="rounded-2xl bg-surface-2/60 p-3 text-xs text-muted-foreground">
+              <p>{e.attribution}</p>
+              <div className="mt-1 flex flex-wrap gap-x-4">
+                <a
+                  href={e.licence.url}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  className="inline-flex min-h-11 items-center gap-1 underline"
+                >
+                  {e.licence.short} <ExternalLink className="size-3" />
+                </a>
+                <a
+                  href={e.source.url}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  className="inline-flex min-h-11 items-center gap-1 underline"
+                >
+                  Source <ExternalLink className="size-3" />
+                </a>
+              </div>
+            </div>
           )}
         </div>
       )}

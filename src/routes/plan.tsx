@@ -148,7 +148,11 @@ function PlanPage() {
         )}
       </div>
 
-      <div role="tablist" aria-label="Day" className="mb-4 grid grid-cols-7 gap-1 lg:hidden">
+      <div
+        role="tablist"
+        aria-label="Day"
+        className="mb-4 flex gap-1 overflow-x-auto pb-1 lg:hidden"
+      >
         {days.map((d) => (
           <button
             key={d}
@@ -156,7 +160,7 @@ function PlanPage() {
             aria-selected={d === selected}
             onClick={() => setSel(d)}
             className={cn(
-              "min-h-14 rounded-2xl border px-1 text-center",
+              "min-h-14 min-w-[3.25rem] flex-1 rounded-2xl border px-1 text-center",
               d === selected ? "border-primary bg-primary text-primary-foreground" : "border-line",
               d === today && d !== selected && "border-primary/60",
             )}
@@ -208,7 +212,7 @@ function PlanPage() {
                           key={i}
                           className="flex min-h-9 flex-wrap items-center gap-x-2 px-2 text-sm text-muted-foreground"
                         >
-                          <span className="tnum min-w-14 shrink-0">
+                          <span className="tnum min-w-14 shrink-0 lg:min-w-0">
                             {to12h(minToHHMM(it.time))}
                           </span>
                           <span>{it.label}</span>
@@ -231,7 +235,7 @@ function PlanPage() {
                               it.conflict && "ring-2 ring-warn",
                             )}
                           >
-                            <span className="tnum min-w-14 shrink-0">
+                            <span className="tnum min-w-14 shrink-0 lg:min-w-0">
                               {it.tpl.time ? to12h(it.tpl.time) : "Any"}
                             </span>
                             <span className="font-medium">Workout {it.tpl.letter}</span>
@@ -248,7 +252,7 @@ function PlanPage() {
                             it.conflict && "border-warn",
                           )}
                         >
-                          <span className="tnum min-w-14 shrink-0 text-muted-foreground">
+                          <span className="tnum min-w-14 shrink-0 lg:min-w-0 text-muted-foreground">
                             {to12h(minToHHMM(it.occ.startMin))}
                           </span>
                           <span className="min-w-0 max-w-full flex-1 truncate font-medium lg:flex-none">

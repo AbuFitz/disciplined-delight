@@ -11,6 +11,8 @@ insert into results select 'conflict did not apply (server still n=2)', (data->>
 insert into results select 'resolved retry with same mid after conflict is applied', (r->>'status')='applied' and (r->>'rev')='3', r::text from (select public.push_mutation('mealLogs','m1','put','{"n":3}',2,'mid-3') r) s;
 insert into results select 'delete tombstones and bumps rev', (r->>'rev')='4', r::text from (select public.push_mutation('mealLogs','m1','delete',null,3,'mid-4') r) s;
 insert into results select 'tombstone keeps data and sets deleted_at', deleted_at is not null and (data->>'n')='3', coalesce(data::text,'null') from public.records where id='m1';
+-- private collections (journals, mood, prayer) are ordinary owner-only rows
+insert into results select 'A stores private mind/prayer records', (select count(*) from (select public.push_mutation('mind','e1','put','{"text":"private"}',0,'p-1') union all select public.push_mutation('prayerLogs','2026-10-14:fajr','put','{}',0,'p-2')) x)=2, 'mind + prayerLogs';
 -- direct writes are blocked
 do $$ begin begin insert into public.records(collection,id,data) values ('x','y','{}'); insert into results values ('direct INSERT blocked', false, 'allowed!'); exception when insufficient_privilege then insert into results values ('direct INSERT blocked', true, 'denied'); end; end $$;
 do $$ begin begin update public.records set data='{}'; insert into results values ('direct UPDATE blocked', false, 'allowed!'); exception when insufficient_privilege then insert into results values ('direct UPDATE blocked', true, 'denied'); end; end $$;
@@ -18,6 +20,7 @@ do $$ begin begin delete from public.records; insert into results values ('direc
 -- second user
 set request.jwt.claim.sub = '22222222-2222-2222-2222-222222222222';
 insert into results select 'B cannot read A rows', count(*)=0, count(*)::text from public.records;
+insert into results select 'B cannot read A private records (mind, prayerLogs)', count(*)=0, count(*)::text from public.records where collection in ('mind','prayerLogs','prayerSettings','prayerDays');
 insert into results select 'B cannot read A mutation log', count(*)=0, count(*)::text from public.mutation_log;
 insert into results select 'B can write same collection/id independently', (r->>'status')='applied' and (r->>'rev')='1', r::text from (select public.push_mutation('mealLogs','m1','put','{"b":true}',0,'mid-1') r) s;
 insert into results select 'B reusing A''s mutation id does not collide', true, 'mid scoped per user' ;

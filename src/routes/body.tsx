@@ -29,7 +29,9 @@ function Tile({
       className="group flex min-h-32 flex-col justify-between rounded-[1.5rem] border border-line bg-surface p-5 transition hover:border-foreground/40"
     >
       <div className="flex items-start justify-between gap-3">
-        <h2 className="font-display text-2xl font-bold leading-tight">{title}</h2>
+        <h2 className="min-w-0 font-display text-2xl font-bold leading-tight [overflow-wrap:anywhere]">
+          {title}
+        </h2>
         <ArrowRight
           className="mt-1 size-5 shrink-0 text-muted-foreground transition group-hover:translate-x-0.5"
           aria-hidden

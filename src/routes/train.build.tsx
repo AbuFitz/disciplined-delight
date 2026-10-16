@@ -141,8 +141,10 @@ function Choice({
       )}
     >
       <span className="flex items-center justify-between gap-3">
-        <span className="font-display text-xl font-bold leading-tight">{title}</span>
-        {selected && <Check className="size-5 shrink-0 text-primary" aria-hidden />}
+        <span className="min-w-0 font-display text-xl font-bold leading-tight [overflow-wrap:anywhere]">
+          {title}
+        </span>
+        {selected && <Check className="size-[20px] shrink-0 text-primary" aria-hidden />}
       </span>
       {body && <span className="mt-1 block text-sm text-muted-foreground">{body}</span>}
     </button>
@@ -164,13 +166,13 @@ function Pill({
       aria-checked={on}
       onClick={onClick}
       className={cn(
-        "min-h-11 rounded-full border px-4 text-sm font-semibold transition",
+        "min-h-11 max-w-full rounded-full border px-4 text-sm font-semibold transition",
         on
           ? "border-primary bg-primary text-primary-foreground"
           : "border-line text-foreground hover:border-foreground/40",
       )}
     >
-      {on && <Check className="mr-1 inline size-4" aria-hidden />}
+      {on && <Check className="mr-1 inline size-[1em]" aria-hidden />}
       {children}
     </button>
   );
@@ -755,7 +757,7 @@ function Builder() {
 
               {plan.sessions.map((s, si) => (
                 <Panel key={s.title + si} aria-label={s.title}>
-                  <div className="flex items-baseline justify-between gap-3">
+                  <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
                     <h3 className="font-display text-2xl font-extrabold uppercase tracking-tight">
                       {s.title}
                     </h3>
@@ -801,9 +803,9 @@ function Builder() {
                       return (
                         <li
                           key={slot.key}
-                          className="flex items-center gap-3 border-t border-line py-3 first:border-t-0"
+                          className="flex flex-wrap items-center gap-x-3 gap-y-2 border-t border-line py-3 first:border-t-0"
                         >
-                          <div className="min-w-0 flex-1">
+                          <div className="min-w-[min(10rem,100%)] flex-1">
                             <p className="font-display text-lg font-bold leading-tight [overflow-wrap:anywhere]">
                               {x.name}
                             </p>
@@ -820,21 +822,23 @@ function Builder() {
                               )}
                             </p>
                           </div>
-                          <Button
-                            size="sm"
-                            aria-label={`Swap ${x.name}`}
-                            onClick={() => setSwap({ si, slotKey: slot.key })}
-                          >
-                            <Repeat className="size-4" />
-                            Swap
-                          </Button>
-                          <button
-                            aria-label={`Remove ${x.name}`}
-                            className="grid size-11 shrink-0 place-items-center rounded-full hover:bg-surface-2"
-                            onClick={() => setDraft(removeExercise(plan, si, slot.key))}
-                          >
-                            <Trash2 className="size-4" />
-                          </button>
+                          <div className="ml-auto flex shrink-0 items-center gap-1">
+                            <Button
+                              size="sm"
+                              aria-label={`Swap ${x.name}`}
+                              onClick={() => setSwap({ si, slotKey: slot.key })}
+                            >
+                              <Repeat className="size-4" />
+                              Swap
+                            </Button>
+                            <button
+                              aria-label={`Remove ${x.name}`}
+                              className="grid size-[44px] shrink-0 place-items-center rounded-full hover:bg-surface-2"
+                              onClick={() => setDraft(removeExercise(plan, si, slot.key))}
+                            >
+                              <Trash2 className="size-4" />
+                            </button>
+                          </div>
                         </li>
                       );
                     })}
@@ -947,7 +951,7 @@ function Builder() {
             Choose what happens to your current workouts to continue.
           </p>
         )}
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           {step > 0 && !(prior && step === 5) ? (
             <Button onClick={() => go(step - 1)}>
               <ArrowLeft className="size-4" />

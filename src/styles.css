@@ -222,8 +222,8 @@
     touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
   }
-  /* A bare `grid` would size its single column to its widest child; keep it shrinkable. */
-  .grid:not([class*="grid-cols"]):not([class*=":grid-cols"]) {
+  /* A bare `grid` would size its single column to its widest child; keep it shrinkable. Utilities (later layer) still override it. */
+  .grid {
     grid-template-columns: minmax(0, 1fr);
   }
   code {
@@ -296,6 +296,7 @@
     --loud-fg: var(--loud-ink-fg);
   }
   .display-title {
+    overflow-wrap: anywhere;
     font-family: var(--font-display);
     font-weight: 700;
     text-transform: uppercase;

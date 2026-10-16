@@ -343,7 +343,7 @@ export function AgendaTimelineWidget({
                 key={r.key}
                 className={cn("border-t border-line py-3 first:border-t-0", dim && "opacity-60")}
               >
-                <div className="flex items-start gap-3">
+                <div className="flex flex-wrap items-start gap-x-3 gap-y-2">
                   <span className="w-[5.5rem] shrink-0 pt-0.5 text-sm tnum text-muted-foreground">
                     {timeLabel(r)}
                   </span>

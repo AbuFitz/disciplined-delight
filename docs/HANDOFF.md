@@ -161,8 +161,8 @@ prayer times are a method's output and may differ from your mosque. Notification
 
 1. Open **Settings**: confirm your goal, then **confirm or change the nutrition targets** (the original 2,760 kcal is
    shown as _not confirmed_ until you do), set a weekly food budget.
-2. Open **Salah**: pick a source (calculated for Hemel Hempstead, or paste your mosque's timetable) and check it
-   against your mosque.
+2. Optional: open **Soul** and turn on **Salah**, then pick a source (calculated for a locality, or paste your mosque's
+   timetable) and check it against your mosque. If you don't pray, leave it off and nothing about prayer appears.
 3. **Food → Week plan**: drop Day A/Day B onto days, then **Meals** to add ingredients and prices; **Shopping** builds the list.
 4. **Train → Start now** (or the Next-up panel on a training day) and log your first session.
 5. Optional: add a weigh-in, install to the Home Screen, export a backup, and sign in to link a device for sync.
@@ -240,16 +240,90 @@ and added again. The domain **vayvor.com** is not used anywhere in code or confi
 
 Screenshots: `docs/screenshots/vayvor/`. Earlier folders show the old name and are kept as history.
 
-## Continuation: Phase 2 (catalogue, programmes, plan builder) and design pass
+## Continuation: Phase 2 corrections, design sweep and Phase 3
 
-Done and verified locally (unit tests, production build, browser walk-through at 390 px on the dev server):
-- Licence-checked catalogue snapshot (`public/catalogue/v1`), pipeline, quarantine report (`docs/CATALOGUE.md`).
-- Deterministic generator, shortening, substitutes, missed-day rescheduling, validation (`docs/TRAINING-RULES.md`; rules are **draft, unreviewed**).
-- Tracking types (weight/reps, bodyweight, assisted, time, distance) in the session logger; only loaded lifts count toward volume/progression.
-- `/library` (search, filters, favourites, credits/licence, own exercises) and `/train/build` (6-step builder with swap/remove, honest conflicts, accept to templates plus a `plans` record). Existing programmes are never altered unless the person chooses "replace".
-- Design pass: loud solid panels, giant numerals, heavier type and buttons (tokens in `styles.css`, `Panel`, `.stat`, `.loud`).
-- Service worker `nl-v3`: network-first catalogue JSON with an offline copy.
+Branch `claude/relaxed-ptolemy-4v3qva`, no pull request open. Read this section for the current state; earlier sections are history.
 
-Not done / not verified: desktop/200%-text/light-theme re-sweep of the new screens, real-device checks, catalogue `overrides.json`,
-self-hosted exercise images (hotlinked images need a connection), plan regeneration UI, qualified review of the rules.
-Next: Phase 3 (Body/Mind/Soul/Circle navigation and routine engine).
+### Plans are now reliable
+
+- **Curated catalogue.** `catalogue/overrides.json` is the persistent corrections file (pattern, equipment, tracking, muscles,
+  hide, rename) and also the curation list: only 141 hand-reviewed exercises are used by automatic programmes; the other 738
+  remain browsable. No name-based exclusion lists remain in code. Details: `docs/CATALOGUE.md`.
+- **Accepting is gated** by `assessPlan` after every swap, removal or fill: main-lift gaps, empty sessions, sessions that
+  cannot fit the requested time, unavailable or duplicate exercises, or any starting load block saving, each with fixes
+  (choose an exercise, add the equipment that unlocks options, allow more minutes). Equipment suggestions survive on partial plans.
+- **Beginner volume warning investigated**: it came from double-counting upstream's multiple "primary" muscles, hip-thrust
+  style moves filed as hinges, and no trimming after selection. Fixed in counting, classification and selection. **The weekly
+  bounds were not widened** (4–10 new/returning, 8–18 experienced). See `docs/TRAINING-RULES.md`. The rules remain **draft and
+  not reviewed by a qualified coach or clinician**; that requirement stands.
+- `shortenSession`'s result is honoured (a session that still can't fit is a blocker with "allow N minutes"). Recovery is
+  checked across Sunday into Monday, and missed-session rescheduling uses the same wrap.
+
+### Recoverable plan editing
+
+- Accepting, replacing and regenerating are **one atomic IndexedDB transaction** (`applyBatch`: templates, archives, plan record,
+  equipment profile and their outbox mutations together), scoped to the account generation at the moment of the call. A failed
+  save leaves the previous schedule untouched and shows a retry panel. Tested with an injected failure.
+- No default when workouts already exist: you must choose "keep and add unscheduled" or "replace (archive)".
+- **Archived workouts** are listed on Train with **Restore** (back on its day if free, otherwise unscheduled).
+- **Regenerate** (Train → Generated plans): starts from the original answers with a new seed, shows what changes per workout
+  (added, removed, changed sets/reps), warns if you edited the plan since, states how many logged sessions are untouched (all),
+  and requires a choice before saving. Only that plan's workouts can be archived; logged sessions are never rewritten.
+
+### Design
+
+Reviewed Today, Train, Library, Body, Mind, Soul, Circle, Week and the whole builder (6 steps, gap state, swap sheet, library
+detail and add sheets, empty and long-name states). Direction after your feedback: **editorial and quiet**: charcoal, warm paper,
+controlled green; one paper-coloured hero ("Next up") per screen, hairline panels elsewhere, bigger type only where it matters,
+colour tints used rarely. Sweep run with `scratchpad` tooling (not committed) at 320/390/768/1440 px in dark and light, 200% text
+and reduced motion, checking horizontal overflow, controls under 40 px, unlabelled controls and clipped text. Fixed: a bare
+`grid` with responsive columns let long content blow out the page (global fix), display titles now wrap, sheets are bounded to the
+viewport at large text, Close buttons no longer shrink, library filters stack on narrow screens and are no longer sticky, mood
+scales and day tabs wrap or scroll instead of squeezing, inline credit links are real tap targets, skip-to-content link added.
+Keyboard: tab order and visible focus checked on eight routes, dialog focus trap and return verified.
+
+### Phase 3: daily routines (see `docs/ROUTINES.md`, `docs/PRIVACY.md`)
+
+- **Spaces:** Today, Body (training, food, shopping and budget, progress, library, plan builder), Mind (check-in, reflect, focus
+  timer, history), Soul (optional Salah, reflection), Circle (an honest "not open yet" page: no pretend people or scores).
+  Old URLs (`/train`, `/food`, `/salah`, `/progress`, `/plan`, `/schedule`, `/workouts`, `/nutrition`, `/library`) still work
+  (checked in a browser) and light up their space.
+- **Engine:** one pure agenda (`domain/routine.ts`) over repeating activities, the five prayers and the planned workout; linked
+  activities complete from their real record exactly once; skip, rest day, move (another time or day), pause/resume and
+  correcting a tick or skip are supported; midnight, late-evening blocks and DST handled and tested.
+- **Today:** one next-action card and one timeline with per-item actions. Build a routine around real sleep, work and prayer
+  times from the Week page; nothing is placed over them, and what can't fit is reported.
+- **Privacy:** Mind entries are forced private; Salah is off until chosen. Private collections are listed in code and checked
+  at the database level (owner-only rows). Not end-to-end encrypted (see `docs/PRIVACY.md`).
+- **Not built (by design, planned phases):** friends, crews, challenges, medals, chat, Four in a Row.
+- **Limits:** routine blocks don't schedule notifications; "meal" links mean any meal logged; skipping the default workout
+  row is per date.
+
+## Checks actually run (this continuation)
+
+| Check                                                                                  | Result                                                                                                                                                                                             |
+| -------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Unit tests (vitest, fake IndexedDB)                                                    | 196 pass: planner, reliability, plan actions (atomic failure, regeneration, restore), diff, routine engine incl. DST, routine actions, tracking, catalogue, backup, sync, accounts                 |
+| `tsc --noEmit`, `eslint`                                                               | clean, 0 errors (22 existing warnings)                                                                                                                                                             |
+| Production build (`NITRO_PRESET=node-server`)                                          | builds; served on a local port                                                                                                                                                                     |
+| Offline on the **production build with the service worker active** (headless Chromium) | SW controls the page; catalogue snapshot cached; offline Library shows 879 exercises, search and credits work; a workout set logged offline survives a reload                                      |
+| Browser flows on the dev server (headless Chromium)                                    | builder gating (remove main lift → blocked → fill → saved), regenerate with required choice, archive and restore, routine builder, tick/undo/skip/undo/move/pause/resume, Salah optional, old URLs |
+| Database SQL tests, local Postgres 16, **simulated** auth schema                       | `supabase/tests/run-local.sh`: sync 21, reminders 8, profiles 18, all pass (includes private `mind` and prayer rows unreadable by another user)                                                    |
+| Design sweep                                                                           | see Design; final screenshots in `docs/screenshots/phase3/` (final sweep: no overflow, small-target, unlabelled-control or clipping findings at 320/390/768/1440 px, dark and light, 200% text, and reduced motion at 390 px)                                                                                                                                        |
+
+**Simulated vs real:** nothing was run against a real Supabase project (none exists for VAYVOR), real email, Google sign-in,
+push or a real phone. `docs/SUPABASE-SETUP.md` has the exact steps and a table of each check, how to run it and its status;
+`scripts/verify-supabase.mjs` checks a real project (anonymous denial, migrations present, and with `--write` two-account
+isolation and sync) and refuses to run against a URL that doesn't match the project ref you name. Its argument guards were
+exercised; its checks have only been run against an incomplete local simulation, so treat its first real run as untested.
+
+## Remaining dependencies (yours)
+
+1. Create or choose the VAYVOR Supabase project; apply migrations (`docs/SUPABASE-SETUP.md`); run `scripts/verify-supabase.mjs`
+   and the manual email, Google and push checks; real-iPhone and Android PWA checks.
+2. Set Vercel env names, Site/Redirect URLs, SMTP and templates; redeploy to confirm the security-patched TanStack build.
+3. Qualified coach/clinician review of `programmes.ts` and the curated exercise list before offering plans publicly.
+4. Rights decisions for the CC BY-SA catalogue (credits page, snapshot licence); hotlinked exercise images need a connection
+   (self-hosting selected images is the proper fix and is not done).
+5. vayvor.com registration, trademark search, embroidery test sew.
+6. Later phases: friends/crews/challenges/medals, chat and Four in a Row with dares, release verification.

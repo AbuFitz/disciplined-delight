@@ -470,7 +470,7 @@ export function Switch({
   const id = useId();
   return (
     <div className="flex min-h-12 items-center justify-between gap-4 py-1">
-      <div>
+      <div className="min-w-0">
         <label id={id} className="font-medium">
           {label}
         </label>
@@ -528,9 +528,9 @@ export function Sheet({
           aria-describedby={description ? undefined : undefined}
           className={cn(
             "fixed z-50 flex max-h-[92dvh] flex-col overflow-hidden border border-line bg-popover text-popover-foreground shadow-2xl outline-none",
-            "inset-x-0 bottom-0 rounded-t-[1.75rem] data-[state=open]:animate-in data-[state=open]:slide-in-from-bottom data-[state=closed]:animate-out data-[state=closed]:slide-out-to-bottom",
+            "max-w-[100vw] inset-x-0 bottom-0 rounded-t-[1.75rem] data-[state=open]:animate-in data-[state=open]:slide-in-from-bottom data-[state=closed]:animate-out data-[state=closed]:slide-out-to-bottom",
             "md:inset-y-3 md:right-3 md:left-auto md:bottom-3 md:max-h-none md:rounded-3xl md:data-[state=open]:slide-in-from-right md:data-[state=closed]:slide-out-to-right",
-            wide ? "md:w-[40rem]" : "md:w-[30rem]",
+            wide ? "md:w-[min(40rem,calc(100vw-1.5rem))]" : "md:w-[min(30rem,calc(100vw-1.5rem))]",
           )}
         >
           <div
@@ -551,7 +551,7 @@ export function Sheet({
               )}
             </div>
             <Dialog.Close asChild>
-              <IconButton label="Close" className="-mr-2 -mt-1">
+              <IconButton label="Close" className="-mr-2 -mt-1 shrink-0">
                 <X className="size-5" />
               </IconButton>
             </Dialog.Close>
@@ -633,7 +633,7 @@ export function Menu({
       <DM.Trigger asChild>
         <button
           aria-label={label}
-          className="inline-flex size-11 shrink-0 items-center justify-center rounded-full hover:bg-surface-2 active:scale-95"
+          className="inline-flex size-[44px] shrink-0 items-center justify-center rounded-full hover:bg-surface-2 active:scale-95"
         >
           {trigger}
         </button>

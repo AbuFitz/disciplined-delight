@@ -1,0 +1,57 @@
+# VAYVOR: Supabase setup and verification
+
+Nothing in this repository has been applied to a VAYVOR Supabase project. No such project existed when this was
+written: the only project the connected Supabase account could see belonged to a different product and was inactive, and
+nothing was applied to it. **Use only the project you create or choose for VAYVOR.** Names of secrets are listed here;
+values never go in the repo, the chat or the client bundle.
+
+## 1. Project
+
+1. In the Supabase dashboard create a project named `VAYVOR` (pick the region nearest your users; keep the generated
+   database password in a password manager). Note its **project ref** (the `xxxx` in `https://xxxx.supabase.co`).
+2. Everything below, and `scripts/verify-supabase.mjs`, refuses to run against a URL that does not match the ref you
+   name, so a wrong project cannot be touched by accident.
+
+## 2. Migrations (in order, once)
+
+Apply `supabase/migrations/0001_init.sql` … `0005_profiles.sql`, either with the Supabase CLI
+(`supabase link --project-ref <ref>` then `supabase db push`) or by pasting each file into the SQL editor in order.
+`0001` and `0002` are the original app's tables and are immutable. After applying, run the checks in section 6.
+
+## 3. Authentication
+
+| Setting (Authentication →)            | Value                                                                                                                                                                                                                                                                                       |
+| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| URL Configuration → **Site URL**      | the origin the app actually runs on today (the Vercel URL). Not vayvor.com until it is registered and connected.                                                                                                                                                                            |
+| URL Configuration → **Redirect URLs** | `<origin>/auth/callback` and `<origin>/auth/reset` for every origin in use (production, previews, `http://localhost:5173`).                                                                                                                                                                 |
+| Providers → **Email**                 | enabled, **Confirm email on**, minimum password length **8** (the app enforces 8).                                                                                                                                                                                                          |
+| SMTP Settings                         | your own SMTP with a verified sending domain. The built-in sender only mails project members, so confirmation and recovery emails will not reach ordinary users without this.                                                                                                               |
+| Email Templates                       | paste `supabase/templates/*.html` and set the subjects listed in `supabase/templates/README.md`. They use `{{ .SiteURL }}`.                                                                                                                                                                 |
+| Providers → **Google** (optional)     | create an OAuth client (type _Web application_) in Google Cloud; authorised redirect URI `https://<ref>.supabase.co/auth/v1/callback`; paste its client ID and secret into Supabase. Then set `VITE_AUTH_PROVIDERS=google` in the app. The button only appears when that variable lists it. |
+
+## 4. Push reminders (optional)
+
+Deploy `supabase/functions/send-reminders` and set its secrets: `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`
+(a `mailto:` you control), `CRON_SECRET`. Generate the keys with `npx web-push generate-vapid-keys`. Schedule it every
+minute (Supabase scheduled function, or pg_cron + pg_net) sending header `x-cron-secret`. The service-role key is
+provided to the function by Supabase and never reaches the client.
+
+## 5. App configuration (Vercel environment, names only)
+
+`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` (the **anon/publishable** key only), `VITE_AUTH_PROVIDERS` (e.g. `google`),
+`VITE_VAPID_PUBLIC_KEY`. Redeploy afterwards.
+
+## 6. Verification: what each check proves
+
+| Check                                                                                                                                                                                                                         | How to run                                                                                                                                     | Proves                                                                                         | Status                                                                                                                                                                                            |
+| ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Policy and function logic of migrations 0003 to 0005: idempotent sync, conflicts, tombstones, owner-only rows (including `mind` and prayer collections), blocked direct writes, handle uniqueness and a race, reminders claim | `supabase/tests/run-local.sh` (throwaway local Postgres 16, **simulated** `auth` schema)                                                       | The SQL does what it says. It says nothing about your real project or Supabase's auth service. | Run: 47 checks, all pass (sync 21, reminders 8, profiles 18).                                                                                                                                     |
+| Browser account flows (sign up, sign in, switching A → B → A without data crossing, import, sign-out)                                                                                                                         | Ran against a local **simulation** of Supabase Auth and PostgREST in an earlier session (not committed)                                        | The app's client logic and storage isolation                                                   | 14 of 15 assertions passed; the 15th was a mistake in the test, not the app. Not real Supabase.                                                                                                   |
+| Real project: migrations present, anonymous access denied, nothing readable without sign-in                                                                                                                                   | `node scripts/verify-supabase.mjs` with `VAYVOR_SUPABASE_URL`, `VAYVOR_PROJECT_REF`, `VAYVOR_SUPABASE_ANON_KEY`                                | Grants and RLS on the real project                                                             | **Not run: no VAYVOR project.** The script's argument guards were exercised; its checks have only been exercised against the simulation, where several fail because the simulation is incomplete. |
+| Real project: two-account isolation, sync, conflict, tombstone, handle availability                                                                                                                                           | `... VERIFY_A_EMAIL/PASSWORD VERIFY_B_EMAIL/PASSWORD node scripts/verify-supabase.mjs --write` using two throwaway, already-confirmed accounts | Cross-account isolation on the real service                                                    | **Not run.**                                                                                                                                                                                      |
+| Confirmation and recovery emails arrive, links land on the right origin, a recovery link forces a new password                                                                                                                | Manual: sign up with a real inbox, then use "Forgot password"                                                                                  | SMTP, templates, redirect URLs                                                                 | **Not run.**                                                                                                                                                                                      |
+| Google sign-in                                                                                                                                                                                                                | Manual, after section 3                                                                                                                        | OAuth client, redirect URI                                                                     | **Not run.**                                                                                                                                                                                      |
+| Push delivery                                                                                                                                                                                                                 | Manual on a real phone after section 4 and adding the app to the home screen (iOS needs it installed)                                          | VAPID, scheduling, service worker                                                              | **Not run.**                                                                                                                                                                                      |
+| Real-device PWA: install, offline, update banner, sync after reconnect                                                                                                                                                        | Manual on a real iPhone and Android phone                                                                                                      | Platform behaviour                                                                             | **Not run.**                                                                                                                                                                                      |
+
+Record each manual result (date, device, outcome) in `docs/HANDOFF.md` when it is done. Do not tick a row you did not run.

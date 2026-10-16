@@ -100,6 +100,12 @@ export function Shell({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-dvh lg:grid lg:grid-cols-[15.5rem_1fr]">
+      <a
+        href="#main"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-[80] focus:rounded-full focus:bg-primary focus:px-5 focus:py-3 focus:font-semibold focus:text-primary-foreground"
+      >
+        Skip to content
+      </a>
       {/* Desktop sidebar */}
       <aside className="sticky top-0 hidden h-dvh flex-col justify-between border-r border-line px-4 py-6 lg:flex">
         <div>
@@ -176,14 +182,14 @@ export function Shell({ children }: { children: ReactNode }) {
             <Link
               to="/plan"
               aria-label="Plan the week"
-              className="inline-flex size-11 items-center justify-center rounded-full hover:bg-surface-2"
+              className="inline-flex size-[44px] items-center justify-center rounded-full hover:bg-surface-2"
             >
               <CalendarDays className="size-5" />
             </Link>
             <Link
               to="/settings"
               aria-label="Settings"
-              className="inline-flex size-11 items-center justify-center rounded-full hover:bg-surface-2"
+              className="inline-flex size-[44px] items-center justify-center rounded-full hover:bg-surface-2"
             >
               <Settings className="size-5" />
             </Link>
@@ -228,7 +234,7 @@ export function Shell({ children }: { children: ReactNode }) {
       >
         <ul className="mx-auto flex max-w-xl">
           {PRIMARY.map((t) => (
-            <li key={t.to} className="flex-1">
+            <li key={t.to} className="min-w-0 flex-1">
               <Link
                 to={t.to}
                 aria-current={isActive(t.to, t.match) ? "page" : undefined}
@@ -239,7 +245,7 @@ export function Shell({ children }: { children: ReactNode }) {
               >
                 <span
                   className={cn(
-                    "flex h-7 w-12 items-center justify-center rounded-full transition",
+                    "flex h-7 w-12 max-w-full items-center justify-center rounded-full transition",
                     isActive(t.to, t.match) && "bg-primary text-primary-foreground",
                   )}
                 >

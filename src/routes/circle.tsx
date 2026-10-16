@@ -31,14 +31,20 @@ function CirclePage() {
           ) : auth.user ? (
             <p>
               Finish your profile to reserve a handle.{" "}
-              <Link to="/settings" className="font-semibold underline underline-offset-4">
+              <Link
+                to="/settings"
+                className="inline-flex min-h-11 items-center font-semibold underline underline-offset-4"
+              >
                 Open Settings
               </Link>
             </p>
           ) : (
             <p>
               Create a free account to reserve a handle.{" "}
-              <Link to="/settings" className="font-semibold underline underline-offset-4">
+              <Link
+                to="/settings"
+                className="inline-flex min-h-11 items-center font-semibold underline underline-offset-4"
+              >
                 Open Settings
               </Link>
             </p>
