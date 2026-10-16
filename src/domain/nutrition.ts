@@ -92,8 +92,9 @@ export function recipeNutrition(r: Recipe, ings: Map<string, Ingredient>): Recip
     }
     total = addMacros(total, m);
   }
-  if (r.lines.length === 0 && r.legacyEstimate) {
-    return { perServing: r.legacyEstimate, source: "legacy-estimate", missingIngredients: [] };
+  // A hand-entered estimate stays in force (and labelled) until every line has real nutrition data.
+  if (r.legacyEstimate && (r.lines.length === 0 || missing.length > 0)) {
+    return { perServing: r.legacyEstimate, source: "legacy-estimate", missingIngredients: missing };
   }
   const y = r.yield > 0 ? r.yield : 1;
   return {
@@ -138,7 +139,9 @@ export type MealLog = {
   portion: number;
   macros: Macros; // snapshot, already scaled by portion
   macrosSource: RecipeNutrition["source"] | "manual";
+  /** Cost snapshot at log time; `costCoverage` is the share of ingredients that were priced. */
   costPence?: number;
+  costCoverage?: number;
   note?: string;
 };
 

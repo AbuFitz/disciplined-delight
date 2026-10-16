@@ -14,6 +14,7 @@ import { DAY_PLANS, SHOPPING, SUPPLEMENTS, WEEKLY_SPLIT, workouts } from "@/lib/
 import { parseScheme } from "@/domain/progression";
 import { DEFAULT_TZ } from "@/domain/dates";
 import type { Ingredient, Recipe } from "@/domain/nutrition";
+import { LEGACY_UNITS, parseLegacyItems } from "./legacy-lines";
 
 export const LEGACY_KEYS = {
   tracker: "sunrise-strength-tracker-v1",
@@ -96,18 +97,21 @@ export function buildSeed() {
     };
   });
 
-  const ingredients: Ingredient[] = SHOPPING.map((s) => ({
-    id: `legacy-ing-${s.id}`,
-    name: s.item,
-    perAmount: 100,
-    perUnit: "g" as const,
-    halalNote:
-      s.id === "chicken"
-        ? "Original note: Shazans (HFA-approved) at ASDA — confirm on pack."
-        : undefined,
-    provenance: undefined,
-    // Intentionally no macros/prices: the original app had none at ingredient level.
-  }));
+  const ingredients: Ingredient[] = SHOPPING.map((s) => {
+    const u = LEGACY_UNITS[s.id];
+    return {
+      id: `legacy-ing-${s.id}`,
+      name: u?.name ?? s.item,
+      state: u?.state,
+      perAmount: u?.unit === "count" ? 1 : 100,
+      perUnit: u?.unit ?? "g",
+      halalNote:
+        s.id === "chicken"
+          ? "Original note: Shazans (HFA-approved) at ASDA. Confirm on the pack."
+          : undefined,
+      // Intentionally no macros or prices: the original app had none at ingredient level.
+    };
+  });
   // Keep the original shop/notes text alongside.
   const shoppingNotes = SHOPPING.map((s) => ({
     id: `legacy-ing-${s.id}`,
@@ -125,7 +129,7 @@ export function buildSeed() {
         name: m.name,
         slot: m.slot,
         yield: 1,
-        lines: [],
+        lines: parseLegacyItems(m.items),
         items: m.items,
         image: m.image,
         legacyEstimate: { kcal: m.kcal, protein: m.protein, carbs: m.carbs, fat: m.fat },

@@ -16,6 +16,8 @@ import {
 } from "@/components/nl/ui";
 import { MealLogSheet, useFoodData } from "@/components/nl/MealLog";
 import { WeekPlanner } from "@/components/nl/food-plan";
+import { MealsTab } from "@/components/nl/food-manage";
+import { ShoppingTab } from "@/components/nl/shopping";
 import { assignDayTemplate } from "@/data/actions";
 import { put } from "@/data/db";
 import { useCollection, useProfile, useToday } from "@/data/hooks";
@@ -23,10 +25,10 @@ import { eatenTotals, plannedTotals } from "@/data/selectors";
 import { COL, type DayTemplate, type FoodDay, type MealPlanEntry } from "@/data/types";
 import { recipeNutrition } from "@/domain/nutrition";
 
-type Tab = "today" | "week";
+type Tab = "today" | "week" | "meals" | "shop";
 export const Route = createFileRoute("/food")({
   validateSearch: (s: Record<string, unknown>): { tab?: Tab } =>
-    s.tab === "week" ? { tab: "week" } : {},
+    s.tab === "week" || s.tab === "meals" || s.tab === "shop" ? { tab: s.tab } : {},
   component: FoodPage,
 });
 
@@ -64,15 +66,27 @@ function FoodPage() {
         <Segmented
           label="Food sections"
           value={tab}
-          onChange={(v) => nav({ to: "/food", search: v === "week" ? { tab: v } : {} })}
+          onChange={(v) => nav({ to: "/food", search: v === "today" ? {} : { tab: v } })}
           options={[
             { value: "today", label: "Today" },
             { value: "week", label: "Week plan" },
+            { value: "meals", label: "Meals" },
+            { value: "shop", label: "Shopping" },
           ]}
         />
       </div>
 
-      {tab === "week" ? (
+      {tab === "meals" ? (
+        <MealsTab recipes={food.allRecipes} ingredients={food.ingredients} />
+      ) : tab === "shop" ? (
+        <ShoppingTab
+          today={today}
+          recipes={food.allRecipes}
+          ingredients={food.ingredients}
+          allPlan={food.allPlan}
+          profile={profile}
+        />
+      ) : tab === "week" ? (
         <WeekPlanner
           today={today}
           recipes={food.recipes}

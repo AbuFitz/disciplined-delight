@@ -127,6 +127,7 @@ export async function logMeal(input: {
   macrosSource: MealLog["macrosSource"];
   note?: string;
   costPence?: number;
+  costCoverage?: number;
 }): Promise<MealLog> {
   const log: MealLog = {
     id: newId(),
@@ -140,6 +141,7 @@ export async function logMeal(input: {
     macrosSource: input.macrosSource,
     note: input.note,
     costPence: input.costPence,
+    costCoverage: input.costCoverage,
   };
   await put(COL.mealLogs, log.id, log);
   if (input.planEntryId) {

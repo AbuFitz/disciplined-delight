@@ -18,6 +18,7 @@ import { put } from "@/data/db";
 import { COL, type MealPlanEntry } from "@/data/types";
 import { bySlot } from "@/data/selectors";
 import {
+  recipeCost,
   recipeNutrition,
   scaleMacros,
   type Ingredient,
@@ -40,6 +41,8 @@ export function useFoodData(date: ISODate) {
     recipes: recipes.items.filter((r) => !r.archivedAt),
     recipeMap,
     ingMap,
+    ingredients: ings.items,
+    allRecipes: recipes.items,
     plan: plan.items.filter((p) => p.date === date).sort(bySlot),
     allPlan: plan.items,
     logs: logs.items.filter((l) => l.date === date).sort((a, b) => a.loggedAt - b.loggedAt),
@@ -72,6 +75,7 @@ export function MealLogSheet({
 
   const logRecipe = async (r: Recipe, entry?: MealPlanEntry) => {
     const n = recipeNutrition(r, food.ingMap);
+    const c = recipeCost(r, food.ingMap);
     const p = entry?.portion ?? portion;
     await logMeal({
       date,
@@ -81,6 +85,8 @@ export function MealLogSheet({
       portion: p,
       macros: scaleMacros(n.perServing, p),
       macrosSource: n.source,
+      costPence: c.pricedLines ? Math.round(c.perServingPence * p) : undefined,
+      costCoverage: c.pricedLines ? c.coverage : undefined,
     });
     toast.success(`Logged ${r.name}${p !== 1 ? ` × ${p}` : ""}`);
   };

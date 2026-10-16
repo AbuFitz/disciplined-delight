@@ -10,6 +10,7 @@ import { COL, type LegacyDayLog, type Session, type WorkoutTemplate } from "@/da
 import { WEEKDAY_SHORT, formatDateLong, to12h } from "@/domain/dates";
 import { exerciseImage, workoutImage } from "@/lib/exercise-media";
 import { useActiveSession } from "@/components/nl/Shell";
+import { TemplateEditor, blankTemplate } from "@/components/nl/programme";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/train/")({ component: TrainPage });
@@ -22,6 +23,7 @@ function TrainPage() {
   const legacy = useCollection<LegacyDayLog>(COL.legacyDays);
   const active = useActiveSession();
   const [open, setOpen] = useState<string | null>(null);
+  const [editing, setEditing] = useState<WorkoutTemplate | null>(null);
   const templates = activeTemplates(t.items);
   const week = weekTraining(t.items, s.items, today);
   const history = s.items
@@ -38,12 +40,17 @@ function TrainPage() {
         title="Your programme"
         sub={`${week.completed} of ${week.planned} planned sessions done this week${week.partial ? `, ${week.partial} partial` : ""}.`}
         actions={
-          active ? (
-            <Button variant="primary" onClick={() => nav({ to: "/train/session" })}>
-              <Play className="size-4 fill-current" />
-              Continue session
+          <>
+            <Button variant="secondary" onClick={() => setEditing(blankTemplate(t.items.length))}>
+              New workout
             </Button>
-          ) : undefined
+            {active ? (
+              <Button variant="primary" onClick={() => nav({ to: "/train/session" })}>
+                <Play className="size-4 fill-current" />
+                Continue session
+              </Button>
+            ) : null}
+          </>
         }
       />
 
@@ -105,6 +112,9 @@ function TrainPage() {
                 >
                   <Dumbbell className="size-4" />
                   Start now
+                </Button>
+                <Button variant="ghost" size="sm" onClick={() => setEditing(tpl)}>
+                  Edit
                 </Button>
                 <Button
                   variant="ghost"
@@ -208,6 +218,12 @@ function TrainPage() {
           </ul>
         )}
       </section>
+      <TemplateEditor
+        template={editing}
+        count={t.items.length}
+        isNew={!!editing && !t.items.some((x) => x.id === editing.id)}
+        onClose={() => setEditing(null)}
+      />
     </>
   );
 }
