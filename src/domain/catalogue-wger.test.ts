@@ -48,7 +48,9 @@ describe("wger adapter (real entries)", () => {
     const r = normaliseWger(withAi);
     if (r.ok) {
       expect(r.exercise.media.every((m) => !m.id.includes("ai"))).toBe(true);
-      const aiUuids = new Set(withAi.images.filter((i) => i.is_ai_generated).map((i) => `wger-img:${i.uuid}`));
+      const aiUuids = new Set(
+        withAi.images.filter((i) => i.is_ai_generated).map((i) => `wger-img:${i.uuid}`),
+      );
       expect(r.exercise.media.every((m) => !aiUuids.has(m.id))).toBe(true);
       expect(r.exercise.flags).toContain("ai_images_excluded");
     }
@@ -56,7 +58,11 @@ describe("wger adapter (real entries)", () => {
   it("only publishes media with an allowed licence and an author credit", () => {
     for (const e of all) {
       const r = normaliseWger(e);
-      if (r.ok) for (const m of r.exercise.media) { expect(m.author.length).toBeGreaterThan(0); expect(m.licence.id).toMatch(/^CC/); }
+      if (r.ok)
+        for (const m of r.exercise.media) {
+          expect(m.author.length).toBeGreaterThan(0);
+          expect(m.licence.id).toMatch(/^CC/);
+        }
     }
   });
   it("quarantines entries without usable instructions, with reasons, instead of publishing them", () => {
@@ -66,7 +72,8 @@ describe("wger adapter (real entries)", () => {
   });
   it("quarantines instructions that contain links", () => {
     const e = structuredClone(byName("Bench Press"));
-    e.translations[0]!.description = "<p>See https://example.com/promo for the full course and many more words to pass the length check.</p>";
+    e.translations[0]!.description =
+      "<p>See https://example.com/promo for the full course and many more words to pass the length check.</p>";
     const r = normaliseWger(e);
     expect(r.ok).toBe(false);
     if (!r.ok) expect(r.quarantined.reasons).toContain("instructions_contain_link");
@@ -78,31 +85,50 @@ describe("wger adapter (real entries)", () => {
     expect(r.ok).toBe(false);
   });
   it("is deterministic", () => {
-    expect(JSON.stringify(all.map((e) => normaliseWger(e)))).toBe(JSON.stringify(all.map((e) => normaliseWger(e))));
+    expect(JSON.stringify(all.map((e) => normaliseWger(e)))).toBe(
+      JSON.stringify(all.map((e) => normaliseWger(e))),
+    );
   });
   it("applies human overrides without touching the upstream record, and can hide", () => {
     const id = `wger:${byName("Bench Press").uuid}`;
-    const r = normaliseWger(byName("Bench Press"), { [id]: { pattern: "chest_isolation", equipmentAdd: ["bench"] } });
+    const r = normaliseWger(byName("Bench Press"), {
+      [id]: { pattern: "chest_isolation", equipmentAdd: ["bench"] },
+    });
     expect(r.ok && r.exercise.pattern).toBe("chest_isolation");
     expect(normaliseWger(byName("Bench Press"), { [id]: { hide: true } }).ok).toBe(false);
   });
   it("marks only fully-gated exercises as generator-eligible", () => {
     const e = ok("Bench Press");
-    expect(e.tier).toBe(e.flags.includes("pattern_unknown") || e.flags.includes("instructions_short") || e.flags.includes("no_primary_muscle") ? "library" : "generator");
+    expect(e.tier).toBe(
+      e.flags.includes("pattern_unknown") ||
+        e.flags.includes("instructions_short") ||
+        e.flags.includes("no_primary_muscle")
+        ? "library"
+        : "generator",
+    );
   });
 });
 
 describe("rules", () => {
   it("classifies common movements", () => {
     const cases: [string, string, string][] = [
-      ["Leg Presses (wide)", "Legs", "squat"], ["Facepull", "Shoulders", "pull_horizontal"], ["Overhead Squat", "Legs", "squat"],
-      ["Overhead Press", "Shoulders", "push_vertical"], ["Lat Pull Down", "Back", "pull_vertical"], ["Hammer Curls", "Arms", "arms_biceps"],
-      ["Leg Curl", "Legs", "leg_isolation"], ["Leg Raises, Lying", "Abs", "core"], ["Romanian Deadlift", "Legs", "hinge"],
-      ["Neck stretch", "Back", "mobility"], ["Fly With Dumbbells", "Chest", "chest_isolation"],
+      ["Leg Presses (wide)", "Legs", "squat"],
+      ["Facepull", "Shoulders", "pull_horizontal"],
+      ["Overhead Squat", "Legs", "squat"],
+      ["Overhead Press", "Shoulders", "push_vertical"],
+      ["Lat Pull Down", "Back", "pull_vertical"],
+      ["Hammer Curls", "Arms", "arms_biceps"],
+      ["Leg Curl", "Legs", "leg_isolation"],
+      ["Leg Raises, Lying", "Abs", "core"],
+      ["Romanian Deadlift", "Legs", "hinge"],
+      ["Neck stretch", "Back", "mobility"],
+      ["Fly With Dumbbells", "Chest", "chest_isolation"],
     ];
     for (const [n, c, p] of cases) expect(inferPattern(n, c), n).toBe(p);
   });
   it("turns provider HTML into readable text", () => {
-    expect(htmlToText("<p>Stand tall.</p><ul><li>Brace</li><li>Pull</li></ul>")).toBe("Stand tall.\n• Brace\n• Pull");
+    expect(htmlToText("<p>Stand tall.</p><ul><li>Brace</li><li>Pull</li></ul>")).toBe(
+      "Stand tall.\n• Brace\n• Pull",
+    );
   });
 });
