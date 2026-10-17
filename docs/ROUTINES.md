@@ -35,10 +35,16 @@ avoiding sleep, work, existing activities and prayer times (with 10 minute buffe
 What cannot fit is reported with the weekdays where it would, never overlapped.
 
 **Spaces:** Today (next action + timeline), Body (training, food, shopping, progress, library), Mind (check-in, reflect,
-focus, history), Soul (optional Salah, reflection), Circle (not open yet: no pretend people or scores). Old URLs
+focus, history), Soul (optional Salah, reflection), Circle (connections, deliberate sharing, chat, pacts, games and small
+crews; no pretend people or scores). Old URLs
 (`/train`, `/food`, `/salah`, `/progress`, `/plan`, `/schedule`, `/workouts`, `/nutrition`, `/library`) still work and light
 up their space in the navigation.
 
 **Limits:** a skipped/rested default workout is per date and does not change the weekly plan; moving a workout to another
-day is done from the week planner. Meals link to "any meal logged", not to a named meal slot. No notifications are scheduled
-from routine blocks yet (existing reminders are separate).
+day is done from the week planner. Meals link to "any meal logged", not to a named meal slot.
+
+**Routine reminders:** each actionable routine block can opt into a start-time reminder (at the start or 5–60 minutes
+before). Scheduling uses the expanded agenda, so prayer-relative times, one-off moves, skips, rest days, pauses and real
+linked completions are honoured. Work and sleep remain context and cannot schedule reminders. Quiet hours apply, and a
+subscribed device refreshes its rolling 48-hour server schedule after successful sync. Delivery is still best effort and
+requires the optional Web Push setup described in `docs/SUPABASE-SETUP.md`.

@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
+import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { Button, Chip, Field, NumberField, Switch, TextInput } from "./ui";
 import { useCollection } from "@/data/hooks";
-import { COL, type PrayerSettings } from "@/data/types";
+import { COL, type PrayerSettings, type RoutineBlock } from "@/data/types";
 import { makeLookup, type StoredPrayerDay } from "@/data/prayer";
 import {
   disablePush,
@@ -30,6 +31,7 @@ export function RemindersSection() {
   const [busy, setBusy] = useState(false);
   const settings = useCollection<PrayerSettings>(COL.prayerSettings).items[0];
   const days = useCollection<StoredPrayerDay>(COL.prayerDays).items;
+  const routine = useCollection<RoutineBlock>(COL.routine).items;
   const lookup = useMemo(() => makeLookup(days, settings), [days, settings]);
 
   useEffect(() => {
@@ -58,7 +60,18 @@ export function RemindersSection() {
     prefs,
     prayerLookup: lookup,
   });
-  const anyOn = prefs.prayer.enabled || prefs.training.enabled || prefs.food.enabled;
+  const routineOn = routine.filter(
+    (block) =>
+      !block.archivedAt &&
+      block.kind !== "work" &&
+      block.kind !== "sleep" &&
+      typeof block.reminderMinutes === "number" &&
+      Number.isFinite(block.reminderMinutes) &&
+      block.reminderMinutes >= 0 &&
+      block.reminderMinutes <= 240,
+  ).length;
+  const anyOn =
+    prefs.prayer.enabled || prefs.training.enabled || prefs.food.enabled || routineOn > 0;
   const serverReady = isSupabaseConfigured && !!auth.user && !!cap?.vapidConfigured;
 
   return (
@@ -184,6 +197,27 @@ export function RemindersSection() {
             />
           </Field>
         )}
+        <div className="my-2 rounded-2xl border border-line p-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <p className="text-sm font-medium">Routine reminders</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {routineOn
+                  ? `${routineOn} activit${routineOn === 1 ? "y has" : "ies have"} a reminder.`
+                  : "Off until you choose a reminder on an activity."}
+              </p>
+            </div>
+            <Link
+              to="/schedule"
+              className="inline-flex min-h-11 items-center rounded-full border border-input px-4 text-sm font-semibold"
+            >
+              Set in Week
+            </Link>
+          </div>
+          <p className="mt-2 text-xs text-muted-foreground">
+            One-off moves, skips, rest days, pauses and completed linked activities are respected.
+          </p>
+        </div>
         <Switch
           label="Quiet hours"
           hint="Hold reminders back overnight."

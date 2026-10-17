@@ -347,6 +347,32 @@ export function BlockSheet({
                 </Field>
               </div>
             )}
+            {b.kind !== "work" && b.kind !== "sleep" && (
+              <Field
+                label="Background reminder"
+                hint="Optional. Delivered on devices where you turn on background reminders in Settings."
+                htmlFor="b-reminder"
+              >
+                <Select
+                  id="b-reminder"
+                  value={b.reminderMinutes == null ? "" : String(b.reminderMinutes)}
+                  onChange={(event) =>
+                    set({
+                      reminderMinutes:
+                        event.target.value === "" ? null : Number(event.target.value),
+                    })
+                  }
+                >
+                  <option value="">Off</option>
+                  <option value="0">At the start</option>
+                  <option value="5">5 minutes before</option>
+                  <option value="10">10 minutes before</option>
+                  <option value="15">15 minutes before</option>
+                  <option value="30">30 minutes before</option>
+                  <option value="60">1 hour before</option>
+                </Select>
+              </Field>
+            )}
           </>
         )}
       </div>

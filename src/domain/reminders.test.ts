@@ -84,6 +84,127 @@ describe("reminder schedule", () => {
     expect(r).toHaveLength(1);
     expect(r[0]!.fireAt).toBe(zonedInstant("2026-10-17", "05:00"));
   });
+  it("schedules an explicitly opted-in routine occurrence at its chosen lead time", () => {
+    const r = buildReminders({
+      ...base,
+      now: zonedInstant("2026-10-16", "09:00"),
+      prefs: DEFAULT_REMINDER_PREFS,
+      routine: [
+        {
+          date: "2026-10-16",
+          key: "read:2026-10-16",
+          label: "Read ten pages",
+          detail: "Phone away. Book open.",
+          startMin: 19 * 60,
+          leadMinutes: 15,
+          status: "upcoming",
+        },
+      ],
+    });
+    expect(r).toEqual([
+      expect.objectContaining({
+        key: "routine:read:2026-10-16",
+        kind: "routine",
+        fireAt: zonedInstant("2026-10-16", "18:45"),
+        title: "Read ten pages",
+        body: "Phone away. Book open.",
+        url: "/",
+      }),
+    ]);
+  });
+  it("does not schedule completed, skipped, rested or missed routine occurrences", () => {
+    const routine = (["done", "skipped", "rest", "missed"] as const).map((status, index) => ({
+      date: "2026-10-16" as const,
+      key: `${status}:2026-10-16`,
+      label: status,
+      startMin: 12 * 60 + index,
+      leadMinutes: 0,
+      status,
+    }));
+    expect(
+      buildReminders({
+        ...base,
+        now: zonedInstant("2026-10-16", "09:00"),
+        prefs: DEFAULT_REMINDER_PREFS,
+        routine,
+      }),
+    ).toEqual([]);
+  });
+  it("rejects malformed routine lead times instead of scheduling surprising pushes", () => {
+    expect(
+      buildReminders({
+        ...base,
+        now: zonedInstant("2026-10-16", "09:00"),
+        prefs: DEFAULT_REMINDER_PREFS,
+        routine: [-1, 241, Number.NaN].map((leadMinutes, index) => ({
+          date: "2026-10-16",
+          key: `bad-${index}:2026-10-16`,
+          label: "Bad reminder",
+          startMin: 19 * 60,
+          leadMinutes,
+          status: "upcoming" as const,
+        })),
+      }),
+    ).toEqual([]);
+  });
+  it("bounds user-written routine payloads to the server contract", () => {
+    const [reminder] = buildReminders({
+      ...base,
+      now: zonedInstant("2026-10-16", "09:00"),
+      prefs: DEFAULT_REMINDER_PREFS,
+      routine: [
+        {
+          date: "2026-10-16",
+          key: "long:2026-10-16",
+          label: "🏋️".repeat(121),
+          detail: "x".repeat(301),
+          startMin: 19 * 60,
+          leadMinutes: 0,
+          status: "upcoming",
+        },
+      ],
+    });
+    expect(Array.from(reminder!.title)).toHaveLength(120);
+    expect(Array.from(reminder!.body)).toHaveLength(300);
+  });
+  it("applies quiet hours to routine reminders too", () => {
+    const r = buildReminders({
+      ...base,
+      now: zonedInstant("2026-10-16", "09:00"),
+      prefs: prefs({
+        quiet: { enabled: true, start: "22:00", end: "06:00", allowFajr: false },
+      }),
+      routine: [
+        {
+          date: "2026-10-17",
+          key: "wind-down:2026-10-17",
+          label: "Wind down",
+          startMin: 22 * 60 + 30,
+          leadMinutes: 0,
+          status: "upcoming",
+        },
+      ],
+    });
+    expect(r).toEqual([]);
+  });
+  it("keeps a prayer-relative activity that crosses midnight on the correct instant", () => {
+    const r = buildReminders({
+      ...base,
+      now: zonedInstant("2026-10-16", "20:00"),
+      prefs: DEFAULT_REMINDER_PREFS,
+      routine: [
+        {
+          date: "2026-10-17",
+          key: "night-practice:2026-10-17",
+          label: "Night practice",
+          startMin: -15,
+          leadMinutes: 0,
+          status: "upcoming",
+        },
+      ],
+    });
+    expect(r[0]!.fireAt).toBe(zonedInstant("2026-10-16", "23:45"));
+  });
   it("quiet hours wrap midnight and hold back reminders", () => {
     expect(inQuietHours(23 * 60, "22:00", "05:00")).toBe(true);
     expect(inQuietHours(4 * 60, "22:00", "05:00")).toBe(true);

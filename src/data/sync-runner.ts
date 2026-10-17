@@ -5,6 +5,7 @@ import { scopeDbName } from "./scope";
 import { getConflicts, runSync, type SyncResult } from "./sync-engine";
 import { setSyncStatus } from "./sync-status";
 import { createSupabaseRemote } from "./supabase-remote";
+import { refreshSubscribedSchedule } from "./reminders";
 import { useAuth } from "@/lib/auth";
 import { isSupabaseConfigured } from "@/lib/supabase";
 
@@ -52,8 +53,9 @@ export function useSyncRunner() {
     let cancelled = false;
     let running = false;
     let timer: ReturnType<typeof setTimeout> | undefined;
+    let lastReminderRefresh = 0;
 
-    const pass = async () => {
+    const pass = async (refreshReminders = false) => {
       if (running || cancelled) return;
       running = true;
       try {
@@ -82,7 +84,20 @@ export function useSyncRunner() {
               mode: "attention",
               detail: `${conflicts} change${conflicts > 1 ? "s" : ""} to review in Settings.`,
             });
-          else setSyncStatus({ mode: (await outboxCount()) ? "waiting" : "synced" });
+          else {
+            setSyncStatus({ mode: (await outboxCount()) ? "waiting" : "synced" });
+            // Keep the server's rolling 48-hour window aligned with local edits, one-off moves,
+            // completions and fresh prayer times. Push delivery is best-effort and must never make
+            // otherwise successful data sync look broken.
+            if (refreshReminders || Date.now() - lastReminderRefresh >= 60 * 60_000) {
+              try {
+                await refreshSubscribedSchedule();
+              } catch {
+                /* The Settings reminder controls expose a manual retry. */
+              }
+              lastReminderRefresh = Date.now();
+            }
+          }
         }
       } catch {
         /* scope changed or storage unavailable: the next effect run reports status */
@@ -93,9 +108,9 @@ export function useSyncRunner() {
 
     const soon = () => {
       clearTimeout(timer);
-      timer = setTimeout(() => void pass(), 2000);
+      timer = setTimeout(() => void pass(true), 2000);
     };
-    void pass();
+    void pass(true);
     const off = onAnyChange(soon);
     const interval = setInterval(() => void pass(), 60_000);
     const vis = () => document.visibilityState === "visible" && void pass();

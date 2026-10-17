@@ -133,7 +133,7 @@ export function DataSection() {
           </p>
           {persisted === false && (
             <Button
-              className="mt-2"
+              className="mt-2 min-h-11"
               variant="secondary"
               size="sm"
               onClick={async () => {
@@ -153,7 +153,7 @@ export function DataSection() {
             Your original data was copied in without changing it, and the original browser entries (
             {Object.values(LEGACY_KEYS).join(", ")}) are left in place.
           </p>
-          <Button className="mt-2" variant="secondary" size="sm" onClick={legacyRaw}>
+          <Button className="mt-2 min-h-11" variant="secondary" size="sm" onClick={legacyRaw}>
             Download original data
           </Button>
         </div>
@@ -165,7 +165,13 @@ export function DataSection() {
           </p>
           <div className="mt-2 flex flex-wrap gap-2">
             {(Object.keys(ERASE_GROUPS) as (keyof typeof ERASE_GROUPS)[]).map((k) => (
-              <Button key={k} variant="danger" size="sm" onClick={() => setErase(k)}>
+              <Button
+                key={k}
+                className="min-h-11"
+                variant="danger"
+                size="sm"
+                onClick={() => setErase(k)}
+              >
                 {ERASE_GROUPS[k].label}
               </Button>
             ))}

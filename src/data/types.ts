@@ -250,6 +250,8 @@ export type RoutineBlock = {
   link?: RoutineLink;
   /** Planned length in minutes (used when `end` is absent, and by the routine builder). */
   durationMin?: number;
+  /** Optional background reminder lead time. Absent/null means this activity never schedules one. */
+  reminderMinutes?: number | null;
   /** Paused from this date (inclusive) until `pausedUntil` (exclusive); open-ended when `pausedUntil` is null. */
   pausedFrom?: string;
   pausedUntil?: string | null;

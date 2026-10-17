@@ -80,7 +80,7 @@ the repository's own conventions were followed.
 - Recovery: Settings → Your data → Download original data, or export a backup. `runMigration` only runs once
   (`meta: migration:legacy`).
 - **Database.** Migrations `0001`/`0002` are untouched and unused by the new client (archive, don't drop).
-  Migrations `0003_sync.sql` through `0010_circle_crews.sql` are new and **have not been applied to any Supabase
+  Migrations `0003_sync.sql` through `0011_routine_reminders.sql` are new and **have not been applied to any Supabase
   project**. Apply them with the Supabase SQL editor or CLI when you want accounts, sync and Circle. Review them first.
 
 ## Configuration still required (names only)
@@ -98,7 +98,7 @@ build; the default stays the Vercel preset.
 
 ## Verification: what was run and what it showed
 
-Automated (all passing at hand-off): **243 Vitest tests in 45 files**, `tsc --noEmit` clean, `eslint src` clean
+Automated (all passing at hand-off): **253 Vitest tests in 46 files**, `tsc --noEmit` clean, `eslint src` clean
 with zero warnings, and the production build succeeds. Run `bun run test`,
 `bun run typecheck`, `bun run lint`.
 
@@ -207,7 +207,7 @@ Evidence
   14 of 15 assertions passed; the 15th was a case-sensitive regex in my own test (the heading renders in capitals).
 
 **Not verified**: anything against a real Supabase project; real confirmation and recovery emails; Google sign-in;
-session expiry in the wild; migrations `0005` through `0010`.
+session expiry in the wild; migrations `0005` through `0011`.
 
 ## The Supabase project blocker
 
@@ -215,7 +215,7 @@ The only project the connector can see is "TruetoDetail System" (inactive, a dif
 VAYVOR project and **nothing was applied to it**. Activation needs a decision from you:
 
 1. Create or choose the VAYVOR Supabase project.
-2. Apply `supabase/migrations/0003` to `0010` (review first; `0001`/`0002` are legacy and unused by the new client).
+2. Apply `supabase/migrations/0003` to `0011` (review first; `0001`/`0002` are legacy and unused by the new client).
 3. Set Site URL and Redirect URLs (`<origin>/auth/callback`, `<origin>/auth/reset`) to the real working origin.
 4. Configure custom SMTP and paste `supabase/templates/*` (see its README).
 5. Set `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` on Vercel; add `VITE_AUTH_PROVIDERS=google` only after Google is configured.
@@ -285,7 +285,8 @@ Keyboard: tab order and visible focus checked on eight routes, dialog focus trap
 ### Phase 3: daily routines (see `docs/ROUTINES.md`, `docs/PRIVACY.md`)
 
 - **Spaces:** Today, Body (training, food, shopping and budget, progress, library, plan builder), Mind (check-in, reflect, focus
-  timer, history), Soul (optional Salah, reflection), Circle (an honest "not open yet" page: no pretend people or scores).
+  timer, history), Soul (optional Salah, reflection), Circle (connections, deliberate shares, chat, pacts, games and crews;
+  no pretend people or scores).
   Old URLs (`/train`, `/food`, `/salah`, `/progress`, `/plan`, `/schedule`, `/workouts`, `/nutrition`, `/library`) still work
   (checked in a browser) and light up their space.
 - **Engine:** one pure agenda (`domain/routine.ts`) over repeating activities, the five prayers and the planned workout; linked
@@ -297,20 +298,22 @@ Keyboard: tab order and visible focus checked on eight routes, dialog focus trap
   at the database level (owner-only rows). Not end-to-end encrypted (see `docs/PRIVACY.md`).
 - **Named product phases built:** Circle connections, chat, private accountability pacts, Four in a Row, crews and
   private record-derived milestones are implemented in the later phases below. External release verification remains.
-- **Limits:** routine blocks don't schedule notifications; "meal" links mean any meal logged; skipping the default workout
-  row is per date.
+- **Routine reminders:** each actionable block can opt into a reminder at its start or 5–60 minutes before. The rolling
+  schedule honours prayer-relative times, moves, skips, rest days, pauses, linked completions and quiet hours, and refreshes
+  after successful sync on a subscribed device. Work and sleep stay context-only. Delivery still needs the optional push setup.
+- **Limits:** "meal" links mean any meal logged; skipping the default workout row is per date.
 
 ## Checks actually run (this continuation)
 
-| Check                                                                                  | Result                                                                                                                                                                                                                        |
-| -------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Unit tests (vitest, fake IndexedDB)                                                    | 243 pass: planner, reliability, plan actions (atomic failure, regeneration, restore), diff, routine engine incl. DST, routine actions, tracking, milestones, Four in a Row, crews, catalogue, backup, sync, accounts          |
-| `tsc --noEmit`, `eslint`                                                               | clean, 0 errors and 0 warnings                                                                                                                                                                                                |
-| Production build (`NITRO_PRESET=node-server`)                                          | builds; served on a local port                                                                                                                                                                                                |
-| Offline on the **production build with the service worker active** (headless Chromium) | SW controls the page; catalogue snapshot cached; offline Library shows 879 exercises, search and credits work; a workout set logged offline survives a reload                                                                 |
-| Browser flows on the dev server (headless Chromium)                                    | builder gating (remove main lift → blocked → fill → saved), regenerate with required choice, archive and restore, routine builder, tick/undo/skip/undo/move/pause/resume, Salah optional, old URLs                            |
-| Database SQL tests, local Postgres 16, **simulated** auth schema                       | Through `0008`: 95 pass (including private `mind` and prayer isolation). The 12 checks for `0009` games and 13 checks for `0010` crews are committed but not run here because Postgres 16 is unavailable.                     |
-| Design sweep                                                                           | see Design; final screenshots in `docs/screenshots/phase3/` (final sweep: no overflow, small-target, unlabelled-control or clipping findings at 320/390/768/1440 px, dark and light, 200% text, and reduced motion at 390 px) |
+| Check                                                                                  | Result                                                                                                                                                                                                                             |
+| -------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Unit tests (vitest, fake IndexedDB)                                                    | 253 pass: planner, reliability, plan actions (atomic failure, regeneration, restore), diff, routine engine and reminders incl. DST, routine actions, tracking, milestones, Four in a Row, crews, catalogue, backup, sync, accounts |
+| `tsc --noEmit`, `eslint`                                                               | clean, 0 errors and 0 warnings                                                                                                                                                                                                     |
+| Production build (`NITRO_PRESET=node-server`)                                          | builds; served on a local port                                                                                                                                                                                                     |
+| Offline on the **production build with the service worker active** (headless Chromium) | SW controls the page; catalogue snapshot cached; offline Library shows 879 exercises, search and credits work; a workout set logged offline survives a reload                                                                      |
+| Browser flows on the dev server (headless Chromium)                                    | builder gating (remove main lift → blocked → fill → saved), regenerate with required choice, archive and restore, routine builder, tick/undo/skip/undo/move/pause/resume, Salah optional, old URLs                                 |
+| Database SQL tests, local Postgres 16, **simulated** auth schema                       | Through `0008`: 95 pass (including private `mind` and prayer isolation). The 12 checks for `0009` games, 13 for `0010` crews and 3 for `0011` routine reminders are committed but not run here because Postgres 16 is unavailable. |
+| Design sweep                                                                           | see Design; final screenshots in `docs/screenshots/phase3/` (final sweep: no overflow, small-target, unlabelled-control or clipping findings at 320/390/768/1440 px, dark and light, 200% text, and reduced motion at 390 px)      |
 
 **Simulated vs real:** nothing was run against a real Supabase project (none exists for VAYVOR), real email, Google sign-in,
 push or a real phone. `docs/SUPABASE-SETUP.md` has the exact steps and a table of each check, how to run it and its status;
@@ -400,6 +403,26 @@ Built:
   in this checkout because Postgres 16 is unavailable.
 
 Current verification (16 October 2026): 243 Vitest tests pass, TypeScript passes, ESLint passes with zero warnings, and the Vercel-preset production build succeeds. Browser checks cover every main and legacy route at 320 px and 768 px, the five primary routes at 390 px, and Today at 1440 px; no horizontal overflow or console errors were observed. A separate 200%-text pass covered every primary/legacy route, auth and onboarding states, all six builder steps including a full generated-plan preview, Edit Today, meal logging and the routine editor. It fixed a Today card action escaping its column, Settings columns crushing controls and long display headings breaking mid-word; the corrected layouts were rechecked at 390 px and 1440 px with no overflow or browser errors. The complete builder produced a credible 3-day, 30-minute home-dumbbell plan and remained overflow-free at 320, 390, 768 and 200% text; emptying a session disabled acceptance and exposed specific repair actions. Light theme at 320 px and keyboard traversal with a visible 2 px focus outline were also checked. A check-in saved successfully and appeared in private History. Circle, Chat and Pacts configuration gates were rendered at 390 and 1440 px without overflow or console errors. The Four in a Row and Crews setup gates were production-rendered at 390 × 844 and 1440 × 1000 with one H1 each, honest empty-state content, no horizontal overflow, no controls below 44 px and no console warnings/errors. Mobile and desktop screenshots showed coherent navigation and usable empty states. The local production-preview path now builds Nitro's node-server output before serving it. Settings now captures Chromium's one-shot install prompt from app startup, reports installed/offline status, and gives an iPhone/iPad Home Screen path when a native prompt is unavailable. Its production-rendered fallback was verified at 390 × 844 and 1440 × 1000 with no overflow or console errors. Production responses for the document, manifest and service worker were also checked directly: they deny framing and unused camera, geolocation and microphone capabilities, suppress referrer data and MIME sniffing, and retain the service worker's `no-cache` policy. The user-visible Credits & licences route derives source, licence and contributor counts from the shipped catalogue and links every applicable licence; it was verified at 375 px and 1440 px with no overflow or browser warnings/errors. With that production server stopped, the library retained all 879 exercises and a self-hosted exercise image, and a newly created workout could record and complete a set; after reconnect and reload the completed session appeared exactly once. Every one of the first import's 253 allowed exercise images was reviewed at full-card scale. Four wrong exercise associations and 14 byte-identical same-exercise frames were removed through durable catalogue overrides, leaving 235 self-hosted images across 186 exercises. `media-manifest.json` retains their original wger URLs, authors, licences, byte sizes and SHA-256 checksums; automated tests now enforce manifest/file parity, reviewed exclusions and no repeated bytes within an exercise. The 20 original curated meal/exercise PNGs were visually compared after WebP conversion and reduced from 7,886,544 bytes to 637,346 bytes (7,249,198 bytes saved). Two previously broken meal-photo paths now use purpose-made shake and tuna-lunch images; an automated check prevents any public meal-image reference from silently breaking again. Reduced-motion CSS globally collapses animation/transition durations and disables smooth scrolling; an automated guard now prevents that rule being removed.
+
+## Phase 8: routine reminders that follow the real day
+
+- Every actionable routine block can opt into a reminder at its start or 5, 10, 15, 30 or 60 minutes before. Work and
+  sleep remain context-only and cannot create notifications.
+- The reminder schedule is built from the same expanded agenda as Today. It therefore follows prayer-relative times and
+  one-off moves, removes skips/rest days/paused occurrences, suppresses manual completions and completed linked records,
+  honours quiet hours and handles relative times that cross midnight.
+- A subscribed device now refreshes its rolling 48-hour schedule after a successful changed-data sync and at least hourly
+  while open. Previously the interface claimed this refresh happened, but `useSyncRunner` never called the uploader.
+- `0011_routine_reminders.sql` extends the private scheduled-reminder kind constraint. Three disposable-Postgres checks
+  are committed but unrun here; the real-project verifier now writes, reads and removes a temporary routine reminder.
+- The privacy page now explains that reminder time/title/body/destination and the push subscription reach the reminder
+  service and push provider. It warns against putting sensitive notes into a reminder-enabled activity.
+- Ten new tests cover opted-in scheduling, stable keys, moves, skips, rest, pause, completion, linked Mind records, quiet
+  hours, invalid imported payloads and midnight-crossing prayer-relative activities. The current suite is **253 tests
+  in 46 files**, with TypeScript and ESLint clean.
+- The production Week editor and privacy disclosure were rendered at 390 × 844 and 1440 × 1000: the new control is
+  labelled, context types hide it, the lead-time choice works, one H1 remains, and there is no horizontal overflow or
+  console warning/error. The same sweep found and fixed five older 40 px Settings data buttons to meet the 44 px target.
 
 The seed-content contract also verifies all four original workouts, their 22 unique exercises, prescriptions, starting loads, alternatives, recurring weekdays and workout/exercise media mappings. Both complete meal days must add up exactly from their displayed meal rows; that check corrected the rounded totals to Day A's 346 g carbohydrate and 92 g fat, and Day B's 345 g carbohydrate and 139 g protein.
 

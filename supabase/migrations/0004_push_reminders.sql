@@ -1,6 +1,7 @@
 -- VAYVOR: background reminders via Web Push.
 --
--- The app computes the next ~48 hours of reminders on the device (prayer, training, food, honouring quiet hours)
+-- The app computes the next ~48 hours of reminders on the device (prayer, training and food here; routine support is
+-- added by 0011_routine_reminders.sql, all honouring quiet hours)
 -- and uploads them with replace_reminders(). A scheduled job (the send-reminders edge function, run every minute)
 -- claims due rows and delivers them. Delivery needs: a push subscription, VAPID keys, and that scheduled job.
 -- If the device stays offline for long, the schedule stops being refreshed; stale reminders are skipped, never sent late.

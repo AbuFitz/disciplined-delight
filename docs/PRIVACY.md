@@ -38,4 +38,8 @@ Deleting a sent chat message leaves an honest tombstone rather than pretending t
   rows and chat messages. If that is not acceptable for journals, they must stay unsynced on a device: that option is
   not built. Do not use Circle chat for passwords, financial details, medical records or emergencies.
 - **Backups** you export contain these collections in plain JSON. Treat the file as sensitive.
+- **Background reminders are opt-in.** When enabled, the next 48 hours of reminder time, title, short body and destination
+  are copied to the reminder service together with this device's push subscription. For a routine activity, that can
+  include the activity name and optional notes, so do not put sensitive journal or medical detail in a reminder-enabled
+  activity. The push provider receives each notification payload in order to deliver it.
 - Salah is optional: with it off nothing about prayer is shown, scheduled or logged.

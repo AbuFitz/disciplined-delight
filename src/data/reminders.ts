@@ -1,8 +1,28 @@
 import { get, list, put } from "./db";
 import { assertGeneration, scopeGeneration } from "./scope";
-import { COL, type PrayerSettings, type WorkoutTemplate } from "./types";
+import {
+  COL,
+  type MindEntry,
+  type Modules,
+  type PrayerLog,
+  type PrayerSettings,
+  type RoutineBlock,
+  type RoutineCompletion,
+  type RoutineException,
+  type Session,
+  type WorkoutTemplate,
+} from "./types";
 import { makeLookup, type StoredPrayerDay } from "./prayer";
-import { buildReminders, DEFAULT_REMINDER_PREFS, type ReminderPrefs } from "@/domain/reminders";
+import { plannedTemplateFor } from "./selectors";
+import type { MealLog } from "@/domain/nutrition";
+import { addDays, localDate, localMinutes } from "@/domain/dates";
+import { agendaFor, type RoutineBlockLike } from "@/domain/routine";
+import {
+  buildReminders,
+  DEFAULT_REMINDER_PREFS,
+  type ReminderPrefs,
+  type RoutineReminderOccurrence,
+} from "@/domain/reminders";
 import { supabase } from "@/lib/supabase";
 
 export const getReminderPrefs = async (): Promise<ReminderPrefs> => ({
@@ -12,17 +32,111 @@ export const getReminderPrefs = async (): Promise<ReminderPrefs> => ({
 export const saveReminderPrefs = (p: ReminderPrefs) => put(COL.reminderPrefs, "main", p);
 
 export async function computeReminders(now = Date.now()) {
-  const [prefs, settings, days, templates] = await Promise.all([
+  const [
+    prefs,
+    settings,
+    days,
+    templates,
+    blocks,
+    exceptions,
+    completions,
+    sessions,
+    meals,
+    mind,
+    prayerLogs,
+    modules,
+  ] = await Promise.all([
     getReminderPrefs(),
     get<PrayerSettings>(COL.prayerSettings, "main"),
     list<StoredPrayerDay>(COL.prayerDays),
     list<WorkoutTemplate>(COL.templates),
+    list<RoutineBlock>(COL.routine),
+    list<RoutineException>(COL.routineExceptions),
+    list<RoutineCompletion>(COL.routineDone),
+    list<Session>(COL.sessions),
+    list<MealLog>(COL.mealLogs),
+    list<MindEntry>(COL.mind),
+    list<PrayerLog>(COL.prayerLogs),
+    list<Modules>(COL.modules),
   ]);
+  const tz = settings?.timezone ?? "Europe/London";
+  const today = localDate(now, tz);
+  const lookup = makeLookup(days, settings);
+  const salahEnabled = modules.find((item) => item.id === "main")?.salah ?? !!settings;
+  const routine: RoutineReminderOccurrence[] = [];
+  const reminderBlocks = new Map(
+    blocks
+      .filter(
+        (block) =>
+          !block.archivedAt &&
+          block.kind !== "work" &&
+          block.kind !== "sleep" &&
+          typeof block.reminderMinutes === "number" &&
+          Number.isFinite(block.reminderMinutes) &&
+          block.reminderMinutes >= 0 &&
+          block.reminderMinutes <= 240,
+      )
+      .map((block) => [block.id, block]),
+  );
+
+  if (reminderBlocks.size) {
+    for (let offset = 0; offset < 4; offset++) {
+      const date = addDays(today, offset);
+      const day = lookup(date);
+      const previous = lookup(addDays(date, -1));
+      const planned = plannedTemplateFor(templates, date);
+      const finished = sessions.filter(
+        (session) => session.date === date && session.status === "completed",
+      );
+      const agenda = agendaFor({
+        date,
+        today,
+        nowMin: localMinutes(now, tz),
+        blocks: blocks as RoutineBlockLike[],
+        exceptions,
+        completions,
+        prayer: {
+          enabled: salahEnabled,
+          start: (prayer) => day?.start[prayer],
+          startPrev: (prayer) => previous?.start[prayer],
+          logged: new Set(prayerLogs.filter((log) => log.date === date).map((log) => log.prayer)),
+        },
+        workout: {
+          planned: planned
+            ? {
+                id: planned.id,
+                letter: planned.letter,
+                title: planned.title,
+                time: planned.time,
+              }
+            : undefined,
+          completed: new Set(finished.map((session) => session.templateId)),
+          anyCompleted: finished.length > 0,
+        },
+        mealsLogged: meals.filter((meal) => meal.date === date).length,
+        mind: new Set(mind.filter((entry) => entry.date === date).map((entry) => entry.kind)),
+      });
+      for (const item of agenda.items) {
+        if (item.source !== "block" || !item.blockId || item.context || item.continued) continue;
+        const block = reminderBlocks.get(item.blockId);
+        if (!block || block.reminderMinutes == null) continue;
+        routine.push({
+          date,
+          key: item.key,
+          label: item.label,
+          detail: item.detail,
+          startMin: item.startMin,
+          leadMinutes: block.reminderMinutes,
+          status: item.status,
+        });
+      }
+    }
+  }
   return buildReminders({
     now,
-    tz: settings?.timezone ?? "Europe/London",
+    tz,
     prefs,
-    prayerLookup: makeLookup(days, settings),
+    prayerLookup: lookup,
     training: templates
       .filter((t) => !t.archivedAt)
       .map((t) => ({
@@ -32,6 +146,7 @@ export async function computeReminders(now = Date.now()) {
         letter: t.letter,
         title: t.title,
       })),
+    routine,
   });
 }
 
@@ -124,6 +239,14 @@ export async function uploadSchedule(): Promise<number> {
   const { error } = await supabase.rpc("replace_reminders", { p_items: items });
   if (error) throw new Error(error.message);
   return items.length;
+}
+
+/** Refreshes server rows only for a device that already owns a push subscription. */
+export async function refreshSubscribedSchedule(): Promise<number | null> {
+  if (!supabase || !("serviceWorker" in navigator) || !("PushManager" in window)) return null;
+  const registration = await navigator.serviceWorker.getRegistration();
+  if (!registration || !(await registration.pushManager.getSubscription())) return null;
+  return uploadSchedule();
 }
 
 /** A local notification, to prove permission and the service worker work on this device. */

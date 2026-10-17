@@ -351,6 +351,32 @@ else {
       denied(claim),
       `HTTP ${claim.status}`,
     );
+    const reminderKey = `routine:verify:${Date.now()}`;
+    const routineReminder = await rpc("replace_reminders", A, {
+      p_items: [
+        {
+          key: reminderKey,
+          kind: "routine",
+          fire_at: new Date(Date.now() + 3_600_000).toISOString(),
+          title: "Verifier routine",
+          body: "Temporary migration check.",
+          url: "/",
+        },
+      ],
+    });
+    const reminderRead = await call(
+      `/rest/v1/scheduled_reminders?select=key,kind&key=eq.${encodeURIComponent(reminderKey)}`,
+      { token: A.token },
+    );
+    rec(
+      "Migration 0011 accepts an owner-private routine reminder",
+      okResponse(routineReminder) &&
+        reminderRead.status === 200 &&
+        reminderRead.json?.length === 1 &&
+        reminderRead.json[0]?.kind === "routine",
+      `write HTTP ${routineReminder.status}, read HTTP ${reminderRead.status}`,
+    );
+    await rpc("disable_reminders", A);
     const del = await push(A, `${id}-d`, null, a1.json?.rev ?? 1, "verify", "delete");
     rec(
       "A can delete (tombstone) its record",

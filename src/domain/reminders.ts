@@ -30,11 +30,23 @@ export const DEFAULT_REMINDER_PREFS: ReminderPrefs = {
 export type Reminder = {
   /** Stable dedupe key: the same reminder always has the same key. */
   key: string;
-  kind: "prayer" | "training" | "food";
+  kind: "prayer" | "training" | "food" | "routine";
   fireAt: number;
   title: string;
   body: string;
   url: string;
+};
+
+export type RoutineReminderOccurrence = {
+  /** Local calendar date where the occurrence now appears (after one-off moves). */
+  date: ISODate;
+  /** Stable occurrence key from the routine engine. */
+  key: string;
+  label: string;
+  detail?: string;
+  startMin: number;
+  leadMinutes: number;
+  status: "upcoming" | "now" | "done" | "skipped" | "missed" | "rest";
 };
 
 export type ReminderInput = {
@@ -44,6 +56,7 @@ export type ReminderInput = {
   prefs: ReminderPrefs;
   prayerLookup: (d: ISODate) => PrayerDay | undefined;
   training: { id: string; weekday: number | null; time?: string; letter: string; title: string }[];
+  routine?: RoutineReminderOccurrence[];
 };
 
 const hm = (s: string) => {
@@ -108,9 +121,30 @@ export function buildReminders(i: ReminderInput): Reminder[] {
         url: "/food",
       });
     }
+    for (const occurrence of i.routine ?? []) {
+      if (
+        occurrence.date !== date ||
+        !Number.isFinite(occurrence.leadMinutes) ||
+        occurrence.leadMinutes < 0 ||
+        occurrence.leadMinutes > 240 ||
+        (occurrence.status !== "upcoming" && occurrence.status !== "now")
+      )
+        continue;
+      const moment = dateAndClock(date, occurrence.startMin);
+      const at = zonedInstant(moment.date, moment.clock, i.tz) - occurrence.leadMinutes * 60_000;
+      out.push({
+        key: `routine:${occurrence.key}`,
+        kind: "routine",
+        fireAt: at,
+        title: occurrence.label,
+        body: occurrence.detail?.trim() || "Your next VAYVOR activity is coming up.",
+        url: "/",
+      });
+    }
   }
   return out
     .filter((r) => r.fireAt > i.now && r.fireAt <= end)
+    .filter((r) => Array.from(r.key).length <= 200)
     .filter((r) => {
       if (!i.prefs.quiet.enabled) return true;
       const quiet = inQuietHours(
@@ -121,8 +155,24 @@ export function buildReminders(i: ReminderInput): Reminder[] {
       if (!quiet) return true;
       return r.kind === "prayer" && r.key.endsWith(":fajr") && i.prefs.quiet.allowFajr;
     })
+    .map((reminder) => ({
+      ...reminder,
+      title: clip(reminder.title, 120),
+      body: clip(reminder.body, 300),
+    }))
     .sort((a, b) => a.fireAt - b.fireAt);
 }
+
+const clip = (value: string, limit: number) => Array.from(value).slice(0, limit).join("");
+
+const dateAndClock = (date: ISODate, minutes: number) => {
+  const dayOffset = Math.floor(minutes / 1440);
+  const value = ((minutes % 1440) + 1440) % 1440;
+  return {
+    date: addDays(date, dayOffset),
+    clock: `${String(Math.floor(value / 60)).padStart(2, "0")}:${String(value % 60).padStart(2, "0")}`,
+  };
+};
 
 /** Does the quiet window swallow a wanted Fajr reminder? Used to ask the user explicitly. */
 export function quietConflictsWithFajr(

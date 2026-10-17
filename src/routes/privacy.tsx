@@ -85,6 +85,12 @@ function PrivacyPage() {
             sync only after linking the account. Exported backups are plain JSON and can contain
             sensitive records, so keep them somewhere private.
           </p>
+          <p className="mt-3 text-sm text-muted-foreground">
+            Background reminders are optional. When on, the next 48 hours of reminder times, titles,
+            short bodies and destinations go to the reminder service and push provider. Routine
+            reminders can include an activity's name and notes, so keep sensitive detail out of
+            reminder-enabled activities.
+          </p>
         </Panel>
 
         <Panel tone="warm">

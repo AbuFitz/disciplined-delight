@@ -46,3 +46,7 @@ RLS reads, direct-write denial, block shutdown and anonymous denial.
 `circle-crews.test.sql` targets `0010_circle_crews.sql`. It covers connection-only invitations, explicit acceptance,
 owner-only governance, a two-member roster, correctable manual roll calls, uninvited/RLS/direct-write/anonymous denial,
 and automatic membership removal when the owner's connection is removed.
+
+`routine-reminders.test.sql` targets `0011_routine_reminders.sql`. It checks that the existing private reminder queue
+accepts the new routine kind, reschedules it idempotently and still rejects unknown kinds. These checks exercise storage;
+actual delivery still requires a real subscription, VAPID keys and the scheduled edge function.
