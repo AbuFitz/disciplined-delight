@@ -291,7 +291,10 @@ function OnboardingPage() {
         }),
       ]);
       toast.success(skipped ? "Start simple—personalise any time" : "Your space is ready");
-      nav({ to: "/", replace: true });
+      // Reload once at the setup boundary so the app shell reads the saved profile
+      // from IndexedDB before its new-guest redirect guard runs. A client-side
+      // navigation can otherwise race the collection cache and reopen onboarding.
+      window.location.replace("/");
     } catch (caught) {
       if (caught instanceof ProfileApiError && caught.code === "username_taken") {
         setAvailability("taken");
