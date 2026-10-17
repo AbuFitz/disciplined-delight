@@ -368,7 +368,7 @@ function OnboardingPage() {
       </div>
       <aside className="flex items-start gap-3 rounded-2xl bg-primary/10 p-4" aria-live="polite">
         <BuddyCharacter
-          form={buddy.form}
+          variant={buddy.variant}
           state={step === 4 ? "celebrate" : step === 3 ? "enter" : "explain"}
           motion={buddy.motion}
           palette={buddy.palette}

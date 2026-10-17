@@ -17,22 +17,12 @@ export const BUDDY_STATES = [
   "rest",
   "error",
   "offline",
+  "exit",
 ] as const;
 export type BuddyState = (typeof BUDDY_STATES)[number];
 
 export type Eyes = "open" | "wide" | "happy" | "closed" | "half" | "up" | "side" | "soft";
 export type Mouth = "smile" | "grin" | "flat" | "open" | "small" | "soft" | "wavy";
-export type Arms =
-  | "down"
-  | "wave"
-  | "up"
-  | "fold"
-  | "chin"
-  | "open"
-  | "point"
-  | "lift"
-  | "welcome"
-  | "shrug";
 export type Accessory =
   | "none"
   | "waves"
@@ -46,22 +36,23 @@ export type Accessory =
   | "cloud"
   | "ring";
 
-export type Pose = { eyes: Eyes; mouth: Mouth; arms: Arms; accessory: Accessory; lean: number };
+export type Pose = { eyes: Eyes; mouth: Mouth; accessory: Accessory; lean: number };
 
 export const POSES: Record<BuddyState, Pose> = {
-  enter: { eyes: "wide", mouth: "smile", arms: "wave", accessory: "none", lean: 0 },
-  idle: { eyes: "open", mouth: "small", arms: "down", accessory: "none", lean: 0 },
-  breathe: { eyes: "half", mouth: "small", arms: "fold", accessory: "ring", lean: 0 },
-  listen: { eyes: "wide", mouth: "flat", arms: "down", accessory: "waves", lean: -5 },
-  think: { eyes: "up", mouth: "flat", arms: "chin", accessory: "dots", lean: 3 },
-  explain: { eyes: "open", mouth: "open", arms: "open", accessory: "none", lean: 0 },
-  point: { eyes: "side", mouth: "smile", arms: "point", accessory: "arrow", lean: 4 },
-  encourage: { eyes: "happy", mouth: "smile", arms: "lift", accessory: "pip", lean: 0 },
-  celebrate: { eyes: "happy", mouth: "grin", arms: "up", accessory: "tally", lean: 0 },
-  recover: { eyes: "soft", mouth: "soft", arms: "welcome", accessory: "dawn", lean: 0 },
-  rest: { eyes: "closed", mouth: "flat", arms: "fold", accessory: "zzz", lean: 0 },
-  error: { eyes: "wide", mouth: "wavy", arms: "shrug", accessory: "bang", lean: 0 },
-  offline: { eyes: "open", mouth: "flat", arms: "down", accessory: "cloud", lean: 0 },
+  enter: { eyes: "wide", mouth: "smile", accessory: "none", lean: 0 },
+  idle: { eyes: "open", mouth: "small", accessory: "none", lean: 0 },
+  breathe: { eyes: "half", mouth: "small", accessory: "ring", lean: 0 },
+  listen: { eyes: "wide", mouth: "flat", accessory: "waves", lean: -5 },
+  think: { eyes: "up", mouth: "flat", accessory: "dots", lean: 3 },
+  explain: { eyes: "open", mouth: "open", accessory: "none", lean: 0 },
+  point: { eyes: "side", mouth: "smile", accessory: "arrow", lean: 4 },
+  encourage: { eyes: "happy", mouth: "smile", accessory: "pip", lean: 0 },
+  celebrate: { eyes: "happy", mouth: "grin", accessory: "tally", lean: 0 },
+  recover: { eyes: "soft", mouth: "soft", accessory: "dawn", lean: 0 },
+  rest: { eyes: "closed", mouth: "flat", accessory: "zzz", lean: 0 },
+  error: { eyes: "wide", mouth: "wavy", accessory: "bang", lean: 0 },
+  offline: { eyes: "open", mouth: "flat", accessory: "cloud", lean: 0 },
+  exit: { eyes: "happy", mouth: "small", accessory: "none", lean: -4 },
 };
 
 type Meta = {
@@ -83,9 +74,10 @@ export const STATE_META: Record<BuddyState, Meta> = {
   encourage: { label: "encouraging", hold: 3000, priority: 2 },
   celebrate: { label: "celebrating", hold: 4200, priority: 4 },
   recover: { label: "welcoming you back", hold: 4200, priority: 3 },
-  rest: { label: "resting", hold: null, priority: 1 },
-  error: { label: "something needs attention", hold: null, priority: 5 },
+  rest: { label: "sleeping", hold: null, priority: 1 },
+  error: { label: "asking for help", hold: null, priority: 5 },
   offline: { label: "offline, saving on this device", hold: null, priority: 1 },
+  exit: { label: "waving goodbye", hold: 600, priority: 1 },
 };
 
 export type BuddyModel = {
@@ -159,5 +151,5 @@ export function effectiveMotion(
 /** Unique signature of a pose, used to prove every state looks different. */
 export const poseSignature = (state: BuddyState) => {
   const p = POSES[state];
-  return [p.eyes, p.mouth, p.arms, p.accessory, p.lean].join("|");
+  return [p.eyes, p.mouth, p.accessory, p.lean].join("|");
 };

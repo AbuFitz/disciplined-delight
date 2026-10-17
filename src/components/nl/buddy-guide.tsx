@@ -65,7 +65,7 @@ export function BuddyGuide({ event, compact = false }: { event: BuddyEvent; comp
     >
       <div className="flex items-start gap-3">
         <BuddyCharacter
-          form={config.form}
+          variant={config.variant}
           state={STATE_FOR[event.kind]}
           motion={motion}
           palette={config.palette}

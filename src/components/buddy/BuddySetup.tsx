@@ -1,7 +1,11 @@
+import "./buddy.css";
 import { useEffect, useId, useState, type ReactNode } from "react";
 import { Switch, TextInput } from "@/components/nl/ui";
 import { WORLDS } from "@/lib/colour-worlds";
-import type { BuddyForm, CompanionConfig } from "@/domain/companion";
+import type { CompanionConfig } from "@/domain/companion";
+import { VARIANTS, VARIANT_IDS } from "@/domain/buddy/variants";
+import { getArtPack } from "@/domain/buddy/art";
+import { webHaptics } from "@/lib/haptics";
 import { STATE_META, effectiveMotion, type BuddyState } from "@/domain/buddy/state";
 import { canSpeak } from "@/lib/buddy-audio";
 import { useReducedMotionPref } from "@/lib/media-prefs";
@@ -49,12 +53,6 @@ function Options<T extends string>({
   );
 }
 
-const FORMS: { value: BuddyForm; label: string; hint: string }[] = [
-  { value: "bell", label: "Bell", hint: "Steady and compact. Carries the load." },
-  { value: "cairn", label: "Cairn", hint: "Patient and balanced. One stone at a time." },
-  { value: "plate", label: "Plate", hint: "Round and rolling. Always one more rep." },
-];
-
 const TRY: { state: BuddyState; label: string }[] = [
   { state: "enter", label: "Hello" },
   { state: "point", label: "Point" },
@@ -62,7 +60,10 @@ const TRY: { state: BuddyState; label: string }[] = [
   { state: "encourage", label: "Cheer on" },
   { state: "celebrate", label: "Celebrate" },
   { state: "breathe", label: "Breathe" },
-  { state: "rest", label: "Rest" },
+  { state: "rest", label: "Sleep" },
+  { state: "error", label: "Help" },
+  { state: "recover", label: "Welcome back" },
+  { state: "exit", label: "Wave off" },
 ];
 
 const sample = (v: CompanionConfig) =>
@@ -86,7 +87,7 @@ function Preview({ value }: { value: CompanionConfig }) {
     <div data-testid="buddy-preview">
       <div className="buddy-stage">
         <BuddyCharacter
-          form={value.form}
+          variant={value.variant}
           state={demo}
           motion={motion}
           palette={value.palette}
@@ -180,29 +181,48 @@ export function BuddySetup({
           <fieldset className="opts">
             <legend className="eyebrow mb-1">Who joins you</legend>
             <div className="form-pick">
-              {FORMS.map((f) => (
-                <label key={f.value} className={cn("form-tile", value.form === f.value && "is-on")}>
-                  <input
-                    type="radio"
-                    className="sr-only"
-                    name="buddy-form"
-                    checked={value.form === f.value}
-                    onChange={() => set("form", f.value)}
-                  />
-                  <BuddyCharacter
-                    form={f.value}
-                    state="idle"
-                    motion="off"
-                    palette={value.palette}
-                    expression={value.expression}
-                    size={64}
-                    decorative
-                  />
-                  <span className="text-sm font-semibold">{f.label}</span>
-                  <span className="text-xs text-muted-foreground">{f.hint}</span>
-                </label>
-              ))}
+              {VARIANT_IDS.map((id) => {
+                const v = VARIANTS[id];
+                return (
+                  <label key={id} className={cn("form-tile", value.variant === id && "is-on")}>
+                    <input
+                      type="radio"
+                      className="sr-only"
+                      name="buddy-variant"
+                      checked={value.variant === id}
+                      onChange={() =>
+                        onChange({
+                          ...value,
+                          variant: id,
+                          // Follow the default name only while the name is still some variant's default.
+                          name: VARIANT_IDS.some((o) => VARIANTS[o].defaultName === value.name)
+                            ? v.defaultName
+                            : value.name,
+                          expression: v.defaultExpression,
+                        })
+                      }
+                    />
+                    <BuddyCharacter
+                      variant={id}
+                      state="idle"
+                      motion="off"
+                      palette={value.palette}
+                      expression={value.expression}
+                      size={56}
+                      decorative
+                    />
+                    <span className="text-sm font-semibold">{v.label}</span>
+                    <span className="text-xs text-muted-foreground">{v.tagline}</span>
+                  </label>
+                );
+              })}
             </div>
+            {getArtPack().provisional && (
+              <p className="mt-2 text-xs text-muted-foreground" data-testid="art-provisional">
+                Provisional shapes: the final character art is still being made. Names, colours,
+                motion and settings carry over when it arrives.
+              </p>
+            )}
           </fieldset>
           <label className="grid gap-1 text-sm font-semibold">
             Name
@@ -350,6 +370,24 @@ export function BuddySetup({
                     : "Not available on this device",
                 },
               ]}
+            />
+            <Switch
+              label="Haptic feedback"
+              hint={
+                webHaptics.capability() === "none"
+                  ? "This device or browser can't vibrate (iOS Safari can't). You'll get the visual and sound feedback instead."
+                  : "A short tick when you log a set, finish a rest or hit a personal best. Never for coaching tips. Separate from reduced motion."
+              }
+              checked={value.haptics}
+              onChange={(haptics) => {
+                set("haptics", haptics);
+                if (haptics)
+                  webHaptics.play("acknowledge", {
+                    enabled: true,
+                    muted: false,
+                    quietHours: false,
+                  });
+              }}
             />
             <Options
               legend="Where Buddy lives"

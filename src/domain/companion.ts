@@ -1,7 +1,7 @@
 import type { AppModule } from "@/data/types";
 import type { AccentWorld } from "@/lib/theme";
+import { DEFAULT_VARIANT, VARIANTS, normaliseVariant, type VariantId } from "./buddy/variants";
 
-export type BuddyForm = "bell" | "cairn" | "plate";
 export type BuddyPalette = "world" | AccentWorld;
 export type BuddyPlacement = "dock_right" | "dock_left" | "inline" | "on_demand" | "setup";
 export type BuddyPersonality = "steady" | "playful" | "dry";
@@ -12,7 +12,8 @@ export type CompanionConfig = {
   /** True once the person has been through (or skipped) guided setup. */
   setupDone: boolean;
   name: string;
-  form: BuddyForm;
+  /** Companion family member. Recolour and rename are independent of this choice. */
+  variant: VariantId;
   /** "world" follows the selected colour world; otherwise a fixed world. */
   palette: BuddyPalette;
   expression: "calm" | "bright" | "focused";
@@ -22,6 +23,8 @@ export type CompanionConfig = {
   frequency: "minimal" | "balanced" | "active";
   celebration: "off" | "subtle" | "full";
   motion: "off" | "gentle" | "full";
+  /** Off by default. Independent of reduced motion. Only acknowledgements and key moments vibrate. */
+  haptics: boolean;
   /** Off by default. "chime" is a soft tone; "voice" reads lines aloud with the device voice. */
   sound: "off" | "chime" | "voice";
   placement: BuddyPlacement;
@@ -35,8 +38,8 @@ export const DEFAULT_COMPANION: CompanionConfig = {
   id: "main",
   enabled: true,
   setupDone: false,
-  name: "Buddy",
-  form: "bell",
+  name: VARIANTS[DEFAULT_VARIANT].defaultName,
+  variant: DEFAULT_VARIANT,
   palette: "world",
   expression: "calm",
   personality: "steady",
@@ -45,6 +48,7 @@ export const DEFAULT_COMPANION: CompanionConfig = {
   frequency: "balanced",
   celebration: "subtle",
   motion: "gentle",
+  haptics: false,
   sound: "off",
   placement: "dock_right",
   muted: false,
@@ -53,21 +57,20 @@ export const DEFAULT_COMPANION: CompanionConfig = {
   privacy: "status_only",
 };
 
-const FORMS: BuddyForm[] = ["bell", "cairn", "plate"];
 const PLACEMENTS: BuddyPlacement[] = ["dock_right", "dock_left", "inline", "on_demand", "setup"];
 const WORLDS = ["mint", "cobalt", "violet", "coral", "amber", "rose", "slate"];
-/** Early builds stored orb/totem/spark and a dashboard placement; map them without losing choices. */
-const LEGACY_FORM: Record<string, BuddyForm> = { orb: "bell", totem: "cairn", spark: "plate" };
-
 /** Merge a stored (possibly old-shape) record over the defaults. */
 export function normaliseCompanion(
-  stored?: Partial<Record<keyof CompanionConfig, unknown>> | null,
+  stored?: (Partial<Record<keyof CompanionConfig, unknown>> & { form?: unknown }) | null,
 ) {
   const base = { ...DEFAULT_COMPANION, ...(stored ?? {}) } as CompanionConfig;
-  const form = String(base.form);
-  base.form = FORMS.includes(form as BuddyForm)
-    ? (form as BuddyForm)
-    : (LEGACY_FORM[form] ?? "bell");
+  // Earlier builds stored `form` (orb/totem/spark, then bell/cairn/plate). Map without losing a choice.
+  const raw = stored as Record<string, unknown> | null | undefined;
+  base.variant = normaliseVariant(raw?.variant ?? raw?.form);
+  delete (base as unknown as Record<string, unknown>).form;
+  // A saved name that was only ever the old default follows the variant's default.
+  if (raw && (raw.name === "Buddy" || raw.name === undefined) && !("variant" in raw))
+    base.name = VARIANTS[base.variant].defaultName;
   const placement = String(base.placement);
   base.placement =
     placement === "dashboard"

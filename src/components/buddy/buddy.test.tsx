@@ -3,19 +3,38 @@ import { describe, expect, it } from "vitest";
 import { BuddyCharacter } from "./BuddyCharacter";
 import { BuddySetup } from "./BuddySetup";
 import { BUDDY_STATES, POSES } from "@/domain/buddy/state";
+import { PROVISIONAL_PACK, registerArtPack } from "@/domain/buddy/art";
+import { VARIANTS, VARIANT_IDS } from "@/domain/buddy/variants";
 import { DEFAULT_COMPANION } from "@/domain/companion";
 import { readFileSync } from "node:fs";
 
 const html = (props: Partial<Parameters<typeof BuddyCharacter>[0]> = {}) =>
-  renderToStaticMarkup(<BuddyCharacter form="bell" state="idle" {...props} />);
+  renderToStaticMarkup(<BuddyCharacter variant="tavi" state="idle" {...props} />);
 
-describe("Buddy character", () => {
-  it("renders all three authored forms as distinct SVG bodies", () => {
-    const bodies = (["bell", "cairn", "plate"] as const).map((form) => html({ form }));
-    expect(new Set(bodies).size).toBe(3);
-    expect(bodies[0]).toContain("bd-handle");
-    expect(bodies[1]).toContain("bd-cap");
-    expect(bodies[2]).toContain("bd-hole");
+describe("Companion renderer", () => {
+  it("renders four variants with distinct silhouettes on the same face", () => {
+    const out = VARIANT_IDS.map((variant) => html({ variant }));
+    expect(new Set(out).size).toBe(4);
+    for (const id of VARIANT_IDS) {
+      const o = html({ variant: id });
+      expect(o).toContain(`data-variant="${id}"`);
+      expect(o).toContain(`data-silhouette="${VARIANTS[id].silhouette}"`);
+      expect(o).toContain("bd-window");
+    }
+    expect(new Set(VARIANT_IDS.map((id) => VARIANTS[id].silhouette)).size).toBe(4);
+  });
+  it("exposes the rig parts any replacement art must provide", () => {
+    const o = html();
+    for (const part of ["root", "body", "face", "eyes", "mouth", "acc", "shadow"])
+      expect(o).toContain(`data-part="${part}"`);
+  });
+  it("is labelled provisional while the neutral pack is registered", () => {
+    expect(html()).toContain('data-provisional="true"');
+    expect(html()).toContain('data-art="provisional-v0"');
+  });
+  it("uses none of the rejected names", () => {
+    for (const id of VARIANT_IDS) expect(VARIANTS[id].label).not.toMatch(/bell|cairn|plate|buddy/i);
+    expect(html()).not.toMatch(/bell|cairn|plate/i);
   });
   it("exposes every state as visible, testable attributes", () => {
     for (const state of BUDDY_STATES) {
@@ -24,12 +43,11 @@ describe("Buddy character", () => {
       expect(out).toContain(`data-state="${state}"`);
       expect(out).toContain(`data-eyes="${pose.eyes}"`);
       expect(out).toContain(`data-mouth="${pose.mouth}"`);
-      expect(out).toContain(`data-arms="${pose.arms}"`);
       expect(out).toContain(`data-accessory="${pose.accessory}"`);
     }
   });
   it("labels itself for assistive tech, or hides when a control already names it", () => {
-    expect(html({ name: "Pip", state: "rest" })).toContain('aria-label="Pip, resting"');
+    expect(html({ name: "Pip", state: "rest" })).toContain('aria-label="Pip, sleeping"');
     const decorative = html({ decorative: true });
     expect(decorative).toContain('aria-hidden="true"');
     expect(decorative).not.toContain("aria-label");
@@ -39,20 +57,27 @@ describe("Buddy character", () => {
     expect(html({ motion: "full", palette: "coral" })).toContain('data-palette="coral"');
     expect(html()).toContain('data-palette="world"');
   });
+  it("can be re-skinned by registering another art pack without touching behaviour", () => {
+    const custom = {
+      ...PROVISIONAL_PACK,
+      id: "test-pack",
+      provisional: false,
+    };
+    registerArtPack(custom);
+    try {
+      expect(html()).toContain('data-art="test-pack"');
+      expect(html()).toContain('data-provisional="false"');
+    } finally {
+      registerArtPack(PROVISIONAL_PACK);
+    }
+  });
 });
 
 describe("Buddy styles", () => {
   const css = readFileSync(new URL("./buddy.css", import.meta.url), "utf8");
-  it("only animates when reduced motion is not requested and motion is not off", () => {
-    const start = css.indexOf("@media (prefers-reduced-motion: no-preference)");
-    const body = css.slice(start, css.indexOf("@keyframes bd-bob"));
-    const rules = [...body.matchAll(/([^{}]+)\{([^{}]*animation:[^{}]*)\}/g)];
-    expect(rules.length).toBeGreaterThan(20);
-    for (const [, selector] of rules)
-      expect(selector).toMatch(/data-motion="full"|not\(\[data-motion="off"\]\)/);
-  });
-  it("pauses animation when off-screen", () => {
-    expect(css).toContain('[data-live="false"]');
+  it("keeps motion out of CSS: clips are authored in code and only run when motion is on", () => {
+    const character = readFileSync(new URL("./buddy-character.css", import.meta.url), "utf8");
+    expect(character).not.toMatch(/@keyframes|animation:/);
   });
   it("never positions Buddy over content: no fixed or absolute placement for its shell parts", () => {
     for (const cls of ["buddy-bar", "buddy-sheet", "buddy-rail", "buddy-panel", "buddy-column"]) {
@@ -77,9 +102,12 @@ describe("Buddy setup", () => {
     for (const text of [
       "Show Buddy",
       "Who joins you",
-      "Bell",
-      "Cairn",
-      "Plate",
+      "Tavi",
+      "Ollo",
+      "Zuri",
+      "Eira",
+      "Haptic feedback",
+      "Provisional shapes",
       "Name",
       "Match my colour world",
       "Expression",

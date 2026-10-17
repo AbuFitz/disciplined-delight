@@ -1,3 +1,4 @@
+import "./buddy.css";
 import { useMemo } from "react";
 import { useCollection, useNow, useProfile } from "@/data/hooks";
 import { COL, type Session, type SessionExercise } from "@/data/types";

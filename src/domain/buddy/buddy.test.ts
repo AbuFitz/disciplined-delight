@@ -31,6 +31,8 @@ const ctx = (over: Partial<BuddyContext> = {}): BuddyContext => ({
 describe("buddy defaults and legacy config", () => {
   it("is on by default with a calm, world-matched, quiet-sound setup", () => {
     expect(DEFAULT_COMPANION).toMatchObject({
+      variant: "tavi",
+      haptics: false,
       enabled: true,
       setupDone: false,
       palette: "world",
@@ -49,14 +51,15 @@ describe("buddy defaults and legacy config", () => {
     });
     expect(old).toMatchObject({
       enabled: false,
-      form: "cairn",
+      variant: "ollo",
       placement: "dock_right",
       palette: "world",
       name: "Pip",
       setupDone: true,
     });
-    expect(normaliseCompanion({ form: "spark" } as never).form).toBe("plate");
-    expect(normaliseCompanion(null).form).toBe("bell");
+    expect(normaliseCompanion({ form: "spark" } as never).variant).toBe("zuri");
+    expect(normaliseCompanion(null).variant).toBe("tavi");
+    expect(normaliseCompanion({ form: "bell" } as never).variant).toBe("tavi");
   });
   it("keeps a fixed colour choice made in the new shape", () => {
     expect(normaliseCompanion({ palette: "coral", setupDone: true }).palette).toBe("coral");
@@ -64,9 +67,9 @@ describe("buddy defaults and legacy config", () => {
 });
 
 describe("animation state machine", () => {
-  it("defines a distinct pose for all 13 states", () => {
-    expect(BUDDY_STATES).toHaveLength(13);
-    expect(new Set(BUDDY_STATES.map(poseSignature)).size).toBe(13);
+  it("defines a distinct pose for all 14 states", () => {
+    expect(BUDDY_STATES).toHaveLength(14);
+    expect(new Set(BUDDY_STATES.map(poseSignature)).size).toBe(14);
     for (const s of BUDDY_STATES) expect(POSES[s]).toBeTruthy();
   });
   it("enters, then settles to idle", () => {

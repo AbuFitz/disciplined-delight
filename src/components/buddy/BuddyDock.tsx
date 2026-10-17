@@ -1,3 +1,4 @@
+import "./buddy.css";
 import { Link } from "@tanstack/react-router";
 import { useEffect, useRef } from "react";
 import { STATE_META } from "@/domain/buddy/state";
@@ -29,7 +30,7 @@ export function BuddyPanel({ className }: { className?: string }) {
     >
       <div className="buddy-panel-head">
         <BuddyCharacter
-          form={config.form}
+          variant={config.variant}
           state={state}
           motion={b.motion}
           palette={config.palette}
@@ -110,7 +111,7 @@ export function BuddyBar() {
         onClick={() => b.setOpen(!b.open)}
       >
         <BuddyCharacter
-          form={config.form}
+          variant={config.variant}
           state={b.state}
           motion={b.motion}
           palette={config.palette}
@@ -147,7 +148,7 @@ export function BuddyHeaderButton() {
       className="inline-flex size-[44px] items-center justify-center rounded-full hover:bg-surface-2"
     >
       <BuddyCharacter
-        form={config.form}
+        variant={config.variant}
         state={b.asleep ? "rest" : "idle"}
         motion="off"
         palette={config.palette}
@@ -168,7 +169,7 @@ export function BuddyRail() {
       <div className="buddy-rail" data-mode="asleep">
         <button type="button" className="buddy-rail-wake" onClick={b.wake}>
           <BuddyCharacter
-            form={config.form}
+            variant={config.variant}
             state="rest"
             motion="off"
             palette={config.palette}
@@ -190,7 +191,7 @@ export function BuddyRail() {
         onClick={() => b.setOpen(!b.open)}
       >
         <BuddyCharacter
-          form={config.form}
+          variant={config.variant}
           state={b.state}
           motion={b.motion}
           palette={config.palette}

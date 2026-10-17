@@ -1,3 +1,4 @@
+import "./buddy.css";
 import { useLocation } from "@tanstack/react-router";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { saveCompanionConfig } from "@/data/companion";
@@ -8,6 +9,7 @@ import { shouldSpeak } from "@/domain/buddy/brain";
 import { localDate } from "@/domain/dates";
 import type { BuddyGuidanceRecord } from "@/domain/companion-guidance";
 import { chime, speak } from "@/lib/buddy-audio";
+import { useHaptics } from "./useHaptics";
 import { BuddyDockContext, type BuddyDockValue } from "./buddy-context";
 import {
   useBrief,
@@ -52,6 +54,7 @@ export function BuddyProvider({ children }: { children: ReactNode }) {
       : placed
         ? "bar"
         : "demand";
+  const haptic = useHaptics();
   const speaks = shouldSpeak(config, brief);
   const line = speaks ? brief.line : "Tap for help on this screen";
 
@@ -76,6 +79,12 @@ export function BuddyProvider({ children }: { children: ReactNode }) {
       chime(state === "celebrate" ? "win" : "soft");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state]);
+  // Haptics: only a personal best or something that needs attention. Never for coaching text.
+  useEffect(() => {
+    if (brief.scene === "pr") haptic("personal_best");
+    else if (brief.scene === "error") haptic("warning");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [brief.scene, key]);
   useEffect(() => {
     if (mode === "none" || config.muted || asleep || !speaks || config.sound !== "voice") return;
     speak(brief.line);

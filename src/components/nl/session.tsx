@@ -48,6 +48,7 @@ import { suggestAdaptation, type AdaptationSuggestion } from "@/domain/adaptatio
 import { VIcon } from "./icon";
 import { BuddyGuide } from "./buddy-guide";
 import { BuddyStrip } from "@/components/buddy/BuddyStrip";
+import { useHaptics } from "@/components/buddy/useHaptics";
 import { MirrorExercise, MirrorSummaryCard } from "@/components/buddy/MirrorCard";
 import { livePersonalRecord, plateBreakdown, warmupRamp } from "@/domain/training-tools";
 
@@ -93,9 +94,10 @@ const applyReadinessPlaceholder = (
 export function RestBar({ session, now }: { session: Session; now: number }) {
   const rem = restRemainingMs(session, now);
   const r = session.rest;
+  const haptic = useHaptics();
   useEffect(() => {
     if (r?.endsAt && rem === 0) {
-      navigator.vibrate?.(200);
+      haptic("rest_finished");
       void saveSession({ ...session, rest: { ...r, endsAt: null, remainingMs: 0 } });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -202,6 +204,7 @@ export function GymMode({
   const cat = catalogueFor(exercise);
   const nextCat = nextExercise ? catalogueFor(nextExercise) : undefined;
   const mediaPrefs = useMediaPrefs();
+  const haptic = useHaptics();
   useEffect(() => {
     if (pendingIndex < 0 && index < session.exercises.length - 1) {
       setExerciseIndex(index + 1);
@@ -236,7 +239,7 @@ export function GymMode({
     );
     await saveSession(next);
     setLastCompleted({ exerciseId: exercise.id, setId: set.id });
-    if (preferences.haptics && navigator.vibrate) navigator.vibrate(80);
+    haptic("set_logged");
     if (preferences.voice && "speechSynthesis" in window) {
       window.speechSynthesis.cancel();
       window.speechSynthesis.speak(

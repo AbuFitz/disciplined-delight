@@ -1,3 +1,4 @@
+import "./buddy.css";
 import { BuddyCharacter } from "./BuddyCharacter";
 import {
   useBrief,
@@ -27,7 +28,7 @@ export function BuddyStrip({ className }: { className?: string }) {
       aria-label={`${config.name}: ${brief.line}`}
     >
       <BuddyCharacter
-        form={config.form}
+        variant={config.variant}
         state={state}
         motion={motion}
         palette={config.palette}
