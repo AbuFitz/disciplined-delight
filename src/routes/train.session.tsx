@@ -63,9 +63,9 @@ function SessionPage() {
     );
   }
 
-  const mediaFor = (exercise: Session["exercises"][number]) =>
-    (exercise.catalogueId ? catalogue.byId.get(exercise.catalogueId) : undefined)?.media[0] ??
-    byName.get(normalise(exercise.name))?.media[0];
+  const catalogueFor = (exercise: Session["exercises"][number]) =>
+    (exercise.catalogueId ? catalogue.byId.get(exercise.catalogueId) : undefined) ??
+    byName.get(normalise(exercise.name));
   if (gymMode)
     return (
       <>
@@ -73,7 +73,7 @@ function SessionPage() {
           session={session}
           sessions={sessionsQ.items}
           now={now}
-          mediaFor={mediaFor}
+          catalogueFor={catalogueFor}
           preferences={profile?.gymMode ?? { voice: false, haptics: false, autoMedia: false }}
           music={profile?.trainingMusic}
           wake={wake}
@@ -125,7 +125,7 @@ function SessionPage() {
             onToggle={() => setOpenId(openId === ex.id ? null : ex.id)}
             sessions={sessionsQ.items}
             legacy={legacy}
-            media={mediaFor(ex)}
+            catalogue={catalogueFor(ex)}
           />
         ))}
       </div>

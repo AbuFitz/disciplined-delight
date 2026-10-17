@@ -44,7 +44,12 @@ export const COL = {
 } as const;
 
 export type AppModule =
-  "training" | "nutrition" | "mind" | "routines" | "community" | "spirituality";
+  | "training"
+  | "nutrition"
+  | "mind"
+  | "routines"
+  | "community"
+  | "spirituality";
 
 export type PlanningProfile = {
   primaryGoal: Profile["goal"]["kind"];
@@ -397,7 +402,15 @@ export type RoutineBlock = {
   highlight?: boolean;
   weekdays: number[]; // 0 = Mon
   kind:
-    "routine" | "work" | "sleep" | "meal-prep" | "personal" | "workout" | "meal" | "mind" | "soul";
+    | "routine"
+    | "work"
+    | "sleep"
+    | "meal-prep"
+    | "personal"
+    | "workout"
+    | "meal"
+    | "mind"
+    | "soul";
   /** What completes this activity. Absent or "manual" = tick it off yourself. Linked kinds complete from the real record. */
   link?: RoutineLink;
   /** Planned length in minutes (used when `end` is absent, and by the routine builder). */
@@ -501,7 +514,14 @@ export type ChecklistItem = {
 export type ChecklistLog = { id: string; date: string; itemId: string; done: boolean };
 
 export type WidgetId =
-  "next-action" | "prayer" | "food" | "training" | "weight" | "budget" | "timeline" | "checklist";
+  | "next-action"
+  | "prayer"
+  | "food"
+  | "training"
+  | "weight"
+  | "budget"
+  | "timeline"
+  | "checklist";
 export type TodayLayout = {
   id: "today";
   widgets: { id: WidgetId; visible: boolean; size: "compact" | "expanded" }[];

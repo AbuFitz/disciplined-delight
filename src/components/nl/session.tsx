@@ -40,7 +40,10 @@ import type {
 import { formatSet, trackingOf } from "@/domain/tracking";
 import { cn } from "@/lib/utils";
 import type { MediaItem } from "@/domain/catalogue";
-import { ExerciseMedia } from "./exercise-media";
+import { ExerciseVisual } from "./exercise-visual";
+import { setMediaPrefs, useMediaPrefs } from "@/lib/media-prefs";
+import type { CatalogueExercise } from "@/domain/catalogue";
+import { coverFrame, describeMedia } from "@/domain/exercise-media";
 import { suggestAdaptation, type AdaptationSuggestion } from "@/domain/adaptation";
 import { VIcon } from "./icon";
 import { BuddyGuide } from "./buddy-guide";
@@ -160,7 +163,7 @@ export function GymMode({
   session,
   sessions,
   now,
-  mediaFor,
+  catalogueFor,
   preferences,
   music,
   wake,
@@ -170,7 +173,7 @@ export function GymMode({
   session: Session;
   sessions: Session[];
   now: number;
-  mediaFor: (exercise: SessionExercise) => MediaItem | undefined;
+  catalogueFor: (exercise: SessionExercise) => CatalogueExercise | undefined;
   preferences: { voice: boolean; haptics: boolean; autoMedia: boolean; livePulse?: boolean };
   music?: { provider: "spotify" | "apple"; url: string };
   wake: { status: "off" | "active" | "unavailable" | "denied"; retry: () => void };
@@ -194,7 +197,9 @@ export function GymMode({
   const previous = previousComparable(exercise, sessions, session.id);
   const placeholder = placeholderFor(exercise, currentSetIndex, previous);
   const nextExercise = session.exercises[index + 1];
-  const media = mediaFor(exercise);
+  const cat = catalogueFor(exercise);
+  const nextCat = nextExercise ? catalogueFor(nextExercise) : undefined;
+  const mediaPrefs = useMediaPrefs();
   useEffect(() => {
     if (pendingIndex < 0 && index < session.exercises.length - 1) {
       setExerciseIndex(index + 1);
@@ -268,11 +273,21 @@ export function GymMode({
         <div className="mt-5 flex justify-center">
           <RestBar session={session} now={now} />
         </div>
-        <div className="mx-auto mt-12 max-w-md border-t border-line pt-5 text-center">
+        <div className="mx-auto mt-10 max-w-md border-t border-line pt-5 text-center">
           <p className="eyebrow">Next</p>
-          <p className="mt-2 font-display text-4xl font-semibold">
+          <p className="mt-2 font-display text-4xl font-semibold [overflow-wrap:anywhere]">
             {pendingIndex >= 0 ? exercise.name : (nextExercise?.name ?? "Finish the session")}
           </p>
+          {(pendingIndex >= 0 ? cat : nextCat) && (
+            <div className="mt-4 text-left">
+              <ExerciseVisual
+                media={(pendingIndex >= 0 ? cat : nextCat)?.media}
+                name={pendingIndex >= 0 ? exercise.name : (nextExercise?.name ?? "")}
+                pattern={(pendingIndex >= 0 ? cat : nextCat)?.pattern}
+                compact
+              />
+            </div>
+          )}
         </div>
         <div className="mx-auto mt-6 max-w-md text-left">
           <BuddyGuide
@@ -350,6 +365,19 @@ export function GymMode({
           {nextExercise?.name ?? "Finish"} →
         </button>
       </div>
+      {nextExercise && (
+        <div
+          className="flex items-center gap-3 border-b border-line py-2 text-left text-sm"
+          aria-label="Next up"
+        >
+          <span className="eyebrow shrink-0">Next</span>
+          <NextThumb cat={nextCat} name={nextExercise.name} />
+          <span className="min-w-0 flex-1 truncate font-semibold">{nextExercise.name}</span>
+          <span className="num shrink-0 text-muted-foreground">
+            {nextExercise.prescription.schemeText}
+          </span>
+        </div>
+      )}
       <main className="py-7 text-center">
         <p className="eyebrow">
           Current movement · set {currentSetIndex + 1} of {exercise.sets.length}
@@ -362,13 +390,14 @@ export function GymMode({
             ? `Last: ${previous.sets.map((entry) => formatSet(entry, exercise.tracking)).join(" · ")}`
             : exercise.prescription.schemeText}
         </p>
-        {showMedia && media && (
-          <div className="mx-auto mt-5 max-w-xl">
-            <ExerciseMedia
-              item={media}
-              alt={`${exercise.name} form demonstration`}
-              className="h-64 w-full"
+        {showMedia && (
+          <div className="mx-auto mt-5 max-w-xl text-left">
+            <ExerciseVisual
+              media={cat?.media}
+              name={exercise.name}
+              pattern={cat?.pattern}
               eager
+              compact
             />
           </div>
         )}
@@ -425,11 +454,22 @@ export function GymMode({
           <Button size="sm" variant="ghost" onClick={() => setNote(true)}>
             Note
           </Button>
-          {media && (
-            <Button size="sm" variant="ghost" onClick={() => setShowMedia((value) => !value)}>
-              {showMedia ? "Hide" : "Show"} form
-            </Button>
-          )}
+          <Button
+            size="sm"
+            variant="ghost"
+            aria-pressed={showMedia}
+            onClick={() => setShowMedia((value) => !value)}
+          >
+            {showMedia ? "Hide" : "Show"} form
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            aria-pressed={mediaPrefs.dataSaver}
+            onClick={() => setMediaPrefs({ dataSaver: !mediaPrefs.dataSaver })}
+          >
+            Data saver {mediaPrefs.dataSaver ? "on" : "off"}
+          </Button>
           <Button
             size="sm"
             variant="ghost"
@@ -671,7 +711,7 @@ export function ExerciseCard({
   sessions,
   legacy,
   now: _now,
-  media,
+  catalogue,
 }: {
   session: Session;
   ex: SessionExercise;
@@ -682,7 +722,7 @@ export function ExerciseCard({
   sessions: Session[];
   legacy: LegacyDayLog[];
   now: number;
-  media?: MediaItem;
+  catalogue?: CatalogueExercise;
 }) {
   const [effort, setEffort] = useState(false);
   const [replace, setReplace] = useState(false);
@@ -806,20 +846,12 @@ export function ExerciseCard({
 
       {open && (
         <div className="grid grid-cols-[minmax(0,1fr)] gap-3 px-4 pb-4">
-          {media && (
-            <div>
-              <ExerciseMedia
-                item={media}
-                alt={`${ex.name} movement demonstration`}
-                className="h-56 w-full sm:h-72"
-                eager
-              />
-              <p className="mt-1 text-xs text-muted-foreground">
-                {media.kind === "image" ? "Illustration" : "Motion demonstration"} by{" "}
-                {media.author || "unknown author"} · {media.licence.short}
-              </p>
-            </div>
-          )}
+          <ExerciseVisual
+            media={catalogue?.media}
+            name={ex.name}
+            pattern={catalogue?.pattern}
+            eager
+          />
           {ex.cue && <p className="px-1 text-sm text-muted-foreground">{ex.cue}</p>}
           {ex.note && (
             <p className="rounded-xl bg-surface-2 px-3 py-2 text-sm">
@@ -1435,3 +1467,24 @@ export function FinishSheet({
 }
 
 export type { WorkoutTemplate };
+
+function NextThumb({ cat, name }: { cat?: CatalogueExercise; name: string }) {
+  const d = describeMedia(cat?.media);
+  const cover = coverFrame(d);
+  return cover ? (
+    <img
+      src={cover.thumb ?? cover.url}
+      alt=""
+      loading="lazy"
+      decoding="async"
+      className="size-12 shrink-0 border border-line bg-white object-contain"
+    />
+  ) : (
+    <span
+      aria-hidden
+      className="grid size-12 shrink-0 place-items-center border border-line bg-surface-2 font-display text-lg"
+    >
+      {name.slice(0, 1)}
+    </span>
+  );
+}

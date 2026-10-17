@@ -4,7 +4,11 @@
  * User-created exercises and local edits are stored separately and never overwrite upstream fields.
  */
 export type TrackingType =
-  "weight_reps" | "bodyweight_reps" | "assisted_reps" | "time" | "distance_time";
+  | "weight_reps"
+  | "bodyweight_reps"
+  | "assisted_reps"
+  | "time"
+  | "distance_time";
 
 export const PATTERNS = [
   "squat",

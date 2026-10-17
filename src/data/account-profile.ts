@@ -11,7 +11,11 @@ export type ServerProfile = {
 };
 
 export type ProfileError =
-  "username_taken" | "username_reserved" | "invalid_username" | "profile_exists" | "other";
+  | "username_taken"
+  | "username_reserved"
+  | "invalid_username"
+  | "profile_exists"
+  | "other";
 
 export class ProfileApiError extends Error {
   constructor(

@@ -142,7 +142,8 @@ export async function put<T>(
   const db = await getDB();
   const tx = db.transaction(["records", "outbox"], "readwrite");
   const existing = (await tx.objectStore("records").get([collection, id])) as
-    StoredRecord<T> | undefined;
+    | StoredRecord<T>
+    | undefined;
   const rec: StoredRecord<T> = {
     collection,
     id,
@@ -190,7 +191,8 @@ export async function applyBatch(
   try {
     for (const o of ops) {
       const existing = (await tx.objectStore("records").get([o.collection, o.id])) as
-        StoredRecord | undefined;
+        | StoredRecord
+        | undefined;
       const ts = Date.now();
       if (o.op === "put") {
         await tx.objectStore("records").put({

@@ -58,7 +58,8 @@ export async function importGuest(userId: string) {
   const backup = await guestBackup();
   // The profile is merged field by field (account identity wins); everything else is a plain merge.
   const guestProfile = backup.collections[COL.profile]?.find((r) => r.id === "main")?.data as
-    Profile | undefined;
+    | Profile
+    | undefined;
   const accountProfile = await get<Profile>(COL.profile, "main");
   if (guestProfile && accountProfile)
     await put(COL.profile, "main", mergeGuestProfile(accountProfile, guestProfile));

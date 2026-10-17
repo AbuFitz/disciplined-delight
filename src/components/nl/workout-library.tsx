@@ -1,15 +1,17 @@
 import { useNavigate } from "@tanstack/react-router";
+import { cn } from "@/lib/utils";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Button, Chip, Field, Panel, Select, Sheet, TextInput } from "./ui";
 import { VIcon } from "./icon";
-import { ExerciseMediaThumb } from "./exercise-media";
+import { WorkoutMedia } from "./exercise-visual";
+import { FormGuideSheet, MovementCarousel } from "./workout-detail";
 import { startSession } from "@/data/actions";
 import { newId, put, remove } from "@/data/db";
 import { useCollection, useProfile, useToday } from "@/data/hooks";
 import { COL, type WorkoutTemplate } from "@/data/types";
 import { useCatalogue } from "@/data/catalogue-runtime";
-import type { MediaItem } from "@/domain/catalogue";
+import type { CatalogueExercise } from "@/domain/catalogue";
 import {
   AUTHORED_PROGRAMMES,
   AUTHORED_WORKOUTS,
@@ -43,9 +45,12 @@ export type WorkoutLibraryTab = "workouts" | "programmes";
 export function WorkoutLibrary({
   activeTab,
   onTabChange,
+  embedded = false,
 }: {
   activeTab?: WorkoutLibraryTab;
   onTabChange?: (tab: WorkoutLibraryTab) => void;
+  /** Inside the Library page, which owns the heading and tabs. */
+  embedded?: boolean;
 } = {}) {
   const nav = useNavigate();
   const today = useToday();
@@ -76,6 +81,7 @@ export function WorkoutLibrary({
   const [weekday, setWeekday] = useState("0");
   const [pending, setPending] = useState<string | null>(null);
   const results = useMemo(() => filterAuthoredWorkouts(AUTHORED_WORKOUTS, query), [query]);
+  const [guide, setGuide] = useState<{ workout: AuthoredWorkout; index: number } | null>(null);
   const favourites = new Set(prefs.items.filter((item) => item.favourite).map((item) => item.id));
 
   const saveTemplate = async (workout: AuthoredWorkout, day: number | null) => {
@@ -144,34 +150,40 @@ export function WorkoutLibrary({
     <section
       id="discover-workouts"
       tabIndex={-1}
-      className="mt-10 scroll-mt-24 border-t border-line pt-7 outline-none focus-visible:ring-2 focus-visible:ring-ring"
-      aria-labelledby="workout-library-title"
+      className={cn(
+        "scroll-mt-24 outline-none focus-visible:ring-2 focus-visible:ring-ring",
+        !embedded && "mt-10 border-t border-line pt-7",
+      )}
+      aria-labelledby={embedded ? undefined : "workout-library-title"}
+      aria-label={embedded ? "Authored workouts and programmes" : undefined}
     >
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="eyebrow">Authored library · v2026.10</p>
-          <h2 id="workout-library-title" className="mt-1 font-display text-3xl font-semibold">
-            Ready-to-run training
-          </h2>
-          <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-            Deliberate sessions and multi-week structures built from the licensed VAYVOR exercise
-            catalogue. Every target remains editable.
-          </p>
+      {!embedded && (
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <p className="eyebrow">Authored library · v2026.10</p>
+            <h2 id="workout-library-title" className="mt-1 font-display text-3xl font-semibold">
+              Ready-to-run training
+            </h2>
+            <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
+              Deliberate sessions and multi-week structures built from the licensed VAYVOR exercise
+              catalogue. Every target remains editable.
+            </p>
+          </div>
+          <div className="flex border-b border-line" role="tablist" aria-label="Library type">
+            {(["workouts", "programmes"] as const).map((value) => (
+              <button
+                key={value}
+                role="tab"
+                aria-selected={tab === value}
+                onClick={() => selectTab(value)}
+                className={`min-h-11 border-b-2 px-4 text-sm font-semibold capitalize ${tab === value ? "border-primary text-foreground" : "border-transparent text-muted-foreground"}`}
+              >
+                {value}
+              </button>
+            ))}
+          </div>
         </div>
-        <div className="flex border-b border-line" role="tablist" aria-label="Library type">
-          {(["workouts", "programmes"] as const).map((value) => (
-            <button
-              key={value}
-              role="tab"
-              aria-selected={tab === value}
-              onClick={() => selectTab(value)}
-              className={`min-h-11 border-b-2 px-4 text-sm font-semibold capitalize ${tab === value ? "border-primary text-foreground" : "border-transparent text-muted-foreground"}`}
-            >
-              {value}
-            </button>
-          ))}
-        </div>
-      </div>
+      )}
 
       {tab === "workouts" ? (
         <>
@@ -236,84 +248,67 @@ export function WorkoutLibrary({
           <p className="mt-4 text-sm text-muted-foreground" aria-live="polite">
             {results.length} of {AUTHORED_WORKOUTS.length} workouts
           </p>
-          <div className="mt-3 grid gap-px overflow-hidden border border-line bg-line md:grid-cols-2 xl:grid-cols-3">
+          <div className="mt-3 grid gap-x-6 gap-y-10 md:grid-cols-2 xl:grid-cols-3">
             {results.map((workout, index) => (
-              <article
+              <WorkoutCard
                 key={workout.id}
-                className={`bg-background p-5 ${index % 3 === 1 ? "md:translate-y-0 xl:py-8" : ""}`}
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <p className="num text-sm text-primary">
-                    {workout.duration} MIN · {workout.location.toUpperCase()}
-                  </p>
-                  <button
-                    aria-label={`${favourites.has(workout.id) ? "Remove" : "Add"} ${workout.title} favourite`}
-                    onClick={() =>
-                      void put(COL.workoutLibraryPrefs, workout.id, {
-                        id: workout.id,
-                        favourite: !favourites.has(workout.id),
-                        savedAt: Date.now(),
-                      } satisfies LibraryPref)
-                    }
-                    className="min-h-11 min-w-11"
-                  >
-                    <VIcon
-                      name="favourite"
-                      className={
-                        favourites.has(workout.id)
-                          ? "fill-current text-primary"
-                          : "text-muted-foreground"
-                      }
-                    />
-                  </button>
-                </div>
-                <h3 className="font-display text-2xl font-semibold">{workout.title}</h3>
-                <p className="mt-2 text-sm text-muted-foreground">{workout.summary}</p>
-                <p className="mt-4 border-t border-line pt-3 text-sm">
-                  {workout.exercises.length} movements · {workout.muscles.join(" / ")}
-                </p>
-                <div className="mt-4 flex gap-2">
-                  <Button
-                    size="sm"
-                    variant="primary"
-                    busy={pending === `start:${workout.id}`}
-                    busyLabel="Starting…"
-                    disabled={!!pending}
-                    onClick={() => void start(workout)}
-                  >
-                    <VIcon name="play" size={16} />
-                    Start
-                  </Button>
-                  <Button size="sm" variant="ghost" onClick={() => setOpen(workout)}>
-                    Details
-                  </Button>
-                </div>
-              </article>
+                workout={workout}
+                featured={index === 0 && results.length > 2}
+                byId={catalogue.byId}
+                favourite={favourites.has(workout.id)}
+                pending={pending}
+                onFavourite={() =>
+                  void put(COL.workoutLibraryPrefs, workout.id, {
+                    id: workout.id,
+                    favourite: !favourites.has(workout.id),
+                    savedAt: Date.now(),
+                  } satisfies LibraryPref)
+                }
+                onStart={() => void start(workout)}
+                onOpen={() => setOpen(workout)}
+              />
             ))}
           </div>
+          {results.length === 0 && (
+            <p className="mt-6 border border-dashed border-line p-6 text-center text-sm text-muted-foreground">
+              No authored workout matches those filters. Clear one, or browse every exercise in the
+              Exercises tab.
+            </p>
+          )}
         </>
       ) : (
-        <div className="mt-6 grid gap-4 lg:grid-cols-2">
+        <div className="mt-6 grid gap-x-6 gap-y-10 lg:grid-cols-2">
           {AUTHORED_PROGRAMMES.map((item) => {
             const active = enrolled.items.some((entry) => entry.programmeId === item.id);
+            const moves = item.workoutIds
+              .flatMap((id) => AUTHORED_WORKOUTS.find((w) => w.id === id)?.exercises ?? [])
+              .map((e) => ({
+                name: e.name,
+                media: e.catalogueId ? catalogue.byId.get(e.catalogueId)?.media : undefined,
+              }));
             return (
-              <Panel key={item.id} className="!rounded-none border-l-4 border-l-primary">
-                <p className="eyebrow">
-                  {item.weeks} weeks · {item.daysPerWeek} days/week
-                </p>
-                <h3 className="mt-1 font-display text-2xl font-semibold">{item.title}</h3>
-                <p className="mt-2 text-sm text-muted-foreground">{item.summary}</p>
-                <div className="mt-4 flex items-center gap-2">
-                  {active && <Chip tone="ok">In your plan</Chip>}
-                  <Button
-                    size="sm"
-                    variant={active ? "ghost" : "secondary"}
-                    onClick={() => setProgramme(item)}
-                  >
-                    {active ? "View structure" : "Review programme"}
-                  </Button>
+              <article key={item.id} className="grid gap-4 border-t-2 border-foreground pt-3">
+                <WorkoutMedia title={item.title} exercises={moves} />
+                <div>
+                  <p className="num text-sm text-primary">
+                    {item.weeks} WEEKS · {item.daysPerWeek} DAYS / WEEK
+                  </p>
+                  <h3 className="mt-1 font-display text-3xl font-semibold leading-tight">
+                    {item.title}
+                  </h3>
+                  <p className="mt-2 text-sm text-muted-foreground">{item.summary}</p>
+                  <div className="mt-4 flex flex-wrap items-center gap-2">
+                    {active && <Chip tone="ok">In your plan</Chip>}
+                    <Button
+                      size="sm"
+                      variant={active ? "ghost" : "secondary"}
+                      onClick={() => setProgramme(item)}
+                    >
+                      {active ? "View structure" : "Review programme"}
+                    </Button>
+                  </div>
                 </div>
-              </Panel>
+              </article>
             );
           })}
         </div>
@@ -321,14 +316,19 @@ export function WorkoutLibrary({
 
       <WorkoutDetail
         workout={open}
-        mediaById={
-          new Map(catalogue.exercises.map((exercise) => [exercise.id, exercise.media[0]] as const))
-        }
+        byId={catalogue.byId}
         onClose={() => setOpen(null)}
         onStart={start}
         onSave={(workout) => saveTemplate(workout, null)}
         onSchedule={setSchedule}
+        onGuide={(workout, index) => setGuide({ workout, index })}
         pending={pending}
+      />
+      <FormGuideSheet
+        workout={guide?.workout ?? null}
+        index={guide?.index ?? null}
+        byId={catalogue.byId}
+        onClose={() => setGuide(null)}
       />
       <ScheduleSheet
         workout={schedule}
@@ -377,21 +377,121 @@ function Filter({
   );
 }
 
+function WorkoutCard({
+  workout,
+  featured,
+  byId,
+  favourite,
+  pending,
+  onFavourite,
+  onStart,
+  onOpen,
+}: {
+  workout: AuthoredWorkout;
+  featured: boolean;
+  byId: Map<string, CatalogueExercise>;
+  favourite: boolean;
+  pending: string | null;
+  onFavourite: () => void;
+  onStart: () => void;
+  onOpen: () => void;
+}) {
+  const moves = useMemo(
+    () =>
+      workout.exercises.map((e) => ({
+        name: e.name,
+        media: e.catalogueId ? byId.get(e.catalogueId)?.media : undefined,
+      })),
+    [workout, byId],
+  );
+  return (
+    <article
+      className={cn(
+        "grid content-start gap-4 border-t-2 border-foreground pt-3",
+        featured && "lg:col-span-2 lg:grid-cols-[1.1fr_1fr] lg:gap-8",
+      )}
+    >
+      <button
+        type="button"
+        onClick={onOpen}
+        aria-label={`Open ${workout.title}`}
+        className="block text-left outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      >
+        <WorkoutMedia title={workout.title} exercises={moves} />
+      </button>
+      <div className="grid content-start gap-3">
+        <div className="flex items-start justify-between gap-3">
+          <p className="num text-sm text-primary">
+            {workout.duration} MIN · {workout.location.toUpperCase()} ·{" "}
+            {workout.level.join("/").toUpperCase()}
+          </p>
+          <button
+            aria-label={`${favourite ? "Remove" : "Add"} ${workout.title} favourite`}
+            aria-pressed={favourite}
+            onClick={onFavourite}
+            className="-mr-2 -mt-2 grid min-h-11 min-w-11 place-items-center"
+          >
+            <VIcon
+              name="favourite"
+              className={favourite ? "fill-current text-primary" : "text-muted-foreground"}
+            />
+          </button>
+        </div>
+        <h3
+          className={cn(
+            "font-display font-semibold leading-[0.98] tracking-[-0.03em] [overflow-wrap:anywhere]",
+            featured ? "text-4xl" : "text-3xl",
+          )}
+        >
+          {workout.title}
+        </h3>
+        <p className="text-sm text-muted-foreground">{workout.summary}</p>
+        <dl className="grid grid-cols-[auto_1fr] gap-x-4 border-y border-line py-2 text-sm">
+          <dt className="text-muted-foreground">Movements</dt>
+          <dd className="num">{workout.exercises.length}</dd>
+          <dt className="text-muted-foreground">Works</dt>
+          <dd>{workout.muscles.join(" / ")}</dd>
+          <dt className="text-muted-foreground">Kit</dt>
+          <dd>{workout.equipment.join(", ") || "None"}</dd>
+        </dl>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            size="sm"
+            variant="primary"
+            busy={pending === `start:${workout.id}`}
+            busyLabel="Starting…"
+            disabled={!!pending}
+            onClick={onStart}
+          >
+            <VIcon name="play" size={16} />
+            Start
+          </Button>
+          <Button size="sm" variant="secondary" onClick={onOpen}>
+            Preview movements
+          </Button>
+        </div>
+      </div>
+    </article>
+  );
+}
+
 function WorkoutDetail({
   workout,
-  mediaById,
+  byId,
   onClose,
   onStart,
   onSave,
   onSchedule,
+  onGuide,
   pending,
 }: {
   workout: AuthoredWorkout | null;
-  mediaById: Map<string, MediaItem | undefined>;
+  byId: Map<string, CatalogueExercise>;
   onClose: () => void;
   onStart: (workout: AuthoredWorkout) => Promise<void>;
   onSave: (workout: AuthoredWorkout) => Promise<unknown>;
   onSchedule: (workout: AuthoredWorkout) => void;
+  onGuide: (workout: AuthoredWorkout, index: number) => void;
   pending: string | null;
 }) {
   return (
@@ -409,41 +509,22 @@ function WorkoutDetail({
             <Metric value={`${workout.exercises.length}`} label="movements" />
             <Metric value={workout.level.join(" / ")} label="level" />
           </div>
-          <ol>
+          <MovementCarousel workout={workout} byId={byId} onGuide={(i) => onGuide(workout, i)} />
+          <ol className="mt-6 border-t border-line">
             {workout.exercises.map((exercise, index) => (
               <li
                 key={exercise.id}
-                className="grid grid-cols-[2rem_1fr] gap-3 border-b border-line py-4"
+                className="grid grid-cols-[2rem_1fr_auto] items-baseline gap-3 border-b border-line py-3"
               >
                 <span className="num text-muted-foreground">
                   {String(index + 1).padStart(2, "0")}
                 </span>
-                <div className="grid min-w-0 gap-3 sm:grid-cols-[5.5rem_1fr]">
-                  {exercise.catalogueId && mediaById.get(exercise.catalogueId) ? (
-                    <ExerciseMediaThumb
-                      item={mediaById.get(exercise.catalogueId)!}
-                      alt={`${exercise.name} form reference`}
-                      className="aspect-square w-full border border-line"
-                    />
-                  ) : (
-                    <div
-                      className="hidden aspect-square border border-dashed border-line bg-surface-2 sm:block"
-                      aria-label="Media unavailable"
-                    />
-                  )}
-                  <div>
-                    <h4 className="font-semibold">{exercise.name}</h4>
-                    <p className="num text-sm">
-                      {exercise.schemeText} · {exercise.restSeconds}s rest
-                    </p>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      {exercise.intent}
-                      {exercise.substitutions[0]
-                        ? ` · substitute: ${exercise.substitutions[0]}`
-                        : ""}
-                    </p>
-                  </div>
-                </div>
+                <span className="min-w-0 font-semibold [overflow-wrap:anywhere]">
+                  {exercise.name}
+                </span>
+                <span className="num text-sm text-muted-foreground">
+                  {exercise.schemeText} · {exercise.restSeconds}s
+                </span>
               </li>
             ))}
           </ol>
@@ -472,7 +553,8 @@ function WorkoutDetail({
           </div>
           <p className="mt-5 text-xs text-muted-foreground">
             Targets are authored guidance, not medical advice. Edit or substitute anything that is
-            not comfortable. Programme changes apply only after you confirm them.
+            not comfortable, and stop if you feel pain. Programme changes apply only after you
+            confirm them.
           </p>
         </div>
       )}

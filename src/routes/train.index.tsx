@@ -16,7 +16,9 @@ import {
   type WorkoutTemplate,
 } from "@/data/types";
 import { WEEKDAY_SHORT, formatDateLong, to12h } from "@/domain/dates";
-import { exerciseImage, workoutImage } from "@/lib/exercise-media";
+import { WorkoutMedia, ExerciseVisual } from "@/components/nl/exercise-visual";
+import { useCatalogue } from "@/data/catalogue-runtime";
+import { resolveCatalogueExercise } from "@/lib/legacy-catalogue";
 import { useActiveSession } from "@/data/session-hooks";
 import { TemplateEditor } from "@/components/nl/programme";
 import { blankTemplate } from "@/data/editor-defaults";
@@ -36,6 +38,7 @@ function TrainPage() {
   const [open, setOpen] = useState<string | null>(null);
   const [editing, setEditing] = useState<WorkoutTemplate | null>(null);
   const plans = useCollection<PlanRecord>(COL.plans);
+  const cat = useCatalogue();
   const [restoring, setRestoring] = useState<string | null>(null);
   const [showArchived, setShowArchived] = useState(false);
   const [discoverTab, setDiscoverTab] = useState<WorkoutLibraryTab>("workouts");
@@ -143,17 +146,21 @@ function TrainPage() {
         <div className="grid gap-3 lg:grid-cols-2 lg:gap-4">
           {templates.map((tpl) => {
             const isOpen = open === tpl.id;
-            const img = workoutImage(tpl.legacyId);
+            const moves = tpl.exercises.map((e) => ({
+              name: e.name,
+              media: resolveCatalogueExercise(e, cat.exercises, cat.byId)?.media,
+            }));
             return (
               <Panel key={tpl.id} className="overflow-hidden !p-0">
                 <div className="flex gap-4 p-4 md:p-5">
-                  {img && (
-                    <img
-                      src={img}
-                      alt=""
-                      loading="lazy"
-                      className="hidden size-20 shrink-0 rounded-2xl object-cover sm:block"
-                    />
+                  {moves.some((m) => m.media?.length) && (
+                    <div className="hidden w-36 shrink-0 sm:block">
+                      <WorkoutMedia
+                        title={tpl.title}
+                        exercises={moves}
+                        className="!aspect-square border border-line"
+                      />
+                    </div>
                   )}
                   <div className="min-w-0 flex-1">
                     <p className="eyebrow">
@@ -205,19 +212,18 @@ function TrainPage() {
                 {isOpen && (
                   <ul className="border-t border-line px-4 pb-3 md:px-5">
                     {tpl.exercises.map((e) => {
-                      const m = exerciseImage(e.legacyId);
+                      const ce = resolveCatalogueExercise(e, cat.exercises, cat.byId);
                       return (
                         <Row as="li" key={e.id} className="items-start py-3">
-                          {m ? (
-                            <img
-                              src={m.image}
-                              alt={`${e.name} reference`}
-                              loading="lazy"
-                              className="size-14 shrink-0 rounded-xl object-cover"
+                          <div className="w-24 shrink-0">
+                            <ExerciseVisual
+                              media={ce?.media}
+                              name={e.name}
+                              pattern={ce?.pattern}
+                              compact
+                              showCredit={false}
                             />
-                          ) : (
-                            <div className="size-14 shrink-0 rounded-xl bg-surface-2" aria-hidden />
-                          )}
+                          </div>
                           <div className="min-w-0">
                             <p className="font-medium">{e.name}</p>
                             <p className="text-sm text-muted-foreground tnum">

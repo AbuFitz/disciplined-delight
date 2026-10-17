@@ -2,8 +2,14 @@ import { existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { buildSeed } from "@/data/legacy";
-import { exerciseImage, workoutImage } from "./exercise-media";
+import { readFileSync } from "node:fs";
+import type { CatalogueSnapshot } from "@/domain/catalogue";
+import { LEGACY_TO_CATALOGUE_NAME } from "./legacy-catalogue";
 import { DAY_PLANS, WEEKLY_SPLIT, workouts } from "./sunrise-data";
+
+const catalogue = (
+  JSON.parse(readFileSync("public/catalogue/v1/exercises.json", "utf8")) as CatalogueSnapshot
+).exercises;
 
 describe("curated seed content and media", () => {
   it("keeps every original workout, prescription and media reference intact", () => {
@@ -28,8 +34,6 @@ describe("curated seed content and media", () => {
     for (const workout of workouts) {
       const template = templates.find((item) => item.legacyId === workout.id);
       expect(template, workout.id).toBeDefined();
-      expect(workoutImage(workout.id), workout.id).toBe(workout.image);
-      expect(workout.image, workout.id).toBeTruthy();
 
       for (const exercise of workout.exercises) {
         const seeded = template?.exercises.find((item) => item.legacyId === exercise.id);
@@ -39,11 +43,11 @@ describe("curated seed content and media", () => {
           alternative: exercise.alt,
           startWeightKg: exercise.startWeight,
         });
-        expect(exerciseImage(exercise.id), exercise.id).toEqual({
-          image: exercise.image,
-          altImage: exercise.altImage,
-        });
-        expect(exercise.image, exercise.id).toBeTruthy();
+        // no unsourced photo is kept: every original exercise resolves to a catalogue exercise (licensed media, or the authored fallback)
+        const hit = catalogue.find(
+          (entry) => entry.name === (LEGACY_TO_CATALOGUE_NAME[exercise.name] ?? exercise.name),
+        );
+        expect(hit, exercise.name).toBeDefined();
       }
     }
 

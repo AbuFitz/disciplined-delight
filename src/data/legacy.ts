@@ -231,7 +231,8 @@ export async function runMigration(
   let legacyDays = 0,
     weighIns = 0;
   const tracker = safeParse(raw.tracker ?? null) as
-    { logs?: Record<string, LegacyLogBlob> } | undefined;
+    | { logs?: Record<string, LegacyLogBlob> }
+    | undefined;
   for (const [date, log] of Object.entries(tracker?.logs ?? {})) {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || !log) continue;
     const exercises: LegacyDayLog["exercises"] = {};
