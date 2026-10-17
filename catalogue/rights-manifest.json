@@ -1,0 +1,63 @@
+{
+  "snapshot": "2026-10-16+repdb-free-3",
+  "sources": {
+    "wger": {
+      "name": "wger Workout Manager",
+      "url": "https://wger.de",
+      "use": "Exercise text, muscles and images, redistributed per-entry under the licence recorded on each record.",
+      "redistribution": "Allowed with attribution; ShareAlike applies to CC BY-SA material.",
+      "exercises": 879,
+      "withMedia": 266,
+      "mediaItems": 416
+    },
+    "RepDB": {
+      "name": "RepDB Free tier dataset",
+      "url": "https://repdb.co",
+      "use": "Exercise records and static WebP start/peak illustrations.",
+      "redistribution": "Permitted by the RepDB Free Tier 1.0 licence with attribution. Paid RepDB Standard motion is NOT included.",
+      "exercises": 542,
+      "withMedia": 542,
+      "mediaItems": 957
+    }
+  },
+  "mediaLicences": {
+    "CC BY-SA 3.0": 71,
+    "CC BY-SA 4.0": 164,
+    "RepDB Free Tier 1.0": 1138
+  },
+  "mediaKinds": {
+    "image": 1373
+  },
+  "totals": {
+    "exercises": 1421,
+    "mediaItems": 1373,
+    "remoteUrls": 0,
+    "missingFiles": 0
+  },
+  "motion": {
+    "genuineMotionItems": 0,
+    "note": "All current assets are static images. RepDB Standard (paid) motion is not included; install a licensed bundle with `npm run catalogue:repdb:motion`."
+  },
+  "unverifiedProvenance": [
+    {
+      "path": "public/meals/*",
+      "files": [
+        ".gitkeep",
+        "bagel-nuts-oj.webp",
+        "chicken-rice.jpg",
+        "eggs-bagel-milk.webp",
+        "shake.webp",
+        "tuna-lunch.webp",
+        "tuna-sandwich.webp"
+      ],
+      "reason": "Meal photographs supplied with the original app. Their source and licence are not recorded. They are not exercise media. Confirm or replace before public launch."
+    }
+  ],
+  "allowedMediaLicences": [
+    "CC BY-SA 3.0",
+    "CC BY-SA 4.0",
+    "CC0",
+    "CC0 1.0",
+    "RepDB Free Tier 1.0"
+  ]
+}

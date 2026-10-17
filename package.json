@@ -11,6 +11,7 @@
     "preview": "npm run build:preview && node .output/server/index.mjs",
     "catalogue:media": "node scripts/catalogue/media.mjs",
     "catalogue:media:check": "node scripts/catalogue/media.mjs --check",
+    "catalogue:rights": "node scripts/catalogue/rights.mjs --write",
     "catalogue:repdb": "node scripts/catalogue/repdb.mjs",
     "catalogue:repdb:motion": "node scripts/catalogue/repdb-motion.mjs",
     "lint": "eslint src",
