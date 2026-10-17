@@ -342,7 +342,7 @@ export function BuddyDock() {
           motion={motion}
           palette={config.palette}
           expression={config.expression}
-          size={compact ? 52 : 76}
+          size={compact ? 48 : 68}
           decorative
         />
       </button>

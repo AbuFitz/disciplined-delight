@@ -75,6 +75,16 @@ export function WorkoutLibrary({
     muscle: "",
     constraint: "",
   });
+  const [showFilters, setShowFilters] = useState(false);
+  const activeFilters = [
+    query.goal,
+    query.level,
+    query.equipment,
+    query.location,
+    query.muscle,
+    query.constraint,
+    query.duration,
+  ].filter(Boolean).length;
   const [open, setOpen] = useState<AuthoredWorkout | null>(null);
   const [programme, setProgramme] = useState<AuthoredProgramme | null>(null);
   const [schedule, setSchedule] = useState<AuthoredWorkout | null>(null);
@@ -187,63 +197,80 @@ export function WorkoutLibrary({
 
       {tab === "workouts" ? (
         <>
-          <div className="mt-6 grid gap-3 border-y border-line py-4 md:grid-cols-4">
-            <label className="relative md:col-span-2">
-              <span className="sr-only">Search workouts</span>
-              <VIcon
-                name="search"
-                className="pointer-events-none absolute left-3 top-3 text-muted-foreground"
+          <div className="mt-5 border-y border-line py-3">
+            <div className="flex items-center gap-2">
+              <label className="relative min-w-0 flex-1">
+                <span className="sr-only">Search workouts</span>
+                <VIcon
+                  name="search"
+                  className="pointer-events-none absolute left-3 top-3 text-muted-foreground"
+                />
+                <TextInput
+                  value={query.text}
+                  onChange={(event) => setQuery((old) => ({ ...old, text: event.target.value }))}
+                  placeholder="Search goal, workout or muscle"
+                  className="pl-10"
+                />
+              </label>
+              <button
+                type="button"
+                aria-expanded={showFilters}
+                aria-controls="workout-filters"
+                onClick={() => setShowFilters((v) => !v)}
+                className="min-h-11 shrink-0 border-b-2 border-transparent px-3 text-sm font-semibold underline underline-offset-4 aria-expanded:border-primary"
+              >
+                Filters{activeFilters ? ` (${activeFilters})` : ""}
+              </button>
+            </div>
+            <div
+              id="workout-filters"
+              hidden={!showFilters}
+              className="mt-3 grid grid-cols-2 gap-3 md:grid-cols-4"
+            >
+              <Filter
+                label="Goal"
+                value={query.goal}
+                values={options.goal}
+                onChange={(goal) => setQuery((old) => ({ ...old, goal }))}
               />
-              <TextInput
-                value={query.text}
-                onChange={(event) => setQuery((old) => ({ ...old, text: event.target.value }))}
-                placeholder="Search goal, workout or muscle"
-                className="pl-10"
+              <Filter
+                label="Level"
+                value={query.level}
+                values={options.level}
+                onChange={(level) => setQuery((old) => ({ ...old, level }))}
               />
-            </label>
-            <Filter
-              label="Goal"
-              value={query.goal}
-              values={options.goal}
-              onChange={(goal) => setQuery((old) => ({ ...old, goal }))}
-            />
-            <Filter
-              label="Level"
-              value={query.level}
-              values={options.level}
-              onChange={(level) => setQuery((old) => ({ ...old, level }))}
-            />
-            <Filter
-              label="Equipment"
-              value={query.equipment}
-              values={options.equipment}
-              onChange={(equipment) => setQuery((old) => ({ ...old, equipment }))}
-            />
-            <Filter
-              label="Location"
-              value={query.location}
-              values={options.location}
-              onChange={(location) => setQuery((old) => ({ ...old, location }))}
-            />
-            <Filter
-              label="Muscle"
-              value={query.muscle}
-              values={options.muscle}
-              onChange={(muscle) => setQuery((old) => ({ ...old, muscle }))}
-            />
-            <Filter
-              label="Constraint"
-              value={query.constraint}
-              values={options.constraint}
-              onChange={(constraint) => setQuery((old) => ({ ...old, constraint }))}
-            />
-            <Filter
-              label="Duration"
-              value={query.duration ? String(query.duration) : ""}
-              values={["30", "45", "60"]}
-              onChange={(duration) => setQuery((old) => ({ ...old, duration: Number(duration) }))}
-              suffix=" min max"
-            />
+              <Filter
+                label="Equipment"
+                value={query.equipment}
+                values={options.equipment}
+                onChange={(equipment) => setQuery((old) => ({ ...old, equipment }))}
+              />
+              <Filter
+                label="Location"
+                value={query.location}
+                values={options.location}
+                onChange={(location) => setQuery((old) => ({ ...old, location }))}
+              />
+              <Filter
+                label="Muscle"
+                value={query.muscle}
+                values={options.muscle}
+                onChange={(muscle) => setQuery((old) => ({ ...old, muscle }))}
+              />
+              <Filter
+                label="Constraint"
+                value={query.constraint}
+                values={options.constraint}
+                onChange={(constraint) => setQuery((old) => ({ ...old, constraint }))}
+              />
+              <Filter
+                label="Duration"
+                value={query.duration ? String(query.duration) : ""}
+                values={["30", "45", "60"]}
+                onChange={(duration) => setQuery((old) => ({ ...old, duration: Number(duration) }))}
+                suffix=" min max"
+              />
+            </div>
           </div>
           <p className="mt-4 text-sm text-muted-foreground" aria-live="polite">
             {results.length} of {AUTHORED_WORKOUTS.length} workouts
