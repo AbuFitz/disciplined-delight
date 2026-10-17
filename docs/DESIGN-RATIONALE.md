@@ -36,3 +36,20 @@ off-screen, still poses under reduced motion.
 
 tsc, eslint, full vitest, `catalogue:media:check`, `catalogue:rights`, production build, and
 screenshot review at 320/390/768/1440, light/dark, reduced motion and 200% text with no overlap.
+
+## Design reset (mobile first)
+
+Principles taken from outside fitness, translated, not copied: calm navigation that recedes (Linear), a
+mode-aware bottom stack and companion rail that adapt to the screen (Arc), immediate actions and one
+primary control per screen (Raycast), exposed-but-simple system logic and precise controls (Teenage
+Engineering). The result is a living personal instrument over a training ledger.
+
+- One quiet canvas; chrome is solid with a single rule: no blur, glow or drop shadow (`.spatial-glass` is now flat).
+- Mobile tabs show at most five slots plus "More" (a sheet); nothing is hidden in a sideways scroll.
+- Today leads with the next meaningful action; the daily signal becomes a compact 2-column ledger below it.
+- Reserved bottom stack (resume bar, companion, tabs) so nothing floats over content; screens that need
+  a persistent bar (session rest and Finish) portal it into that reserved space (sidebar on desktop).
+- Gym Mode is a fixed-height column: scrolling content above, a 96 px "Complete set" bar in the thumb zone,
+  a rest screen with a giant timer and 80 px controls.
+- Signature progress motion: the ledger tick that inks left to right (setup progress), and the tally mark struck on a celebration.
+- Desktop is the same layout expanded: ledger rail, companion rail, and the expanded panel as a third column.

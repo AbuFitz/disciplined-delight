@@ -397,7 +397,7 @@ function Filter({
 }) {
   return (
     <Select aria-label={label} value={value} onChange={(event) => onChange(event.target.value)}>
-      <option value="">All {label.toLowerCase()}s</option>
+      <option value="">Any {label.toLowerCase()}</option>
       {values.map((item) => (
         <option key={item} value={item}>
           {item}

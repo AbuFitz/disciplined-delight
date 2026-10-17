@@ -284,7 +284,10 @@ function Credit({ d }: { d: MediaDescription }) {
   return (
     <p className="text-xs text-muted-foreground">
       {d.note} Illustration by {d.credit.author} · {d.credit.licence} ·{" "}
-      <Link to="/credits" className="underline underline-offset-4">
+      <Link
+        to="/credits"
+        className="inline-flex min-h-11 min-w-11 items-center justify-center underline underline-offset-4"
+      >
         Credits
       </Link>
     </p>

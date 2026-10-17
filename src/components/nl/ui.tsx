@@ -38,7 +38,7 @@ export const Button = forwardRef<HTMLButtonElement, BtnProps>(function Button(
       ref={ref}
       disabled={disabled || busy}
       className={cn(
-        "inline-flex max-w-full items-center justify-center gap-2 rounded-md text-center font-medium select-none",
+        "inline-flex max-w-full items-center justify-center gap-2 rounded-md text-center font-medium whitespace-normal select-none [overflow-wrap:anywhere]",
         "transition-[transform,background-color,opacity] duration-150 active:scale-[0.97] disabled:opacity-50 disabled:active:scale-100",
         size === "lg" && "min-h-14 px-8 text-base font-semibold",
         size === "md" && "min-h-12 px-6 text-[0.95rem] font-semibold",
@@ -153,21 +153,24 @@ export function SignalRail({
   return (
     <ol
       aria-label={label}
-      className={cn("mb-6 grid border-y border-line sm:grid-flow-col sm:auto-cols-fr", className)}
+      className={cn(
+        "mb-6 grid grid-cols-2 border-y border-line sm:grid-flow-col sm:auto-cols-fr",
+        className,
+      )}
     >
       {items.map((item, index) => (
         <li
           key={`${item.label}-${index}`}
           aria-current={item.state === "current" ? "step" : undefined}
           className={cn(
-            "relative min-h-16 border-b border-line py-3 pl-7 pr-3 last:border-b-0 sm:border-b-0 sm:border-r sm:last:border-r-0",
+            "relative min-h-14 min-w-0 border-b border-line py-2 pl-6 pr-2 odd:border-r max-sm:[&:nth-last-child(-n+2)]:border-b-0 sm:min-h-16 sm:border-b-0 sm:border-r sm:py-3 sm:pl-7 sm:pr-3 sm:last:border-r-0",
             item.state === "current" && "bg-surface",
           )}
         >
           <span
             aria-hidden
             className={cn(
-              "absolute left-2.5 top-[1.15rem] size-2 border border-muted-foreground bg-background",
+              "absolute left-2 top-[1rem] size-2 border sm:left-2.5 sm:top-[1.15rem] border-muted-foreground bg-background",
               item.state === "done" && "border-primary bg-primary",
               item.state === "current" && "scale-125 border-primary bg-primary",
             )}
@@ -461,7 +464,7 @@ export function Segmented<T extends string>({
           aria-checked={o.value === value}
           onClick={() => onChange(o.value)}
           className={cn(
-            "min-h-11 rounded-sm px-4 text-sm font-medium transition",
+            "min-h-11 min-w-11 rounded-sm px-4 text-sm font-medium transition",
             o.value === value
               ? "bg-primary text-primary-foreground"
               : "text-muted-foreground hover:text-foreground",
@@ -578,8 +581,8 @@ export function Sheet({
           aria-describedby={description ? undefined : undefined}
           className={cn(
             "fixed z-50 flex max-h-[92dvh] flex-col overflow-hidden border border-line bg-popover text-popover-foreground shadow-2xl outline-none",
-            "max-w-[100vw] inset-x-0 bottom-0 rounded-t-[1.75rem] data-[state=open]:animate-in data-[state=open]:slide-in-from-bottom data-[state=closed]:animate-out data-[state=closed]:slide-out-to-bottom",
-            "md:inset-y-3 md:right-3 md:left-auto md:bottom-3 md:max-h-none md:rounded-3xl md:data-[state=open]:slide-in-from-right md:data-[state=closed]:slide-out-to-right",
+            "max-w-[100vw] inset-x-0 bottom-0 rounded-t-lg data-[state=open]:animate-in data-[state=open]:slide-in-from-bottom data-[state=closed]:animate-out data-[state=closed]:slide-out-to-bottom",
+            "md:inset-y-3 md:right-3 md:left-auto md:bottom-3 md:max-h-none md:rounded-lg md:data-[state=open]:slide-in-from-right md:data-[state=closed]:slide-out-to-right",
             wide ? "md:w-[min(40rem,calc(100vw-1.5rem))]" : "md:w-[min(30rem,calc(100vw-1.5rem))]",
           )}
         >

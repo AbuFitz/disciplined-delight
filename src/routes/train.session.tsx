@@ -14,6 +14,7 @@ import { useWakeLock } from "@/lib/wake-lock";
 import { useCatalogue } from "@/data/catalogue-runtime";
 import { ReadinessCheckIn } from "@/components/nl/readiness-checkin";
 import { VIcon } from "@/components/nl/icon";
+import { ShellBar } from "@/components/nl/shell-slots";
 
 export const Route = createFileRoute("/train/session")({ component: SessionPage });
 
@@ -90,7 +91,7 @@ function SessionPage() {
     );
 
   return (
-    <div className="mx-auto max-w-3xl pb-28">
+    <div className="mx-auto max-w-3xl">
       <Link
         to="/train"
         className="mb-3 inline-flex min-h-11 items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
@@ -129,9 +130,9 @@ function SessionPage() {
           />
         ))}
       </div>
-      <div className="spatial-glass fixed inset-x-0 bottom-0 z-40 border-t px-4 pb-[calc(0.75rem+var(--safe-bottom))] pt-3 lg:left-[15.5rem]">
-        <div className="mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-3">
-          <div className="min-h-11 min-w-0 flex-1">
+      <ShellBar>
+        <div className="grid gap-3 border-t border-line px-4 pb-[calc(0.75rem+var(--safe-bottom))] pt-3 lg:border-t-0 lg:px-0 lg:pb-0 lg:pt-0">
+          <div className="min-h-11 min-w-0">
             {session.rest ? (
               <RestBar session={session} now={now} />
             ) : (
@@ -145,7 +146,7 @@ function SessionPage() {
             Finish
           </Button>
         </div>
-      </div>
+      </ShellBar>
       <FinishSheet
         open={finish}
         onOpenChange={setFinish}

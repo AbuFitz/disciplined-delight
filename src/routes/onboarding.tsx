@@ -583,7 +583,7 @@ function OnboardingPage() {
             )}
 
             {step === "personalise" && (
-              <div className="grid gap-8">
+              <div className="mt-6 grid gap-8">
                 <ColourWorldPicker />
                 <BuddySetup
                   progressive

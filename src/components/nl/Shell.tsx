@@ -7,6 +7,8 @@ import { cn } from "@/lib/utils";
 import { useProfile } from "@/data/hooks";
 import type { AppModule } from "@/data/types";
 import { VIcon, type VIconName } from "./icon";
+import { Sheet } from "./ui";
+import { BOTTOM_SLOT_ID, SIDE_SLOT_ID } from "./shell-slots";
 import { BuddyBar, BuddyHeaderButton, BuddyPanel, BuddyRail } from "@/components/buddy/BuddyDock";
 import { BuddyProvider } from "@/components/buddy/BuddyProvider";
 import { useBuddyDock } from "@/components/buddy/buddy-context";
@@ -146,6 +148,11 @@ function ShellFrame({ children }: { children: ReactNode }) {
   );
   const onSession = loc.pathname.startsWith("/train/session");
   const panelOpen = !!buddy?.open;
+  const [more, setMore] = useState(false);
+  const MAX_TABS = 5;
+  const tabs = primary.length > MAX_TABS ? primary.slice(0, MAX_TABS - 1) : primary;
+  const overflow = primary.length > MAX_TABS ? primary.slice(MAX_TABS - 1) : [];
+  useEffect(() => setMore(false), [loc.pathname]);
   useEffect(() => {
     // The page scrolls inside the body on small screens; start each route at the top.
     document.body.scrollTop = 0;
@@ -155,6 +162,8 @@ function ShellFrame({ children }: { children: ReactNode }) {
       ? loc.pathname === "/"
       : [to, ...match].some((m) => loc.pathname === m || loc.pathname.startsWith(m + "/"));
 
+  const moreActive =
+    [...overflow, ...QUICK].some((t) => isActive(t.to, t.match)) || isActive("/settings");
   const resume =
     active && !onSession && loc.pathname !== "/"
       ? (extra: string) => (
@@ -240,6 +249,7 @@ function ShellFrame({ children }: { children: ReactNode }) {
         </div>
         <div className="grid gap-3">
           {resume && <div className="border-y border-line">{resume("")}</div>}
+          <div id={SIDE_SLOT_ID} className="grid gap-3 empty:hidden" />
           <BuddyRail />
           <Link
             to="/settings"
@@ -298,6 +308,7 @@ function ShellFrame({ children }: { children: ReactNode }) {
         data-testid="bottom-stack"
       >
         {resume && !typing && <div className="border-b border-line">{resume("")}</div>}
+        <div id={BOTTOM_SLOT_ID} className="empty:hidden" />
         {!typing && <BuddyPanel className="buddy-sheet" />}
         {!typing && <BuddyBar />}
 
@@ -308,9 +319,9 @@ function ShellFrame({ children }: { children: ReactNode }) {
             (typing || onSession) && "hidden",
           )}
         >
-          <ul className="mx-auto flex max-w-2xl overflow-x-auto">
-            {primary.map((t) => (
-              <li key={t.to} className="w-20 shrink-0 flex-1">
+          <ul className="mx-auto flex max-w-2xl">
+            {tabs.map((t) => (
+              <li key={t.to} className="min-w-0 flex-1">
                 <Link
                   to={t.to}
                   aria-current={isActive(t.to, t.match) ? "page" : undefined}
@@ -333,9 +344,60 @@ function ShellFrame({ children }: { children: ReactNode }) {
                 </Link>
               </li>
             ))}
+            {overflow.length > 0 && (
+              <li className="min-w-0 flex-1">
+                <button
+                  type="button"
+                  aria-haspopup="dialog"
+                  aria-expanded={more}
+                  onClick={() => setMore(true)}
+                  className={cn(
+                    "flex min-h-[3.5rem] w-full min-w-0 flex-col items-center justify-center gap-0.5 px-0.5 text-[0.68rem] font-medium",
+                    moreActive ? "text-foreground" : "text-muted-foreground",
+                  )}
+                >
+                  <span
+                    className={cn(
+                      "flex h-7 w-12 max-w-full items-center justify-center border-b-2 transition",
+                      moreActive ? "border-primary text-primary" : "border-transparent",
+                    )}
+                  >
+                    <VIcon name="more" size={20} />
+                  </span>
+                  More
+                </button>
+              </li>
+            )}
           </ul>
         </nav>
       </div>
+      <Sheet open={more} onOpenChange={setMore} title="More">
+        <nav aria-label="More" className="grid pb-4">
+          {[
+            ...overflow,
+            ...QUICK,
+            {
+              to: "/settings",
+              label: "Settings",
+              icon: "settings" as VIconName,
+              match: [] as string[],
+            },
+          ].map((t) => (
+            <Link
+              key={t.to}
+              to={t.to}
+              aria-current={isActive(t.to, t.match) ? "page" : undefined}
+              className={cn(
+                "flex min-h-14 items-center gap-4 border-t border-line px-1 text-base font-medium first:border-t-0",
+                isActive(t.to, t.match) ? "text-foreground" : "text-muted-foreground",
+              )}
+            >
+              <VIcon name={t.icon} active={isActive(t.to, t.match)} />
+              {t.label}
+            </Link>
+          ))}
+        </nav>
+      </Sheet>
       {panelOpen && (
         <aside className="buddy-column hidden lg:block" aria-label="Buddy">
           <BuddyPanel />

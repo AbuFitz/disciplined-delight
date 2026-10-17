@@ -76,7 +76,7 @@ export function BuddyGuide({ event, compact = false }: { event: BuddyEvent; comp
         <div className="min-w-0 flex-1">
           <p className="eyebrow">{config.name} · context guide</p>
           <p className="mt-1 text-sm">{guidance.text}</p>
-          <div className="mt-2 flex gap-1">
+          <div className="mt-2 flex flex-wrap gap-1">
             <Button
               size="sm"
               variant="ghost"

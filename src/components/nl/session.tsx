@@ -91,7 +91,16 @@ const applyReadinessPlaceholder = (
     : placeholder;
 
 /* ------------------------------ Rest timer bar ------------------------------ */
-export function RestBar({ session, now }: { session: Session; now: number }) {
+export function RestBar({
+  session,
+  now,
+  big = false,
+}: {
+  session: Session;
+  now: number;
+  /** Gym Mode: giant timer and thumb-sized controls for glancing and one-handed use. */
+  big?: boolean;
+}) {
   const rem = restRemainingMs(session, now);
   const r = session.rest;
   const haptic = useHaptics();
@@ -105,6 +114,71 @@ export function RestBar({ session, now }: { session: Session; now: number }) {
   if (!r) return null;
   const running = r.endsAt != null;
   const done = (rem ?? 0) === 0;
+  if (big)
+    return (
+      <div className="grid w-full justify-items-center gap-6" role="timer" aria-label="Rest timer">
+        <span
+          className={cn(
+            "num text-[clamp(4.5rem,26vw,9rem)] font-semibold leading-none tnum",
+            done && "text-spring",
+          )}
+        >
+          {done ? "Go" : fmtClock(rem ?? 0)}
+        </span>
+        <div className="grid w-full max-w-md grid-cols-2 gap-3">
+          {!done ? (
+            <button
+              type="button"
+              className="min-h-20 border border-line text-xl font-semibold active:bg-surface-2"
+              onClick={() =>
+                saveSession({
+                  ...session,
+                  rest: {
+                    ...r,
+                    endsAt: (r.endsAt ?? Date.now() + (r.remainingMs ?? 0)) + 15000,
+                    remainingMs: running ? undefined : (r.remainingMs ?? 0) + 15000,
+                  },
+                })
+              }
+            >
+              +15 s
+            </button>
+          ) : (
+            <span />
+          )}
+          <button
+            type="button"
+            className={cn(
+              "min-h-20 border border-primary bg-primary text-xl font-semibold text-primary-foreground active:opacity-90",
+              done && "col-span-2",
+            )}
+            onClick={() => saveSession({ ...session, rest: undefined })}
+          >
+            {done ? "Next set" : "Skip rest"}
+          </button>
+        </div>
+        {!done && (
+          <button
+            type="button"
+            className="min-h-14 px-6 text-base font-semibold underline underline-offset-4"
+            onClick={() =>
+              saveSession({
+                ...session,
+                rest: running
+                  ? { ...r, endsAt: null, remainingMs: rem ?? 0 }
+                  : {
+                      ...r,
+                      endsAt: Date.now() + (r.remainingMs ?? r.durationMs),
+                      remainingMs: undefined,
+                    },
+              })
+            }
+          >
+            {running ? "Pause rest" : "Resume rest"}
+          </button>
+        )}
+      </div>
+    );
   return (
     <div className="flex items-center gap-2" role="timer" aria-label="Rest timer">
       <VIcon name="timer" />
@@ -275,8 +349,8 @@ export function GymMode({
           )}
         </div>
         <p className="eyebrow mt-12 text-center">Rest interval</p>
-        <div className="mt-5 flex justify-center">
-          <RestBar session={session} now={now} />
+        <div className="mt-6 flex justify-center">
+          <RestBar big session={session} now={now} />
         </div>
         <div className="mx-auto mt-10 max-w-md border-t border-line pt-5 text-center">
           <p className="eyebrow">Next</p>
@@ -321,8 +395,8 @@ export function GymMode({
   }
 
   return (
-    <div className="gym-mode mx-auto min-h-[calc(100dvh-9rem)] max-w-4xl border-x border-line px-3 py-4 sm:px-8">
-      <header className="flex items-center justify-between gap-3 border-b border-line pb-3">
+    <div className="gym-mode mx-auto flex h-[calc(100dvh-var(--reserve-bottom,0px)-3.6rem)] max-w-4xl flex-col border-x border-line px-3 pt-3 sm:px-8 lg:h-dvh">
+      <header className="flex shrink-0 flex-wrap items-center justify-between gap-x-3 gap-y-1 border-b border-line pb-3">
         <button onClick={onExit} className="min-h-11 text-sm font-semibold">
           Exit heads-up
         </button>
@@ -342,157 +416,163 @@ export function GymMode({
           End
         </Button>
       </header>
-      {preferences.livePulse && (
-        <div className="border-b border-line py-3 text-sm" role="status">
-          <span className="mr-2 inline-block size-2 bg-primary" aria-hidden />
-          You’re training now. Live aggregate counts are unavailable until authenticated realtime
-          presence is configured—no people or numbers are invented.
-        </div>
-      )}
-      <BuddyStrip />
-      <BuddyGuide compact event={{ kind: "gym_start", exercise: exercise.name }} />
-      <div className="mt-5 grid grid-cols-[1fr_auto_1fr] items-center border-y border-line py-3 text-sm">
-        <button
-          disabled={index === 0}
-          onClick={() => setExerciseIndex((value) => Math.max(0, value - 1))}
-          className="min-h-11 truncate text-left text-muted-foreground disabled:opacity-30"
-        >
-          ← {session.exercises[index - 1]?.name ?? "Start"}
-        </button>
-        <span className="num px-3 text-primary">
-          {index + 1}/{session.exercises.length}
-        </span>
-        <button
-          disabled={index === session.exercises.length - 1}
-          onClick={() =>
-            setExerciseIndex((value) => Math.min(session.exercises.length - 1, value + 1))
-          }
-          className="min-h-11 truncate text-right text-muted-foreground disabled:opacity-30"
-        >
-          {nextExercise?.name ?? "Finish"} →
-        </button>
-      </div>
-      {nextExercise && (
-        <div
-          className="flex items-center gap-3 border-b border-line py-2 text-left text-sm"
-          aria-label="Next up"
-        >
-          <span className="eyebrow shrink-0">Next</span>
-          <NextThumb cat={nextCat} name={nextExercise.name} />
-          <span className="min-w-0 flex-1 truncate font-semibold">{nextExercise.name}</span>
-          <span className="num shrink-0 text-muted-foreground">
-            {nextExercise.prescription.schemeText}
-          </span>
-        </div>
-      )}
-      <main className="py-7 text-center">
-        <p className="eyebrow">
-          Current movement · set {currentSetIndex + 1} of {exercise.sets.length}
-        </p>
-        <h1 className="mt-2 font-display text-[clamp(2.8rem,11vw,6rem)] font-semibold leading-[0.9] tracking-[-0.055em]">
-          {exercise.name}
-        </h1>
-        <p className="num mt-4 text-lg text-muted-foreground">
-          {previous
-            ? `Last: ${previous.sets.map((entry) => formatSet(entry, exercise.tracking)).join(" · ")}`
-            : exercise.prescription.schemeText}
-        </p>
-        <MirrorExercise
-          session={session}
-          exercise={exercise}
-          className="mx-auto mt-3 max-w-xl text-left"
-        />
-        {showMedia && (
-          <div className="mx-auto mt-5 max-w-xl text-left">
-            <ExerciseVisual
-              media={cat?.media}
-              name={exercise.name}
-              pattern={cat?.pattern}
-              eager
-              compact
-            />
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+        {preferences.livePulse && (
+          <div className="border-b border-line py-3 text-sm" role="status">
+            <span className="mr-2 inline-block size-2 bg-primary" aria-hidden />
+            You’re training now. Live aggregate counts are unavailable until authenticated realtime
+            presence is configured—no people or numbers are invented.
           </div>
         )}
-        <div className="mx-auto mt-7 grid max-w-xl grid-cols-2 gap-3">
-          <NumberField
-            label="Weight"
-            value={set.weightKg}
-            placeholder={placeholder.weightKg?.toString() ?? "0"}
-            onChange={(weightKg) => void patch({ weightKg })}
-            unit="kg"
-            step={exercise.incrementKg ?? 2.5}
-            decimals={1}
-            className="[&_input]:h-20 [&_input]:text-3xl"
-          />
-          <NumberField
-            label="Reps"
-            value={set.reps}
-            placeholder={placeholder.reps?.toString() ?? String(exercise.prescription.repMax)}
-            onChange={(reps) => void patch({ reps })}
-            step={1}
-            decimals={0}
-            className="[&_input]:h-20 [&_input]:text-3xl"
-          />
-          <div className="col-span-2">
-            <Segmented
-              label="Reps in reserve"
-              value={set.rir == null ? "" : String(set.rir)}
-              onChange={(value) => void patch({ rir: Number(value) })}
-              options={["0", "1", "2", "3", "4"].map((value) => ({
-                value,
-                label: value === "4" ? "4+" : value,
-              }))}
-            />
-          </div>
+        <BuddyStrip />
+        <BuddyGuide compact event={{ kind: "gym_start", exercise: exercise.name }} />
+        <div className="mt-5 grid grid-cols-[1fr_auto_1fr] items-center border-y border-line py-3 text-sm">
+          <button
+            disabled={index === 0}
+            onClick={() => setExerciseIndex((value) => Math.max(0, value - 1))}
+            className="min-h-14 truncate text-left text-base text-muted-foreground disabled:opacity-30"
+          >
+            ← {session.exercises[index - 1]?.name ?? "Start"}
+          </button>
+          <span className="num px-3 text-primary">
+            {index + 1}/{session.exercises.length}
+          </span>
+          <button
+            disabled={index === session.exercises.length - 1}
+            onClick={() =>
+              setExerciseIndex((value) => Math.min(session.exercises.length - 1, value + 1))
+            }
+            className="min-h-14 truncate text-right text-base text-muted-foreground disabled:opacity-30"
+          >
+            {nextExercise?.name ?? "Finish"} →
+          </button>
         </div>
+        {nextExercise && (
+          <div
+            className="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-line py-2 text-left text-sm"
+            aria-label="Next up"
+          >
+            <span className="eyebrow shrink-0">Next</span>
+            <NextThumb cat={nextCat} name={nextExercise.name} />
+            <span className="min-w-0 flex-1 basis-32 truncate font-semibold">
+              {nextExercise.name}
+            </span>
+            <span className="num shrink-0 text-muted-foreground">
+              {nextExercise.prescription.schemeText}
+            </span>
+          </div>
+        )}
+        <main className="py-7 text-center">
+          <p className="eyebrow">
+            Current movement · set {currentSetIndex + 1} of {exercise.sets.length}
+          </p>
+          <h1 className="mt-2 font-display text-[clamp(2.8rem,11vw,6rem)] font-semibold leading-[0.9] tracking-[-0.055em]">
+            {exercise.name}
+          </h1>
+          <p className="num mt-4 text-lg text-muted-foreground">
+            {previous
+              ? `Last: ${previous.sets.map((entry) => formatSet(entry, exercise.tracking)).join(" · ")}`
+              : exercise.prescription.schemeText}
+          </p>
+          <MirrorExercise
+            session={session}
+            exercise={exercise}
+            className="mx-auto mt-3 max-w-xl text-left"
+          />
+          {showMedia && (
+            <div className="mx-auto mt-5 max-w-xl text-left">
+              <ExerciseVisual
+                media={cat?.media}
+                name={exercise.name}
+                pattern={cat?.pattern}
+                eager
+                compact
+              />
+            </div>
+          )}
+          <div className="mx-auto mt-7 grid max-w-xl grid-cols-1 gap-3 min-[560px]:grid-cols-2">
+            <NumberField
+              label="Weight"
+              value={set.weightKg}
+              placeholder={placeholder.weightKg?.toString() ?? "0"}
+              onChange={(weightKg) => void patch({ weightKg })}
+              unit="kg"
+              step={exercise.incrementKg ?? 2.5}
+              decimals={1}
+              className="[&_input]:h-20 [&_input]:text-3xl"
+            />
+            <NumberField
+              label="Reps"
+              value={set.reps}
+              placeholder={placeholder.reps?.toString() ?? String(exercise.prescription.repMax)}
+              onChange={(reps) => void patch({ reps })}
+              step={1}
+              decimals={0}
+              className="[&_input]:h-20 [&_input]:text-3xl"
+            />
+            <div className="min-[560px]:col-span-2">
+              <Segmented
+                label="Reps in reserve"
+                value={set.rir == null ? "" : String(set.rir)}
+                onChange={(value) => void patch({ rir: Number(value) })}
+                options={["0", "1", "2", "3", "4"].map((value) => ({
+                  value,
+                  label: value === "4" ? "4+" : value,
+                }))}
+              />
+            </div>
+          </div>
+          <div className="mx-auto mt-3 flex max-w-xl flex-wrap justify-center gap-1">
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => void patch({ skipped: true, completed: false })}
+            >
+              Skip set
+            </Button>
+            <Button size="sm" variant="ghost" onClick={() => setReplace(true)}>
+              Swap
+            </Button>
+            <Button size="sm" variant="ghost" onClick={() => setNote(true)}>
+              Note
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              aria-pressed={showMedia}
+              onClick={() => setShowMedia((value) => !value)}
+            >
+              {showMedia ? "Hide" : "Show"} form
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              aria-pressed={mediaPrefs.dataSaver}
+              onClick={() => setMediaPrefs({ dataSaver: !mediaPrefs.dataSaver })}
+            >
+              Data saver {mediaPrefs.dataSaver ? "on" : "off"}
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() =>
+                session.status === "paused" ? resumeSession(session) : pauseSession(session)
+              }
+            >
+              {session.status === "paused" ? "Resume" : "Pause"}
+            </Button>
+          </div>
+        </main>
+      </div>
+      <div className="shrink-0 border-t border-line bg-background pb-[calc(0.75rem+var(--safe-bottom))] pt-3">
         <button
           onClick={() => void complete()}
           disabled={session.status === "paused"}
-          className="mx-auto mt-7 min-h-24 w-full max-w-xl border border-primary bg-primary px-8 font-display text-3xl font-semibold text-primary-foreground active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100"
+          className="mx-auto flex min-h-24 w-full max-w-xl items-center justify-center border border-primary bg-primary px-8 font-display text-3xl font-semibold text-primary-foreground active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100"
         >
           {session.status === "paused" ? "Session paused" : "Complete set"}
         </button>
-        <div className="mx-auto mt-3 flex max-w-xl flex-wrap justify-center gap-1">
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={() => void patch({ skipped: true, completed: false })}
-          >
-            Skip set
-          </Button>
-          <Button size="sm" variant="ghost" onClick={() => setReplace(true)}>
-            Swap
-          </Button>
-          <Button size="sm" variant="ghost" onClick={() => setNote(true)}>
-            Note
-          </Button>
-          <Button
-            size="sm"
-            variant="ghost"
-            aria-pressed={showMedia}
-            onClick={() => setShowMedia((value) => !value)}
-          >
-            {showMedia ? "Hide" : "Show"} form
-          </Button>
-          <Button
-            size="sm"
-            variant="ghost"
-            aria-pressed={mediaPrefs.dataSaver}
-            onClick={() => setMediaPrefs({ dataSaver: !mediaPrefs.dataSaver })}
-          >
-            Data saver {mediaPrefs.dataSaver ? "on" : "off"}
-          </Button>
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={() =>
-              session.status === "paused" ? resumeSession(session) : pauseSession(session)
-            }
-          >
-            {session.status === "paused" ? "Resume" : "Pause"}
-          </Button>
-        </div>
-      </main>
+      </div>
       <ReplaceSheet
         open={replace}
         onOpenChange={setReplace}
@@ -621,7 +701,7 @@ function SetRow({
             value={set.weightKg}
             placeholder={ph.weightKg != null ? String(ph.weightKg) : "0"}
             onChange={(v) => onChange({ weightKg: v })}
-            className="w-[10.5rem]"
+            className="w-[min(10.5rem,100%)]"
           />
         )}
         {tr === "assisted_reps" && (
@@ -633,7 +713,7 @@ function SetRow({
             value={set.assistKg}
             placeholder="0"
             onChange={(v) => onChange({ assistKg: v })}
-            className="w-[11.5rem]"
+            className="w-[min(11.5rem,100%)]"
           />
         )}
         {(tr === "time" || tr === "distance_time") && (
@@ -645,7 +725,7 @@ function SetRow({
             value={set.seconds}
             placeholder={ph.seconds != null ? String(ph.seconds) : "30"}
             onChange={(v) => onChange({ seconds: v })}
-            className="w-[9.5rem]"
+            className="w-[min(9.5rem,100%)]"
           />
         )}
         {tr === "distance_time" && (
@@ -657,7 +737,7 @@ function SetRow({
             value={set.distanceM}
             placeholder="0"
             onChange={(v) => onChange({ distanceM: v })}
-            className="w-[9.5rem]"
+            className="w-[min(9.5rem,100%)]"
           />
         )}
         {tr !== "time" && tr !== "distance_time" && (
@@ -668,7 +748,7 @@ function SetRow({
             value={set.reps}
             placeholder={ph.reps != null ? String(ph.reps) : String(ex.prescription.repMax)}
             onChange={(v) => onChange({ reps: v })}
-            className="w-[9.5rem]"
+            className="w-[min(9.5rem,100%)]"
           />
         )}
         <div className="ml-auto">
@@ -1351,14 +1431,14 @@ export function SessionHeader({ session, now }: { session: Session; now: number 
   return (
     <Panel tone="green" className="mb-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
+        <div className="min-w-0">
           <p className="eyebrow !text-foreground/70">
             Workout {session.templateLetter}
             {paused ? " · Paused" : ""}
           </p>
           <h1 className="display-title text-3xl md:text-4xl">{session.templateName}</h1>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <div className="text-right">
             <span
               className="num block text-3xl font-semibold tnum"

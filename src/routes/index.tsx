@@ -93,25 +93,39 @@ function TodayPage() {
     checklist: () => <ChecklistWidget {...ctx} />,
   };
 
+  const visible = widgets.filter((w) => w.visible);
+  const nextAction = visible.find((w) => w.id === "next-action");
+  const others = visible.filter((w) => w.id !== "next-action");
+  const setupPending =
+    !profile.setup.skipped &&
+    !(profile.setup.goals && (!salah.enabled || prayerCfg.items.length > 0));
+  // Mobile order: the next meaningful action leads, then the signal, setup nudge and the rest.
+  // Wider screens keep the signal rail directly under the header.
   return (
-    <>
-      <PageHeader
-        eyebrow={<time dateTime={today}>Today · {formatDateLong(today)}</time>}
-        title={
-          <>
-            {greeting(Math.floor(localMinutes(now, tz) / 60))}
-            {profile.name ? `, ${profile.name}` : ""}
-          </>
-        }
-        sub={focus}
-        actions={
-          <Button variant="secondary" onClick={() => setEdit(true)}>
-            <VIcon name="settings" size={16} />
-            Edit Today
-          </Button>
-        }
-      />
+    <div className="flex flex-col">
+      <div className="order-1">
+        <PageHeader
+          eyebrow={<time dateTime={today}>Today · {formatDateLong(today)}</time>}
+          title={
+            <>
+              {greeting(Math.floor(localMinutes(now, tz) / 60))}
+              {profile.name ? `, ${profile.name}` : ""}
+            </>
+          }
+          sub={focus}
+          actions={
+            <Button variant="secondary" onClick={() => setEdit(true)}>
+              <VIcon name="settings" size={16} />
+              Edit Today
+            </Button>
+          }
+        />
+      </div>
+      {nextAction && (
+        <div className="order-2 mb-5 min-w-0 md:order-4 md:mb-4">{render["next-action"]()}</div>
+      )}
       <SignalRail
+        className="order-3 md:order-2"
         items={[
           { label: "Readiness", value: "Self-report when you start", state: "next" },
           {
@@ -127,41 +141,33 @@ function TodayPage() {
           { label: "Recovery", value: "Adjust from your records", state: "next" },
         ]}
       />
-      {!profile.setup.skipped &&
-        !(profile.setup.goals && (!salah.enabled || prayerCfg.items.length > 0)) && (
-          <Link
-            to="/settings"
-            className="mb-5 flex min-h-12 items-center justify-between rounded-2xl border border-line bg-surface px-4 text-sm"
-          >
-            <span>
-              <strong className="font-semibold">Finish setup.</strong> Confirm your goals
-              {salah.enabled ? " and prayer source" : ""} so Today uses your own numbers.
-            </span>
-            <span aria-hidden>→</span>
-          </Link>
-        )}
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3 md:gap-5">
-        {widgets
-          .filter((w) => w.visible)
-          .map((w) => {
-            const el = render[w.id]();
-            if (!el) return null;
-            return (
-              <div
-                key={w.id}
-                className={cn(
-                  "min-w-0",
-                  (w.id === "next-action" || w.size === "expanded") &&
-                    "md:col-span-2 xl:col-span-2",
-                  w.id === "next-action" && "xl:col-span-3",
-                )}
-              >
-                {el}
-              </div>
-            );
-          })}
+      {setupPending && (
+        <Link
+          to="/settings"
+          className="order-4 mb-5 flex min-h-12 items-center justify-between gap-3 border-y border-line px-1 text-sm md:order-3"
+        >
+          <span>
+            <strong className="font-semibold">Finish setup.</strong> Confirm your goals
+            {salah.enabled ? " and prayer source" : ""} so Today uses your own numbers.
+          </span>
+          <span aria-hidden>→</span>
+        </Link>
+      )}
+      <div className="order-5 grid gap-4 md:grid-cols-2 md:gap-5 xl:grid-cols-3">
+        {others.map((w) => {
+          const el = render[w.id]();
+          if (!el) return null;
+          return (
+            <div
+              key={w.id}
+              className={cn("min-w-0", w.size === "expanded" && "md:col-span-2 xl:col-span-2")}
+            >
+              {el}
+            </div>
+          );
+        })}
       </div>
       <EditTodaySheet open={edit} onOpenChange={setEdit} widgets={widgets} hidden={hiddenReasons} />
-    </>
+    </div>
   );
 }

@@ -116,7 +116,7 @@ export function BuddyBar() {
           motion={b.motion}
           palette={config.palette}
           expression={config.expression}
-          size={44}
+          size={38}
           decorative
         />
       </button>

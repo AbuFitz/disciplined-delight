@@ -6,8 +6,16 @@ signals.
 
 ## Character
 
-Three original SVG characters, drawn in this repository (`src/components/buddy/BuddyCharacter.tsx`)
-and sharing one rig of eyes, mouth, two arms, accessories and a ledger baseline:
+**Current state: provisional.** The earlier Bell/Cairn/Plate bodies were rejected and removed. The
+companion is now a family of four non-gendered variants (Tavi quick/curious, Ollo cosy/calm, Zuri
+bold/celebratory, Eira elegant/reflective) that share one face and state set and differ by silhouette
+and motion profile (`src/domain/buddy/variants.ts`). Bodies come from a replaceable art pack
+(`src/domain/buddy/art.ts`); the shipped pack `provisional-v0` is deliberately neutral geometry and is
+labelled provisional wherever it appears. The approved four-variant exploration is reference-only
+(`docs/design-reference/`) and was not traced. Names are working names (see variants.ts for the collision note).
+
+Superseded description of the old art, kept only for history: three original SVG characters drawn in this repository
+sharing one rig of eyes, mouth, two arms, accessories and a ledger baseline:
 
 - **Bell**: a kettlebell with a face. Steady and compact.
 - **Cairn**: three balanced stones. Patient; the cap stone wobbles when it thinks.
@@ -16,17 +24,21 @@ and sharing one rig of eyes, mouth, two arms, accessories and a ledger baseline:
 Colour is `--primary` from the selected colour world (or a fixed world if the person picks one),
 so light and dark both stay legible. There is no raster art, no stock asset and no AI-generated art.
 
-## Animation state machine
+## Animation
 
-`src/domain/buddy/state.ts` is pure and tested. 13 states: enter, idle, breathe, listen, think,
-explain, point, encourage, celebrate, recover, rest, error, offline. Each has a distinct *static*
-pose (eyes, mouth, arms, accessory, lean), so state is visible with motion off. Transient states
-settle back to a base state; higher-priority states (error, celebrate, recover) are not displaced
-by lower ones.
+`src/domain/buddy/state.ts` (state machine, pure and tested) and `src/domain/buddy/clips.ts` (authored clips).
+14 states: enter, idle, breathe, listen, think, explain, point, encourage, celebrate, recover, rest (sleep),
+error (help), offline, exit. Priority and interruption rules keep error/celebrate/recover from being
+displaced. Each state also has a distinct static pose (eyes, mouth, accessory, lean).
 
-Motion levels: Still (poses only), Gentle (breathing, blinking), Lively (full). Reduced-motion
-preference always forces Still. All animation is transform/opacity only, pauses off-screen and in
-background tabs (`data-live`), and is gated by `prefers-reduced-motion: no-preference`.
+Clips are WAAPI keyframes on the rig parts (root, body, face, eyes, mouth, acc, shadow) built from
+anticipation, action, overshoot and settle with squash and stretch, scaled by the variant's motion
+profile (tempo, squash, anticipation, overshoot, idle cadence and favourite idle moves). Interruptions
+blend from the current pose. Only transform and opacity change, so layout never shifts. Animation pauses
+off-screen and in background tabs, never blocks input, and reduced motion or the Still setting applies a
+static key pose instead. Motion levels: Still, Gentle (softened clips), Lively.
+
+Haptics: `docs/HAPTICS.md`.
 
 ## Context awareness
 

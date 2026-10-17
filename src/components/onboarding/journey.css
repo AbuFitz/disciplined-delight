@@ -409,6 +409,7 @@
 }
 .jr-bar-in {
   display: flex;
+  flex-wrap: wrap;
   width: 100%;
   max-width: 40rem;
   margin: 0 auto;
@@ -429,7 +430,8 @@
   color: var(--foreground);
 }
 .jr-btn-primary {
-  flex: 1;
+  flex: 1 1 9rem;
+  min-width: 0;
   background: var(--primary);
   border: 1px solid var(--primary);
   color: var(--primary-foreground);
@@ -499,10 +501,5 @@
   }
   .jr-main {
     padding-top: 2rem;
-  }
-  .jr-bar {
-    position: static;
-    border-top: 0;
-    padding-top: 0;
   }
 }
