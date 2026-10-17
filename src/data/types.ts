@@ -36,6 +36,11 @@ export const COL = {
   customExercises: "customExercises",
   equipmentProfile: "equipmentProfile",
   companion: "companion",
+  programRevisions: "programRevisions",
+  workoutLibraryPrefs: "workoutLibraryPrefs",
+  programEnrollments: "programEnrollments",
+  gymLocations: "gymLocations",
+  buddyGuidance: "buddyGuidance",
 } as const;
 
 export type AppModule =
@@ -108,10 +113,60 @@ export type Profile = {
   /** Which pillars the person chose to use; others are hidden. */
   pillars?: ("body" | "mind" | "soul")[];
   faithRoutines?: boolean;
+  /** Optional private faith/reflection configuration. Never inferred from identity or locale. */
+  faith?: FaithProfile;
   /** Selected product areas. Missing on old profiles means all non-faith areas remain available. */
   modules?: AppModule[];
   /** Inputs used by deterministic programme, schedule and reminder decisions. */
   planning?: PlanningProfile;
+  gymMode?: { voice: boolean; haptics: boolean; autoMedia: boolean; livePulse?: boolean };
+  trainingMusic?: { provider: "spotify" | "apple"; url: string };
+};
+
+export type FaithTradition =
+  | "not_for_me"
+  | "prefer_not_to_say"
+  | "islam"
+  | "christianity"
+  | "judaism"
+  | "hindu_traditions"
+  | "buddhist_traditions"
+  | "sikhism"
+  | "jainism"
+  | "bahai"
+  | "shinto"
+  | "indigenous_traditional"
+  | "spiritual"
+  | "custom";
+
+export type FaithPractice =
+  | "prayer_remembrance"
+  | "scripture_reading"
+  | "meditation_contemplation"
+  | "fasting_dietary"
+  | "sacred_dates"
+  | "weekly_rest_worship"
+  | "community_service"
+  | "pilgrimage_preparation"
+  | "custom_ritual";
+
+export type FaithProfile = {
+  enabled: boolean;
+  traditions: FaithTradition[];
+  branch?: string;
+  customLabel?: string;
+  practices: FaithPractice[];
+  private: true;
+};
+
+export type GymLocation = {
+  id: string;
+  name: string;
+  latitude: number;
+  longitude: number;
+  radiusM: number;
+  enabled: boolean;
+  createdAt: number;
 };
 
 export type TemplateExercise = {
@@ -152,6 +207,7 @@ export type WorkoutTemplate = {
   cardio?: { machine: string; text: string };
   order: number;
   archivedAt?: string | null;
+  source?: { kind: "authored"; workoutId: string; version: string };
 };
 
 export type SessionSet = RecordedSet & { id: string; suggested?: boolean };
@@ -169,12 +225,17 @@ export type SessionExercise = {
   substitutedFrom?: string;
   prescription: { sets: number; repMin: number; repMax: number; schemeText: string };
   equipment?: string;
+  /** Editable training classification used only for estimated set summaries. */
+  muscle?: string;
   incrementKg?: number;
   restSeconds?: number;
   alternative?: string;
   cue?: string;
   sets: SessionSet[];
   note?: string;
+  /** Optional post-exercise preference; never inferred from private notes. */
+  preference?: "more" | "less" | "never" | "equipment_unavailable";
+  adaptation?: AdaptationDecision;
 };
 
 export type RestTimer = { durationMs: number; endsAt: number | null; remainingMs?: number };
@@ -187,6 +248,8 @@ export type Session = {
   templateName: string;
   templateLetter?: string;
   status: "active" | "paused" | "completed" | "ended-early";
+  /** Logging clock begins after optional readiness is accepted, kept or skipped. */
+  workStartedAt?: number;
   startedAt: number;
   endedAt?: number;
   pausedAt?: number;
@@ -194,6 +257,48 @@ export type Session = {
   exercises: SessionExercise[];
   rest?: RestTimer;
   note?: string;
+  readiness?: ReadinessCheckIn;
+};
+
+export type ReadinessAction = "keep" | "reduce_set" | "lower_load" | "shorten" | "swap_aggravating";
+
+export type ReadinessCheckIn = {
+  sleep: 1 | 2 | 3 | 4 | 5;
+  soreness: 1 | 2 | 3 | 4 | 5;
+  energy: 1 | 2 | 3 | 4 | 5;
+  stress: 1 | 2 | 3 | 4 | 5;
+  timeAvailable: number;
+  aggravatingExerciseId?: string;
+  submittedAt: number;
+  score: number;
+  suggestion: ReadinessAction;
+  reason: string;
+  contributors: string[];
+  decision?: "accepted" | "kept_plan" | "dismissed";
+  decidedAt?: number;
+};
+
+export type AdaptationAction = "increase_load" | "hold" | "reduce_load" | "reduce_set" | "swap";
+export type AdaptationDecision = {
+  id: string;
+  action: AdaptationAction;
+  status: "accepted" | "modified" | "dismissed";
+  reason: string;
+  suggestedWeightKg?: number;
+  appliedWeightKg?: number;
+  suggestedSets?: number;
+  appliedSets?: number;
+  decidedAt: number;
+};
+
+export type ProgramRevision = {
+  id: string;
+  templateId: string;
+  createdAt: number;
+  source: "adaptation" | "manual";
+  reason: string;
+  before: WorkoutTemplate;
+  after: WorkoutTemplate;
 };
 
 export type LegacyDayLog = {
@@ -368,6 +473,11 @@ export const PRIVATE_COLLECTIONS: string[] = [
   "prayerSettings",
   "prayerDays",
   "modules",
+  "programRevisions",
+  "workoutLibraryPrefs",
+  "programEnrollments",
+  "gymLocations",
+  "buddyGuidance",
 ];
 
 export type WeighIn = {

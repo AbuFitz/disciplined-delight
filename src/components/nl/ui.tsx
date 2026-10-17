@@ -1,6 +1,5 @@
 import * as Dialog from "@radix-ui/react-dialog";
 import * as AlertDialog from "@radix-ui/react-alert-dialog";
-import { Check, Minus, Plus, X } from "lucide-react";
 import {
   cloneElement,
   forwardRef,
@@ -12,15 +11,26 @@ import {
   type ReactNode,
 } from "react";
 import { cn } from "@/lib/utils";
+import { VIcon } from "./icon";
 
 /* ------------------------------ Buttons ------------------------------ */
 type BtnProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: "primary" | "secondary" | "ghost" | "danger";
   size?: "md" | "lg" | "sm";
   busy?: boolean;
+  busyLabel?: string;
 };
 export const Button = forwardRef<HTMLButtonElement, BtnProps>(function Button(
-  { variant = "secondary", size = "md", className, busy, children, disabled, ...p },
+  {
+    variant = "secondary",
+    size = "md",
+    className,
+    busy,
+    busyLabel = "Saving…",
+    children,
+    disabled,
+    ...p
+  },
   ref,
 ) {
   return (
@@ -28,7 +38,7 @@ export const Button = forwardRef<HTMLButtonElement, BtnProps>(function Button(
       ref={ref}
       disabled={disabled || busy}
       className={cn(
-        "inline-flex max-w-full items-center justify-center gap-2 rounded-full text-center font-medium select-none",
+        "inline-flex max-w-full items-center justify-center gap-2 rounded-md text-center font-medium select-none",
         "transition-[transform,background-color,opacity] duration-150 active:scale-[0.97] disabled:opacity-50 disabled:active:scale-100",
         size === "lg" && "min-h-14 px-8 text-base font-semibold",
         size === "md" && "min-h-12 px-6 text-[0.95rem] font-semibold",
@@ -43,7 +53,7 @@ export const Button = forwardRef<HTMLButtonElement, BtnProps>(function Button(
       )}
       {...p}
     >
-      {busy ? "Saving…" : children}
+      {busy ? busyLabel : children}
     </button>
   );
 });
@@ -58,7 +68,7 @@ export const IconButton = forwardRef<
       aria-label={label}
       title={label}
       className={cn(
-        "inline-flex size-11 items-center justify-center rounded-full text-foreground transition active:scale-95 hover:bg-surface-2 disabled:opacity-40",
+        "inline-flex size-11 items-center justify-center rounded-md text-foreground transition active:scale-95 hover:bg-surface-2 disabled:opacity-40",
         className,
       )}
       {...p}
@@ -111,7 +121,7 @@ export function Panel({
   return (
     <As
       className={cn(
-        "rounded-[1.75rem] border border-line p-5 md:p-7",
+        "rounded-md border border-line p-5 md:p-7",
         tone === "plain" && "bg-surface",
         tone === "ink" && "loud loud-ink",
         tone === "green" && "tint-green bg-surface",
@@ -129,6 +139,46 @@ export function Panel({
 export const Rule = ({ className }: { className?: string }) => (
   <hr className={cn("border-0 border-t border-line", className)} />
 );
+
+/** Signature daily scoreline: one continuous sequence, not a row of disconnected cards. */
+export function SignalRail({
+  label = "Daily signal",
+  items,
+  className,
+}: {
+  label?: string;
+  items: { label: string; value: string; state?: "done" | "current" | "next" }[];
+  className?: string;
+}) {
+  return (
+    <ol
+      aria-label={label}
+      className={cn("mb-6 grid border-y border-line sm:grid-flow-col sm:auto-cols-fr", className)}
+    >
+      {items.map((item, index) => (
+        <li
+          key={`${item.label}-${index}`}
+          aria-current={item.state === "current" ? "step" : undefined}
+          className={cn(
+            "relative min-h-16 border-b border-line py-3 pl-7 pr-3 last:border-b-0 sm:border-b-0 sm:border-r sm:last:border-r-0",
+            item.state === "current" && "bg-surface",
+          )}
+        >
+          <span
+            aria-hidden
+            className={cn(
+              "absolute left-2.5 top-[1.15rem] size-2 border border-muted-foreground bg-background",
+              item.state === "done" && "border-primary bg-primary",
+              item.state === "current" && "scale-125 border-primary bg-primary",
+            )}
+          />
+          <span className="eyebrow block">{item.label}</span>
+          <span className="mt-0.5 block text-sm font-medium">{item.value}</span>
+        </li>
+      ))}
+    </ol>
+  );
+}
 
 export function Row({
   children,
@@ -166,7 +216,7 @@ export function EmptyState({
   action?: ReactNode;
 }) {
   return (
-    <div className="rounded-2xl border border-dashed border-line px-5 py-8 text-center">
+    <div className="rounded-md border border-dashed border-line px-5 py-8 text-center">
       <p className="font-display text-lg font-semibold">{title}</p>
       {body && <p className="mx-auto mt-1 max-w-sm text-sm text-muted-foreground">{body}</p>}
       {action && <div className="mt-4 flex justify-center">{action}</div>}
@@ -175,7 +225,7 @@ export function EmptyState({
 }
 
 export function Skeleton({ className }: { className?: string }) {
-  return <div aria-hidden className={cn("animate-pulse rounded-2xl bg-surface-2", className)} />;
+  return <div aria-hidden className={cn("animate-pulse rounded-md bg-surface-2", className)} />;
 }
 
 export function Chip({
@@ -190,7 +240,7 @@ export function Chip({
   return (
     <span
       className={cn(
-        "inline-flex max-w-full items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium",
+        "inline-flex max-w-full items-center gap-1.5 rounded-sm border px-2.5 py-1 text-xs font-medium",
         tone === "neutral" && "border-line text-muted-foreground",
         tone === "ok" && "border-ok/40 text-ok",
         tone === "warn" && "border-warn/50 text-warn",
@@ -277,7 +327,7 @@ export function Field({
 }
 
 export const inputCls =
-  "min-h-11 w-full rounded-2xl border border-input bg-surface-2/50 px-4 text-base text-foreground placeholder:text-muted-foreground/70 focus-visible:border-ring";
+  "min-h-11 w-full rounded-md border border-input bg-surface-2/50 px-4 text-base text-foreground placeholder:text-muted-foreground/70 focus-visible:border-ring disabled:cursor-not-allowed disabled:opacity-50 aria-[invalid=true]:border-destructive";
 
 export const TextInput = forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLInputElement>>(
   function TextInput({ className, ...p }, ref) {
@@ -350,9 +400,9 @@ export function NumberField({
           type="button"
           aria-label={`Decrease ${label}`}
           onClick={() => bump(-1)}
-          className="inline-flex size-11 shrink-0 items-center justify-center rounded-full border border-input active:scale-95"
+          className="inline-flex size-11 shrink-0 items-center justify-center rounded-md border border-input active:scale-95"
         >
-          <Minus className="size-4" />
+          <VIcon name="minus" size={16} />
         </button>
       )}
       <div className="relative min-w-0 flex-1">
@@ -378,9 +428,9 @@ export function NumberField({
           type="button"
           aria-label={`Increase ${label}`}
           onClick={() => bump(1)}
-          className="inline-flex size-11 shrink-0 items-center justify-center rounded-full border border-input active:scale-95"
+          className="inline-flex size-11 shrink-0 items-center justify-center rounded-md border border-input active:scale-95"
         >
-          <Plus className="size-4" />
+          <VIcon name="add" size={16} />
         </button>
       )}
     </div>
@@ -402,7 +452,7 @@ export function Segmented<T extends string>({
     <div
       role="radiogroup"
       aria-label={label}
-      className="inline-flex max-w-full flex-wrap rounded-3xl border border-line bg-surface p-1"
+      className="inline-flex max-w-full flex-wrap rounded-md border border-line bg-surface p-1"
     >
       {options.map((o) => (
         <button
@@ -411,7 +461,7 @@ export function Segmented<T extends string>({
           aria-checked={o.value === value}
           onClick={() => onChange(o.value)}
           className={cn(
-            "min-h-11 rounded-full px-4 text-sm font-medium transition",
+            "min-h-11 rounded-sm px-4 text-sm font-medium transition",
             o.value === value
               ? "bg-primary text-primary-foreground"
               : "text-muted-foreground hover:text-foreground",
@@ -451,7 +501,7 @@ export function CheckButton({
           : "border-input text-transparent",
       )}
     >
-      <Check className="size-5" strokeWidth={3} />
+      <VIcon name="check" size={20} strokeWidth={2.5} />
     </button>
   );
 }
@@ -552,7 +602,7 @@ export function Sheet({
             </div>
             <Dialog.Close asChild>
               <IconButton label="Close" className="-mr-2 -mt-1 shrink-0">
-                <X className="size-5" />
+                <VIcon name="close" />
               </IconButton>
             </Dialog.Close>
           </div>
@@ -591,7 +641,7 @@ export function ConfirmDialog({
     <AlertDialog.Root open={open} onOpenChange={onOpenChange}>
       <AlertDialog.Portal>
         <AlertDialog.Overlay className="fixed inset-0 z-[60] bg-black/60 data-[state=open]:animate-in data-[state=open]:fade-in-0" />
-        <AlertDialog.Content className="fixed left-1/2 top-1/2 z-[60] w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-3xl border border-line bg-popover p-6 shadow-2xl data-[state=open]:animate-in data-[state=open]:zoom-in-95 data-[state=open]:fade-in-0">
+        <AlertDialog.Content className="fixed left-1/2 top-1/2 z-[60] w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-md border border-line bg-popover p-6 shadow-2xl data-[state=open]:animate-in data-[state=open]:zoom-in-95 data-[state=open]:fade-in-0">
           <AlertDialog.Title className="font-display text-xl font-semibold">
             {title}
           </AlertDialog.Title>
@@ -633,7 +683,7 @@ export function Menu({
       <DM.Trigger asChild>
         <button
           aria-label={label}
-          className="inline-flex size-[44px] shrink-0 items-center justify-center rounded-full hover:bg-surface-2 active:scale-95"
+          className="inline-flex size-[44px] shrink-0 items-center justify-center rounded-md hover:bg-surface-2 active:scale-95"
         >
           {trigger}
         </button>
@@ -642,7 +692,7 @@ export function Menu({
         <DM.Content
           align="end"
           sideOffset={6}
-          className="z-[70] min-w-52 rounded-2xl border border-line bg-popover p-1.5 shadow-2xl data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95"
+          className="z-[70] min-w-52 rounded-md border border-line bg-popover p-1.5 shadow-2xl data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95"
         >
           {items.map((it) => (
             <DM.Item
@@ -650,7 +700,7 @@ export function Menu({
               disabled={it.disabled}
               onSelect={it.onSelect}
               className={cn(
-                "flex min-h-11 cursor-pointer items-center rounded-xl px-3 text-sm outline-none data-[highlighted]:bg-surface-2 data-[disabled]:opacity-40",
+                "flex min-h-11 cursor-pointer items-center rounded-sm px-3 text-sm outline-none data-[highlighted]:bg-surface-2 data-[disabled]:opacity-40",
                 it.danger && "text-destructive",
               )}
             >

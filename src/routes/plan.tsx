@@ -1,9 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { AlertTriangle, ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { useMemo, useState } from "react";
 import { BlockSheet, WorkoutSheet } from "@/components/nl/plan";
 import { RoutineBuilder } from "@/components/nl/routine-builder";
-import { Button, Chip, PageHeader, Skeleton } from "@/components/nl/ui";
+import { Button, Chip, PageHeader, SignalRail, Skeleton } from "@/components/nl/ui";
+import { VIcon } from "@/components/nl/icon";
 import { useCollection, useNow } from "@/data/hooks";
 import { usePrayer } from "@/data/prayer-hooks";
 import { activeTemplates, sessionForDate } from "@/data/selectors";
@@ -118,19 +118,36 @@ function PlanPage() {
               Build my routine
             </Button>
             <Button variant="primary" onClick={() => setEdit({ block: {} })}>
-              <Plus className="size-4" />
+              <VIcon name="add" size={16} />
               Add block
             </Button>
           </>
         }
       />
+      <SignalRail
+        label="Weekly plan signal"
+        items={[
+          {
+            label: "Schedule",
+            value: `${blocks.items.filter((item) => !item.archivedAt).length} routine blocks`,
+            state: "done",
+          },
+          {
+            label: "Training",
+            value: `${tpls.items.filter((item) => !item.archivedAt && item.weekday != null).length} sessions placed`,
+            state: "current",
+          },
+          { label: "Conflicts", value: "Resolved per day below", state: "next" },
+          { label: "Next action", value: "Choose a day", state: "next" },
+        ]}
+      />
       <div className="mb-4 flex items-center gap-1">
         <button
           aria-label="Previous week"
           onClick={() => setAnchor(addDays(base, -7))}
-          className="inline-flex size-11 shrink-0 items-center justify-center rounded-full border border-line"
+          className="inline-flex size-11 shrink-0 items-center justify-center rounded-md border border-line"
         >
-          <ChevronLeft className="size-5" />
+          <VIcon name="previous" />
         </button>
         <p className="min-w-0 flex-1 px-2 text-center font-medium">
           {formatDateLong(days[0]!)} – {formatDateLong(days[6]!).split(" ").slice(1).join(" ")}
@@ -138,9 +155,9 @@ function PlanPage() {
         <button
           aria-label="Next week"
           onClick={() => setAnchor(addDays(base, 7))}
-          className="inline-flex size-11 shrink-0 items-center justify-center rounded-full border border-line"
+          className="inline-flex size-11 shrink-0 items-center justify-center rounded-md border border-line"
         >
-          <ChevronRight className="size-5" />
+          <VIcon name="next" />
         </button>
         {anchor && (
           <Button variant="ghost" size="sm" onClick={() => setAnchor(null)}>
@@ -198,7 +215,7 @@ function PlanPage() {
                   role="status"
                   className="mb-2 flex items-center gap-1.5 rounded-xl bg-warn/15 px-2.5 py-1.5 text-xs text-warn"
                 >
-                  <AlertTriangle className="size-3.5" />
+                  <VIcon name="alert" size={16} />
                   {info.conflicts} overlap{info.conflicts > 1 ? "s" : ""}. Tap a block to change it.
                 </p>
               )}
@@ -262,9 +279,11 @@ function PlanPage() {
                           {it.occ.moved && <Chip>Moved</Chip>}
                           {it.occ.relative && <Chip>Prayer-linked</Chip>}
                           {it.conflict && (
-                            <AlertTriangle
-                              className="size-4 shrink-0 text-warn"
-                              aria-label="Overlaps another block"
+                            <VIcon
+                              name="alert"
+                              size={16}
+                              className="shrink-0 text-warn"
+                              label="Overlaps another block"
                             />
                           )}
                         </button>

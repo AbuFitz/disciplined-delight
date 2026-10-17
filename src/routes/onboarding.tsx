@@ -1,5 +1,4 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { Check, ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { AuthLayout } from "@/components/nl/auth-ui";
@@ -31,6 +30,7 @@ import { useAuth } from "@/lib/auth";
 import { cn } from "@/lib/utils";
 import { setupGuide } from "@/domain/setup-guide";
 import { useProfile } from "@/data/hooks";
+import { VIcon } from "@/components/nl/icon";
 
 export const Route = createFileRoute("/onboarding")({ component: OnboardingPage });
 
@@ -42,7 +42,7 @@ const MODULES: { id: AppModule; title: string; text: string }[] = [
   { id: "community", title: "Community", text: "Optional crews, challenges and sharing." },
   {
     id: "spirituality",
-    title: "Spirituality",
+    title: "Faith & reflection",
     text: "Private reflection and optional faith tools.",
   },
 ];
@@ -88,7 +88,7 @@ function Choice({
           on ? "border-primary bg-primary text-primary-foreground" : "border-input",
         )}
       >
-        {on && <Check className="size-4" />}
+        {on && <VIcon name="check" size={16} />}
       </span>
     </button>
   );
@@ -195,7 +195,7 @@ function OnboardingPage() {
       ? basicsValid
       : step === 1
         ? modules.length > 0
-        : step === 3
+        : step === 2
           ? !modules.includes("training") || (plan.trainingDays.length > 0 && kit.length > 0)
           : true;
 
@@ -232,6 +232,14 @@ function OnboardingPage() {
           modules: selected,
           pillars,
           faithRoutines: prayer,
+          faith: prayer
+            ? {
+                enabled: true,
+                traditions: ["islam"],
+                practices: ["prayer_remembrance"],
+                private: true,
+              }
+            : localProfile.profile?.faith,
           goal: { kind: skipped ? "strength" : plan.primaryGoal },
           planning: skipped ? defaults : plan,
           returnToTraining: !skipped && plan.experience === "returning",
@@ -311,12 +319,10 @@ function OnboardingPage() {
   const titles = [
     "Start with you",
     "Choose your areas",
-    "Faith is always optional",
     "Build your training fit",
-    "Fit it around life",
     "Check your setup",
   ];
-  const guide = setupGuide(step, {
+  const guide = setupGuide(step === 2 ? 3 : step === 3 ? 5 : step, {
     modules,
     safetyGate:
       !!plan.physiology?.medicalSafetyFlag ||
@@ -332,15 +338,16 @@ function OnboardingPage() {
       ? "Create the profile attached to your account. Your email stays private."
       : "A name is optional. Your timezone keeps the daily plan accurate.",
     "These areas feed the same Today view, weekly plan and progress story. Change them later.",
-    "VAYVOR never infers religion. Faith-specific tools stay off unless you explicitly opt in.",
     "These choices change exercise selection, weekly volume and session length.",
-    "Sleep, work and quiet hours shape scheduling, recovery and reminders.",
-    "Your setup becomes a deterministic starting plan—not a permanent prescription.",
+    "Your setup becomes a useful starting plan. Advanced preferences stay in the setup path.",
   ];
 
   return (
     <AuthLayout title={titles[step]!} intro={intros[step]!}>
-      <div className="flex items-center gap-1.5" aria-label={`Setup step ${step + 1} of 6`}>
+      <div
+        className="flex items-center gap-1.5"
+        aria-label={`Setup step ${step + 1} of ${titles.length}`}
+      >
         {titles.map((_, index) => (
           <span
             key={index}
@@ -353,7 +360,7 @@ function OnboardingPage() {
           className="grid size-9 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground"
           aria-hidden
         >
-          <Sparkles className="size-4" />
+          <VIcon name="buddy" size={16} />
         </span>
         <div>
           <p className="text-sm font-semibold">Buddy · {guide.title}</p>
@@ -429,32 +436,6 @@ function OnboardingPage() {
       )}
 
       {step === 2 && (
-        <div className="grid gap-4">
-          <div className="rounded-2xl border border-line bg-surface-2/50 p-4">
-            <p className="font-semibold">Muslim prayer tools</p>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Adds Salah times, optional reminders and a private prayer log. Off by default.
-            </p>
-            {modules.includes("spirituality") && (
-              <div className="mt-4">
-                <Switch label="Include Muslim prayer tools" checked={faith} onChange={setFaith} />
-              </div>
-            )}
-          </div>
-          {!modules.includes("spirituality") && (
-            <p className="text-sm text-muted-foreground">
-              Spirituality is not selected, so no faith features will appear.
-            </p>
-          )}
-          {modules.includes("spirituality") && !faith && (
-            <p className="text-sm text-muted-foreground">
-              Spirituality will remain religion-neutral private reflection.
-            </p>
-          )}
-        </div>
-      )}
-
-      {step === 3 && (
         <div className="grid gap-5">
           <div className="grid gap-3 sm:grid-cols-2">
             <Field label="Primary goal">
@@ -615,285 +596,7 @@ function OnboardingPage() {
         </div>
       )}
 
-      {step === 4 && (
-        <div className="grid gap-5">
-          {modules.includes("nutrition") && (
-            <div className="grid gap-3 sm:grid-cols-2">
-              <Field label="Nutrition approach">
-                <Select
-                  value={plan.nutritionApproach}
-                  onChange={(event) =>
-                    setPlan({
-                      ...plan,
-                      nutritionApproach: event.target.value as PlanningProfile["nutritionApproach"],
-                    })
-                  }
-                >
-                  <option value="balanced">Balanced</option>
-                  <option value="high-protein">Higher protein</option>
-                  <option value="plant-based">Plant based</option>
-                  <option value="intuitive">Intuitive / no targets</option>
-                  <option value="custom">Custom</option>
-                </Select>
-              </Field>
-              <Field label="Dietary needs">
-                <TextInput
-                  placeholder="Allergies, preferences, requirements"
-                  value={plan.dietaryNeeds}
-                  onChange={(event) => setPlan({ ...plan, dietaryNeeds: event.target.value })}
-                />
-              </Field>
-            </div>
-          )}
-          <div className="grid gap-3 sm:grid-cols-2">
-            <Field label="Usual sleep">
-              <div className="flex gap-2">
-                <TextInput
-                  type="time"
-                  aria-label="Sleep starts"
-                  value={plan.sleep.start}
-                  onChange={(event) =>
-                    setPlan({ ...plan, sleep: { ...plan.sleep, start: event.target.value } })
-                  }
-                />
-                <TextInput
-                  type="time"
-                  aria-label="Wake time"
-                  value={plan.sleep.end}
-                  onChange={(event) =>
-                    setPlan({ ...plan, sleep: { ...plan.sleep, end: event.target.value } })
-                  }
-                />
-              </div>
-            </Field>
-            <Field label="Work / fixed hours">
-              <div className="flex gap-2">
-                <TextInput
-                  type="time"
-                  aria-label="Work starts"
-                  value={plan.work.start}
-                  onChange={(event) =>
-                    setPlan({ ...plan, work: { ...plan.work, start: event.target.value } })
-                  }
-                />
-                <TextInput
-                  type="time"
-                  aria-label="Work ends"
-                  value={plan.work.end}
-                  onChange={(event) =>
-                    setPlan({ ...plan, work: { ...plan.work, end: event.target.value } })
-                  }
-                />
-              </div>
-            </Field>
-          </div>
-          <Field label="Quiet hours">
-            <div className="flex gap-2">
-              <TextInput
-                type="time"
-                aria-label="Quiet hours start"
-                value={plan.quiet.start}
-                onChange={(event) =>
-                  setPlan({ ...plan, quiet: { ...plan.quiet, start: event.target.value } })
-                }
-              />
-              <TextInput
-                type="time"
-                aria-label="Quiet hours end"
-                value={plan.quiet.end}
-                onChange={(event) =>
-                  setPlan({ ...plan, quiet: { ...plan.quiet, end: event.target.value } })
-                }
-              />
-            </div>
-          </Field>
-          <details className="rounded-2xl border border-line p-4">
-            <summary className="cursor-pointer font-semibold">
-              Optional physiology and recovery
-            </summary>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Used only to keep starting volume and session length conservative. Skip it now or edit
-              it later. VAYVOR does not ask for sex or gender because this plan does not need them.
-            </p>
-            <div className="mt-4 grid gap-4 sm:grid-cols-2">
-              <Field label="Age band">
-                <Select
-                  value={plan.physiology?.ageBand ?? ""}
-                  onChange={(event) =>
-                    setPlan({
-                      ...plan,
-                      physiology: {
-                        ...plan.physiology!,
-                        ageBand: (event.target.value || undefined) as
-                          NonNullable<PlanningProfile["physiology"]>["ageBand"] | undefined,
-                      },
-                    })
-                  }
-                >
-                  <option value="">Prefer not to say</option>
-                  <option value="under-18">Under 18</option>
-                  <option value="18-29">18–29</option>
-                  <option value="30-44">30–44</option>
-                  <option value="45-64">45–64</option>
-                  <option value="65-plus">65+</option>
-                </Select>
-              </Field>
-              <Field label="Units">
-                <Select
-                  value={plan.physiology?.units}
-                  onChange={(event) =>
-                    setPlan({
-                      ...plan,
-                      physiology: {
-                        ...plan.physiology!,
-                        units: event.target.value as "metric" | "imperial",
-                      },
-                    })
-                  }
-                >
-                  <option value="metric">Metric</option>
-                  <option value="imperial">Imperial</option>
-                </Select>
-              </Field>
-              <Field label="Height (optional)">
-                <NumberField
-                  label="Height"
-                  unit="cm"
-                  decimals={0}
-                  value={plan.physiology?.heightCm}
-                  onChange={(heightCm) =>
-                    setPlan({ ...plan, physiology: { ...plan.physiology!, heightCm } })
-                  }
-                />
-              </Field>
-              <Field label="Weight (optional)">
-                <NumberField
-                  label="Weight"
-                  unit="kg"
-                  decimals={1}
-                  value={plan.physiology?.weightKg}
-                  onChange={(weightKg) =>
-                    setPlan({ ...plan, physiology: { ...plan.physiology!, weightKg } })
-                  }
-                />
-              </Field>
-              <Field label="Activity baseline">
-                <Select
-                  value={plan.physiology?.activity}
-                  onChange={(event) =>
-                    setPlan({
-                      ...plan,
-                      physiology: {
-                        ...plan.physiology!,
-                        activity: event.target.value as "low" | "moderate" | "high",
-                      },
-                    })
-                  }
-                >
-                  <option value="low">Mostly sedentary</option>
-                  <option value="moderate">Some regular activity</option>
-                  <option value="high">Highly active</option>
-                </Select>
-              </Field>
-              <Field label="Current sessions / week">
-                <NumberField
-                  label="Current sessions"
-                  decimals={0}
-                  value={plan.physiology?.currentSessionsPerWeek}
-                  onChange={(currentSessionsPerWeek) =>
-                    setPlan({
-                      ...plan,
-                      physiology: { ...plan.physiology!, currentSessionsPerWeek },
-                    })
-                  }
-                />
-              </Field>
-              <Field label="Years of regular training">
-                <NumberField
-                  label="Training history"
-                  unit="years"
-                  decimals={1}
-                  value={plan.physiology?.trainingYears}
-                  onChange={(trainingYears) =>
-                    setPlan({ ...plan, physiology: { ...plan.physiology!, trainingYears } })
-                  }
-                />
-              </Field>
-              <Field label="Typical sleep hours">
-                <NumberField
-                  label="Sleep"
-                  unit="hours"
-                  decimals={1}
-                  value={plan.physiology?.typicalSleepHours}
-                  onChange={(typicalSleepHours) =>
-                    setPlan({ ...plan, physiology: { ...plan.physiology!, typicalSleepHours } })
-                  }
-                />
-              </Field>
-              <Field label="Recovery lately">
-                <Select
-                  value={plan.physiology?.recovery}
-                  onChange={(event) =>
-                    setPlan({
-                      ...plan,
-                      physiology: {
-                        ...plan.physiology!,
-                        recovery: event.target.value as "low" | "okay" | "good",
-                      },
-                    })
-                  }
-                >
-                  <option value="low">Low</option>
-                  <option value="okay">Okay</option>
-                  <option value="good">Good</option>
-                </Select>
-              </Field>
-            </div>
-            <div className="mt-4 grid gap-4">
-              <Field label="Movement limitations or injury areas">
-                <TextArea
-                  value={plan.physiology?.limitations ?? ""}
-                  onChange={(event) =>
-                    setPlan({
-                      ...plan,
-                      physiology: { ...plan.physiology!, limitations: event.target.value },
-                    })
-                  }
-                />
-              </Field>
-              <Switch
-                label="A clinician should guide my training"
-                hint="Use for pregnancy/postpartum considerations, chronic conditions, current pain or medical restrictions. Automatic plan generation will pause."
-                checked={!!plan.physiology?.medicalSafetyFlag}
-                onChange={(medicalSafetyFlag) =>
-                  setPlan({
-                    ...plan,
-                    physiology: { ...plan.physiology!, medicalSafetyFlag },
-                  })
-                }
-              />
-            </div>
-          </details>
-          <Field label="Reminder intensity">
-            <Select
-              value={plan.reminderIntensity}
-              onChange={(event) =>
-                setPlan({
-                  ...plan,
-                  reminderIntensity: event.target.value as PlanningProfile["reminderIntensity"],
-                })
-              }
-            >
-              <option value="off">Off</option>
-              <option value="essential">Essential only</option>
-              <option value="supportive">Supportive</option>
-              <option value="active">Active coaching</option>
-            </Select>
-          </Field>
-        </div>
-      )}
-
-      {step === 5 && (
+      {step === 3 && (
         <div className="grid gap-3 rounded-2xl border border-line bg-surface-2/50 p-4 text-sm">
           <p>
             <strong>Areas:</strong>{" "}
@@ -904,14 +607,10 @@ function OnboardingPage() {
             {plan.trainingDays.length} training days
           </p>
           <p>
-            <strong>Time fit:</strong> {plan.sessionMinutes} minute sessions around{" "}
-            {plan.work.start}–{plan.work.end} work and {plan.sleep.start}–{plan.sleep.end} sleep.
+            <strong>Time fit:</strong> {plan.sessionMinutes} minute sessions on your selected days.
           </p>
           <p>
-            <strong>Faith:</strong>{" "}
-            {faith && modules.includes("spirituality")
-              ? "Muslim prayer tools on"
-              : "No faith-specific tools"}
+            <strong>Faith:</strong> Configure only after opting in from Faith & reflection.
           </p>
           <p className="text-muted-foreground">
             Why this plan: VAYVOR will cap session volume to your available time, use your chosen
@@ -934,7 +633,7 @@ function OnboardingPage() {
         >
           {step > 0 ? (
             <>
-              <ChevronLeft className="size-4" /> Back
+              <VIcon name="previous" size={16} /> Back
             </>
           ) : (
             "Skip personalisation"
@@ -945,11 +644,11 @@ function OnboardingPage() {
           size="lg"
           busy={busy}
           disabled={!valid}
-          onClick={() => (step < 5 ? setStep(step + 1) : void finish())}
+          onClick={() => (step < 3 ? setStep(step + 1) : void finish())}
         >
-          {step < 5 ? (
+          {step < 3 ? (
             <>
-              Continue <ChevronRight className="size-4" />
+              Continue <VIcon name="next" size={16} />
             </>
           ) : (
             "Build my space"
@@ -957,7 +656,7 @@ function OnboardingPage() {
         </Button>
       </div>
       <p className="text-xs text-muted-foreground">
-        Step {step + 1} of 6 · Back, skip or edit later at any time.
+        Step {step + 1} of {titles.length} · Back, skip or edit later at any time.
       </p>
     </AuthLayout>
   );

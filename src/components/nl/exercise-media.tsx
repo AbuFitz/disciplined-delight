@@ -1,8 +1,8 @@
-import { Pause, Play, RotateCcw } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import type { MediaItem } from "@/domain/catalogue";
 import { cn } from "@/lib/utils";
 import { Button } from "./ui";
+import { VIcon } from "./icon";
 
 function useReducedMotion() {
   const [reduced, setReduced] = useState(false);
@@ -73,7 +73,7 @@ export function ExerciseMedia({
         <div className="grid min-h-44 place-items-center gap-2 bg-surface-2 p-6 text-center text-sm text-muted-foreground">
           <span>The demonstration could not load.</span>
           <Button size="sm" variant="secondary" onClick={retry}>
-            <RotateCcw className="size-4" /> Retry
+            <VIcon name="replace" size={16} /> Retry
           </Button>
           <a
             href="/settings#feedback"
@@ -109,11 +109,11 @@ export function ExerciseMedia({
       {motion && controls && !failed && (
         <button
           type="button"
-          className="absolute bottom-3 right-3 inline-flex min-h-11 items-center gap-2 rounded-full bg-background/90 px-4 text-sm font-semibold text-foreground shadow-lg backdrop-blur"
+          className="spatial-glass absolute bottom-3 right-3 inline-flex min-h-11 items-center gap-2 border px-4 text-sm font-semibold text-foreground"
           aria-pressed={active}
           onClick={() => setPlaying((value) => !value)}
         >
-          {active ? <Pause className="size-4" /> : <Play className="size-4" />}
+          <VIcon name={active ? "pause" : "play"} size={16} />
           {active ? "Pause demo" : reduced ? "Play demo" : "Play demo"}
         </button>
       )}

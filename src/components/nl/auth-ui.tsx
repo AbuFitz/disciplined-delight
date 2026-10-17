@@ -16,11 +16,12 @@ export function AuthLayout({
   footer?: ReactNode;
 }) {
   return (
-    <div className="min-h-dvh bg-[radial-gradient(circle_at_15%_10%,color-mix(in_oklab,var(--primary)_16%,transparent),transparent_38%),var(--background)] px-4 py-5 sm:px-7 sm:py-8">
-      <div className="mx-auto grid min-h-[calc(100dvh-2.5rem)] w-full max-w-5xl overflow-hidden rounded-[2rem] border border-line bg-surface shadow-2xl sm:min-h-[calc(100dvh-4rem)] lg:grid-cols-[0.9fr_1.1fr]">
-        <aside className="relative hidden overflow-hidden border-r border-line bg-primary p-10 text-primary-foreground lg:flex lg:flex-col lg:justify-between">
-          <div className="absolute -right-24 -top-24 size-80 rounded-full border border-current/15" />
-          <div className="absolute -bottom-36 -left-20 size-96 rounded-full border border-current/10" />
+    <div className="min-h-dvh bg-background px-4 py-5 sm:px-7 sm:py-8">
+      <div className="mx-auto grid min-h-[calc(100dvh-2.5rem)] w-full max-w-5xl overflow-hidden border border-line bg-surface shadow-2xl sm:min-h-[calc(100dvh-4rem)] lg:grid-cols-[0.9fr_1.1fr]">
+        <aside className="relative hidden overflow-hidden border-r border-line bg-[#111318] p-10 text-[#f3efe7] lg:flex lg:flex-col lg:justify-between">
+          <div className="absolute inset-y-0 left-0 w-1 bg-primary" />
+          <div className="absolute inset-x-10 top-28 border-t border-white/10" />
+          <div className="absolute inset-x-10 bottom-28 border-t border-white/10" />
           <Link
             to="/"
             aria-label="VAYVOR, home"
@@ -28,7 +29,7 @@ export function AuthLayout({
           >
             <Wordmark className="text-[1.35rem]" />
           </Link>
-          <div className="relative max-w-sm">
+          <div className="relative max-w-sm border-l border-primary/70 pl-6">
             <p className="font-display text-4xl font-semibold leading-tight">
               Build a routine that fits your actual life.
             </p>
@@ -37,7 +38,9 @@ export function AuthLayout({
               to you.
             </p>
           </div>
-          <p className="relative text-xs opacity-70">Private by default · Works as a guest</p>
+          <p className="relative font-mono text-[0.68rem] uppercase tracking-[0.16em] opacity-70">
+            Private by default · Works as a guest
+          </p>
         </aside>
         <main className="flex flex-col justify-center px-5 py-8 sm:px-10 lg:px-14">
           <Link

@@ -1,12 +1,19 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, Flag } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Button, EmptyState, Skeleton } from "@/components/nl/ui";
-import { ExerciseCard, FinishSheet, RestBar, SessionHeader } from "@/components/nl/session";
+import {
+  ExerciseCard,
+  FinishSheet,
+  GymMode,
+  RestBar,
+  SessionHeader,
+} from "@/components/nl/session";
 import { useCollection, useNow, useProfile } from "@/data/hooks";
 import { COL, type LegacyDayLog, type Session } from "@/data/types";
 import { useWakeLock } from "@/lib/wake-lock";
 import { useCatalogue } from "@/data/catalogue-runtime";
+import { ReadinessCheckIn } from "@/components/nl/readiness-checkin";
+import { VIcon } from "@/components/nl/icon";
 
 export const Route = createFileRoute("/train/session")({ component: SessionPage });
 
@@ -17,6 +24,7 @@ function SessionPage() {
   const { profile } = useProfile();
   const now = useNow(1000);
   const [finish, setFinish] = useState(false);
+  const [gymMode, setGymMode] = useState(false);
   const session = sessionsQ.items.find((s) => s.status === "active" || s.status === "paused");
   const [openId, setOpenId] = useState<string | null>(null);
   const catalogue = useCatalogue();
@@ -26,7 +34,7 @@ function SessionPage() {
     [catalogue.exercises],
   );
 
-  useWakeLock(!!profile?.wakeLock && session?.status === "active");
+  const wake = useWakeLock((!!profile?.wakeLock || gymMode) && session?.status === "active");
   useEffect(() => {
     if (session && openId == null) {
       const first =
@@ -46,7 +54,7 @@ function SessionPage() {
         action={
           <Link
             to="/train"
-            className="inline-flex min-h-11 items-center rounded-full bg-primary px-5 font-medium text-primary-foreground"
+            className="inline-flex min-h-11 items-center rounded-md bg-primary px-5 font-medium text-primary-foreground"
           >
             Go to Train
           </Link>
@@ -55,16 +63,55 @@ function SessionPage() {
     );
   }
 
+  const mediaFor = (exercise: Session["exercises"][number]) =>
+    (exercise.catalogueId ? catalogue.byId.get(exercise.catalogueId) : undefined)?.media[0] ??
+    byName.get(normalise(exercise.name))?.media[0];
+  if (gymMode)
+    return (
+      <>
+        <GymMode
+          session={session}
+          sessions={sessionsQ.items}
+          now={now}
+          mediaFor={mediaFor}
+          preferences={profile?.gymMode ?? { voice: false, haptics: false, autoMedia: false }}
+          music={profile?.trainingMusic}
+          wake={wake}
+          onExit={() => setGymMode(false)}
+          onFinish={() => setFinish(true)}
+        />
+        <FinishSheet
+          open={finish}
+          onOpenChange={setFinish}
+          session={session}
+          onDone={() => nav({ to: "/train" })}
+        />
+      </>
+    );
+
   return (
     <div className="mx-auto max-w-3xl pb-28">
       <Link
         to="/train"
         className="mb-3 inline-flex min-h-11 items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
       >
-        <ArrowLeft className="size-4" />
+        <VIcon name="back" size={16} />
         Leave (session stays saved)
       </Link>
       <SessionHeader session={session} now={now} />
+      {!session.readiness?.decision && <ReadinessCheckIn session={session} />}
+      {session.readiness?.decision && (
+        <button
+          onClick={() => setGymMode(true)}
+          className="mb-4 flex min-h-16 w-full items-center justify-between border-y border-primary px-4 text-left"
+        >
+          <span>
+            <span className="eyebrow text-primary">Heads-up surface</span>
+            <span className="block font-display text-xl font-semibold">Enter Gym Mode</span>
+          </span>
+          <span className="text-sm text-muted-foreground">One set at a time →</span>
+        </button>
+      )}
       <div className="grid grid-cols-[minmax(0,1fr)] gap-3">
         {session.exercises.map((ex, i) => (
           <ExerciseCard
@@ -78,14 +125,11 @@ function SessionPage() {
             onToggle={() => setOpenId(openId === ex.id ? null : ex.id)}
             sessions={sessionsQ.items}
             legacy={legacy}
-            media={
-              (ex.catalogueId ? catalogue.byId.get(ex.catalogueId) : undefined)?.media[0] ??
-              byName.get(normalise(ex.name))?.media[0]
-            }
+            media={mediaFor(ex)}
           />
         ))}
       </div>
-      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-line px-4 pb-[calc(0.75rem+var(--safe-bottom))] pt-3 backdrop-blur-xl [background:color-mix(in_oklab,var(--background)_90%,transparent)] lg:left-[15.5rem]">
+      <div className="spatial-glass fixed inset-x-0 bottom-0 z-40 border-t px-4 pb-[calc(0.75rem+var(--safe-bottom))] pt-3 lg:left-[15.5rem]">
         <div className="mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-3">
           <div className="min-h-11 min-w-0 flex-1">
             {session.rest ? (
@@ -97,7 +141,7 @@ function SessionPage() {
             )}
           </div>
           <Button variant="primary" onClick={() => setFinish(true)}>
-            <Flag className="size-4" />
+            <VIcon name="finish" size={16} />
             Finish
           </Button>
         </div>

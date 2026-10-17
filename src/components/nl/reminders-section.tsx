@@ -24,7 +24,7 @@ import {
   type ReminderPrefs,
 } from "@/domain/reminders";
 
-export function RemindersSection() {
+export function RemindersSection({ showPrayer = false }: { showPrayer?: boolean }) {
   const auth = useSession();
   const [prefs, setPrefs] = useState<ReminderPrefs>(DEFAULT_REMINDER_PREFS);
   const [cap, setCap] = useState<PushCapability | null>(null);
@@ -71,7 +71,10 @@ export function RemindersSection() {
       block.reminderMinutes <= 240,
   ).length;
   const anyOn =
-    prefs.prayer.enabled || prefs.training.enabled || prefs.food.enabled || routineOn > 0;
+    (showPrayer && prefs.prayer.enabled) ||
+    prefs.training.enabled ||
+    prefs.food.enabled ||
+    routineOn > 0;
   const serverReady = isSupabaseConfigured && !!auth.user && !!cap?.vapidConfigured;
 
   return (
@@ -105,58 +108,62 @@ export function RemindersSection() {
       </div>
 
       <div>
-        <Switch
-          label="Prayer reminders"
-          hint="Before each prayer starts, from your Salah times."
-          checked={prefs.prayer.enabled}
-          onChange={(v) => update({ ...prefs, prayer: { ...prefs.prayer, enabled: v } })}
-        />
-        {prefs.prayer.enabled && (
-          <div className="grid gap-3 pb-2 pl-1">
-            <Field label="How long before">
-              <NumberField
-                label="Prayer lead time"
-                unit="min"
-                min={0}
-                max={120}
-                step={5}
-                decimals={0}
-                value={prefs.prayer.leadMinutes}
-                onChange={(v) =>
-                  update({ ...prefs, prayer: { ...prefs.prayer, leadMinutes: v ?? 0 } })
-                }
-              />
-            </Field>
-            <fieldset>
-              <legend className="mb-1 text-sm font-medium">Which prayers</legend>
-              <div className="flex flex-wrap gap-1.5">
-                {PRAYERS.map((p: PrayerName) => {
-                  const on = prefs.prayer.which.includes(p);
-                  return (
-                    <button
-                      key={p}
-                      aria-pressed={on}
-                      onClick={() =>
-                        update({
-                          ...prefs,
-                          prayer: {
-                            ...prefs.prayer,
-                            which: on
-                              ? prefs.prayer.which.filter((x) => x !== p)
-                              : [...prefs.prayer.which, p],
-                          },
-                        })
-                      }
-                      className={`min-h-11 rounded-full border px-4 text-sm font-medium ${on ? "border-primary bg-primary text-primary-foreground" : "border-input"}`}
-                    >
-                      {PRAYER_LABEL[p]}
-                    </button>
-                  );
-                })}
+        {showPrayer ? (
+          <>
+            <Switch
+              label="Prayer reminders"
+              hint="Before each prayer starts, from your configured Salah times."
+              checked={prefs.prayer.enabled}
+              onChange={(v) => update({ ...prefs, prayer: { ...prefs.prayer, enabled: v } })}
+            />
+            {prefs.prayer.enabled ? (
+              <div className="grid gap-3 pb-2 pl-1">
+                <Field label="How long before">
+                  <NumberField
+                    label="Prayer lead time"
+                    unit="min"
+                    min={0}
+                    max={120}
+                    step={5}
+                    decimals={0}
+                    value={prefs.prayer.leadMinutes}
+                    onChange={(v) =>
+                      update({ ...prefs, prayer: { ...prefs.prayer, leadMinutes: v ?? 0 } })
+                    }
+                  />
+                </Field>
+                <fieldset>
+                  <legend className="mb-1 text-sm font-medium">Which prayers</legend>
+                  <div className="flex flex-wrap gap-1.5">
+                    {PRAYERS.map((p: PrayerName) => {
+                      const on = prefs.prayer.which.includes(p);
+                      return (
+                        <button
+                          key={p}
+                          aria-pressed={on}
+                          onClick={() =>
+                            update({
+                              ...prefs,
+                              prayer: {
+                                ...prefs.prayer,
+                                which: on
+                                  ? prefs.prayer.which.filter((x) => x !== p)
+                                  : [...prefs.prayer.which, p],
+                              },
+                            })
+                          }
+                          className={`min-h-11 rounded-full border px-4 text-sm font-medium ${on ? "border-primary bg-primary text-primary-foreground" : "border-input"}`}
+                        >
+                          {PRAYER_LABEL[p]}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </fieldset>
               </div>
-            </fieldset>
-          </div>
-        )}
+            ) : null}
+          </>
+        ) : null}
         <Switch
           label="Training reminders"
           hint="Before a workout that has a usual time."
@@ -251,7 +258,7 @@ export function RemindersSection() {
                 />
               </Field>
             </div>
-            {fajrClash && (
+            {showPrayer && fajrClash && (
               <div role="alert" className="rounded-2xl border border-warn/50 p-3 text-sm">
                 <p>Your quiet hours cover the Fajr reminder.</p>
                 <div className="mt-2">

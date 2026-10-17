@@ -100,7 +100,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         content:
           "One flexible plan for training, nutrition, focus, routines and optional faith support.",
       },
-      { name: "theme-color", content: "#0e1311" },
+      { name: "theme-color", content: "#101114" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-title", content: "VAYVOR" },
       { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },

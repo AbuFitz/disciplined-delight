@@ -14,6 +14,9 @@ import {
 } from "./ui";
 import { newId, put } from "@/data/db";
 import { COL, type TemplateExercise, type WorkoutTemplate } from "@/data/types";
+import type { ProgramRevision } from "@/data/types";
+import { useCollection } from "@/data/hooks";
+import { restoreTemplateRevision, saveTemplateRevision } from "@/data/actions";
 import { WEEKDAY_SHORT } from "@/domain/dates";
 import { schemeFrom } from "@/domain/scheme";
 
@@ -42,6 +45,9 @@ export function TemplateEditor({
   const [ex, setEx] = useState<TemplateExercise | null>(null);
   const [archive, setArchive] = useState(false);
   const [seen, setSeen] = useState<string | null>(null);
+  const revisions = useCollection<ProgramRevision>(COL.programRevisions)
+    .items.filter((revision) => revision.templateId === template?.id)
+    .sort((a, b) => b.createdAt - a.createdAt);
   const key = template?.id ?? null;
   if (key !== seen) {
     setSeen(key);
@@ -110,11 +116,13 @@ export function TemplateEditor({
               className="flex-1"
               disabled={!t.title.trim()}
               onClick={async () => {
-                await put(COL.templates, t.id, {
+                const next = {
                   ...t,
                   title: t.title.trim(),
                   letter: t.letter.trim() || "?",
-                });
+                };
+                if (isNew || !template) await put(COL.templates, t.id, next);
+                else await saveTemplateRevision(template, next, "Workout edited");
                 toast.success("Workout saved");
                 onClose();
               }}
@@ -125,6 +133,36 @@ export function TemplateEditor({
         }
       >
         <div className="grid gap-4 pb-4">
+          {!isNew && revisions.length > 0 && (
+            <details className="border-b border-line pb-3">
+              <summary className="min-h-11 cursor-pointer py-2 text-sm font-semibold">
+                Version history ({revisions.length})
+              </summary>
+              <ul>
+                {revisions.slice(0, 5).map((revision) => (
+                  <li
+                    key={revision.id}
+                    className="flex items-center justify-between gap-3 border-t border-line py-2"
+                  >
+                    <span className="text-sm text-muted-foreground">
+                      {new Date(revision.createdAt).toLocaleString("en-GB")} · {revision.reason}
+                    </span>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={async () => {
+                        await restoreTemplateRevision(revision);
+                        toast.success("Earlier workout restored");
+                        onClose();
+                      }}
+                    >
+                      Restore
+                    </Button>
+                  </li>
+                ))}
+              </ul>
+            </details>
+          )}
           <div className="grid grid-cols-[5rem_1fr] gap-3">
             <Field label="Letter" htmlFor="t-l">
               <TextInput

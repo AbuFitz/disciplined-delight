@@ -72,7 +72,7 @@ export function sessionSummary(s: Session) {
     volume = 0,
     exercisesTouched = 0;
   for (const e of s.exercises) {
-    const working = e.sets.filter((x) => x.kind === "working");
+    const working = e.sets.filter((x) => x.kind !== "warmup");
     planned += working.length;
     const done = working.filter((x) => x.completed && !x.skipped);
     completed += done.length;

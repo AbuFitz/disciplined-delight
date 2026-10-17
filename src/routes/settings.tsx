@@ -1,5 +1,4 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Archive, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
@@ -32,32 +31,127 @@ import { DataSection } from "@/components/nl/data-section";
 import { AccountSection } from "@/components/nl/account-section";
 import { RemindersSection } from "@/components/nl/reminders-section";
 import { InstallSection } from "@/components/nl/install-section";
-import { getThemePref, setThemePref, type ThemePref } from "@/lib/theme";
+import {
+  getAccentWorld,
+  getThemePref,
+  setAccentWorld,
+  setThemePref,
+  type AccentWorld,
+  type ThemePref,
+} from "@/lib/theme";
 import { setSalahEnabled } from "@/data/routine-actions";
 import { FeedbackSection } from "@/components/nl/feedback-section";
 import { CompanionSettings } from "@/components/nl/companion-settings";
+import { GymSettings } from "@/components/nl/gym-settings";
+import { FaithSettings } from "@/components/nl/faith-settings";
+import { VIcon, type VIconName } from "@/components/nl/icon";
+import { hasIslamicPrayerPack, resolveFaithProfile } from "@/domain/faith";
+import { SetupPath } from "@/components/nl/setup-path";
 
 export const Route = createFileRoute("/settings")({ component: SettingsPage });
 
 function Section({
+  id,
   title,
   hint,
   children,
+  open,
+  onToggle,
 }: {
+  id: SettingsSectionId;
   title: string;
   hint?: string;
   children: React.ReactNode;
+  open: boolean;
+  onToggle: (id: SettingsSectionId) => void;
 }) {
+  const contentId = `${id}-settings-content`;
   return (
-    <section className="grid gap-x-10 border-t border-line py-8 [grid-template-columns:repeat(auto-fit,minmax(min(100%,20rem),1fr))] first:border-t-0">
-      <div className="mb-4">
-        <h2 className="font-display text-2xl font-semibold">{title}</h2>
-        {hint && <p className="mt-1 text-sm text-muted-foreground">{hint}</p>}
-      </div>
-      <div className="grid min-w-0 max-w-xl gap-4">{children}</div>
+    <section
+      id={id}
+      tabIndex={-1}
+      className="scroll-mt-24 border-t border-line outline-none focus-visible:ring-2 focus-visible:ring-ring first:border-t-0"
+    >
+      <button
+        type="button"
+        aria-expanded={open}
+        aria-controls={contentId}
+        className="flex min-h-20 w-full items-center justify-between gap-4 py-5 text-left"
+        onClick={() => onToggle(id)}
+      >
+        <span>
+          <span className="block font-display text-2xl font-semibold">{title}</span>
+          {hint && <span className="mt-1 block text-sm text-muted-foreground">{hint}</span>}
+        </span>
+        <VIcon
+          name={open ? "collapse" : "next"}
+          className={open ? "text-primary" : "text-muted-foreground"}
+        />
+      </button>
+      {open ? (
+        <div
+          id={contentId}
+          className="grid gap-x-10 pb-8 [grid-template-columns:repeat(auto-fit,minmax(min(100%,20rem),1fr))]"
+        >
+          <div className="grid min-w-0 max-w-xl gap-4">{children}</div>
+        </div>
+      ) : null}
     </section>
   );
 }
+
+type SettingsSectionId =
+  | "profile"
+  | "modules"
+  | "nutrition"
+  | "budget"
+  | "faith"
+  | "training"
+  | "appearance"
+  | "install"
+  | "reminders"
+  | "account"
+  | "data"
+  | "help"
+  | "companion"
+  | "credits"
+  | "checklist";
+
+const settingsGroups: Array<{
+  title: string;
+  items: Array<{ id: SettingsSectionId; label: string; icon: VIconName }>;
+}> = [
+  {
+    title: "Plan and preferences",
+    items: [
+      { id: "profile", label: "You and your goal", icon: "today" },
+      { id: "modules", label: "Your areas", icon: "checklist" },
+      { id: "training", label: "Training and Gym Mode", icon: "training" },
+      { id: "nutrition", label: "Nutrition targets", icon: "nutrition" },
+      { id: "budget", label: "Food budget", icon: "nutrition" },
+      { id: "faith", label: "Faith & reflection", icon: "spirituality" },
+    ],
+  },
+  {
+    title: "Experience",
+    items: [
+      { id: "appearance", label: "Appearance", icon: "readiness" },
+      { id: "companion", label: "Companion", icon: "buddy" },
+      { id: "reminders", label: "Reminders", icon: "timer" },
+      { id: "checklist", label: "Reminder checklist", icon: "checklist" },
+      { id: "install", label: "Install VAYVOR", icon: "external" },
+    ],
+  },
+  {
+    title: "Account and support",
+    items: [
+      { id: "account", label: "Account", icon: "community" },
+      { id: "data", label: "Your data", icon: "archive" },
+      { id: "help", label: "Help and feedback", icon: "alert" },
+      { id: "credits", label: "Credits & licences", icon: "library" },
+    ],
+  },
+];
 
 function SettingsPage() {
   const { profile, ready } = useProfile();
@@ -65,12 +159,35 @@ function SettingsPage() {
   const checklist = useCollection<ChecklistItem>(COL.checklist);
   const [d, setD] = useState<Profile | null>(null);
   const [theme, setTheme] = useState<ThemePref>("dark");
+  const [accent, setAccent] = useState<AccentWorld>("cobalt");
   const [item, setItem] = useState<Partial<ChecklistItem> | null>(null);
   const [archive, setArchive] = useState<ChecklistItem | null>(null);
+  const [activeSection, setActiveSection] = useState<SettingsSectionId>("profile");
   useEffect(() => {
     if (profile && !d) setD(profile);
   }, [profile, d]);
-  useEffect(() => setTheme(getThemePref()), []);
+  useEffect(() => {
+    setTheme(getThemePref());
+    setAccent(getAccentWorld());
+  }, []);
+  useEffect(() => {
+    if (!ready) return;
+    const openHash = () => {
+      const id = window.location.hash.slice(1);
+      if (!settingsGroups.some((group) => group.items.some((entry) => entry.id === id))) return;
+      setActiveSection(id as SettingsSectionId);
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          const target = document.getElementById(id);
+          target?.scrollIntoView({ block: "start" });
+          target?.focus({ preventScroll: true });
+        });
+      });
+    };
+    openHash();
+    window.addEventListener("hashchange", openHash);
+    return () => window.removeEventListener("hashchange", openHash);
+  }, [ready]);
   if (!ready || !d || !profile) return <Skeleton className="h-72" />;
 
   const dirtyGoals =
@@ -79,6 +196,20 @@ function SettingsPage() {
   const dirtyTargets = JSON.stringify(d.targets) !== JSON.stringify(profile.targets);
   const t = d.targets;
   const setT = (p: Partial<Profile["targets"]>) => setD({ ...d, targets: { ...d.targets, ...p } });
+  const openSection = (id: SettingsSectionId) => {
+    setActiveSection(id);
+    window.history.replaceState(null, "", `${window.location.pathname}#${id}`);
+    requestAnimationFrame(() => {
+      const target = document.getElementById(id);
+      target?.scrollIntoView({ block: "start" });
+      target?.focus({ preventScroll: true });
+    });
+  };
+  const sectionProps = (id: SettingsSectionId) => ({
+    id,
+    open: activeSection === id,
+    onToggle: openSection,
+  });
 
   return (
     <>
@@ -87,8 +218,41 @@ function SettingsPage() {
         title="Make it yours"
         sub="Nothing here is required. Skip what you don't need and come back later."
       />
+      <SetupPath />
 
-      <Section title="You and your goal" hint="Used for wording and chart reference lines only.">
+      <nav className="mb-8 border-y border-line py-5" aria-label="Settings categories">
+        <p className="eyebrow">Choose one area</p>
+        <div className="mt-4 grid gap-5 lg:grid-cols-3">
+          {settingsGroups.map((group) => (
+            <div key={group.title}>
+              <h2 className="text-sm font-semibold">{group.title}</h2>
+              <div className="mt-2 grid gap-px border border-line bg-line">
+                {group.items.map((entry) => {
+                  const selected = activeSection === entry.id;
+                  return (
+                    <button
+                      key={entry.id}
+                      type="button"
+                      aria-current={selected ? "location" : undefined}
+                      onClick={() => openSection(entry.id)}
+                      className={`flex min-h-12 items-center gap-3 bg-background px-3 text-left text-sm font-medium hover:bg-surface ${selected ? "border-l-2 border-primary text-primary" : "border-l-2 border-transparent"}`}
+                    >
+                      <VIcon name={entry.icon} size={18} active={selected} />
+                      <span>{entry.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+      </nav>
+
+      <Section
+        {...sectionProps("profile")}
+        title="You and your goal"
+        hint="Used for wording and chart reference lines only."
+      >
         <div>
           <Link
             to="/onboarding"
@@ -179,6 +343,7 @@ function SettingsPage() {
       </Section>
 
       <Section
+        {...sectionProps("modules")}
         title="Your areas"
         hint="These choices shape navigation and what appears on Today. Plan connects every enabled area."
       >
@@ -189,7 +354,7 @@ function SettingsPage() {
             ["mind", "Mind"],
             ["routines", "Routines and Plan"],
             ["community", "Community"],
-            ["spirituality", "Spirituality"],
+            ["spirituality", "Faith & reflection"],
           ] as [AppModule, string][]
         ).map(([id, label]) => {
           const selected = d.modules ?? ["training", "nutrition", "mind", "routines", "community"];
@@ -232,6 +397,7 @@ function SettingsPage() {
       </Section>
 
       <Section
+        {...sectionProps("nutrition")}
         title="Nutrition targets"
         hint="Gradual weight gain is usually measured over weeks. If you follow advice from a clinician or dietitian, use their numbers."
       >
@@ -365,7 +531,11 @@ function SettingsPage() {
         </p>
       </Section>
 
-      <Section title="Food budget" hint="Used for the weekly budget on Today and in Food.">
+      <Section
+        {...sectionProps("budget")}
+        title="Food budget"
+        hint="Used for the weekly budget on Today and in Food."
+      >
         <Field label="Weekly food budget">
           <NumberField
             label="Weekly budget"
@@ -391,23 +561,30 @@ function SettingsPage() {
         </div>
       </Section>
 
-      <Section title="Prayer" hint="Times come from your chosen source.">
-        <p className="text-sm text-muted-foreground">
-          {prayer
-            ? `${prayer.mode === "manual" ? "Manual times" : "Calculated times"} for ${prayer.locality}.`
-            : "Not set up yet."}
-        </p>
-        <div>
-          <Link
-            to="/salah"
-            className="inline-flex min-h-11 items-center rounded-full border border-input px-5 font-medium"
-          >
-            {prayer ? "Open Salah settings" : "Set up Salah"}
-          </Link>
-        </div>
+      <Section
+        {...sectionProps("faith")}
+        title="Faith & reflection"
+        hint="Private, optional practice support. Choose this explicitly; it is never inferred."
+      >
+        <FaithSettings />
+        {hasIslamicPrayerPack(resolveFaithProfile(profile)) && (
+          <div className="border-l-2 border-primary pl-4">
+            <p className="text-sm text-muted-foreground">
+              {prayer
+                ? `${prayer.mode === "manual" ? "Manual times" : "Calculated times"} for ${prayer.locality}.`
+                : "Islamic prayer tools are selected, but times are not configured."}
+            </p>
+            <Link
+              to="/salah"
+              className="mt-2 inline-flex min-h-11 items-center rounded-md border border-input px-5 font-medium"
+            >
+              {prayer ? "Open Salah settings" : "Set up Salah"}
+            </Link>
+          </div>
+        )}
       </Section>
 
-      <Section title="Training">
+      <Section {...sectionProps("training")} title="Training">
         <Switch
           label="Keep the screen on during a session"
           hint="Only where your browser supports it. Sessions work without it."
@@ -416,9 +593,19 @@ function SettingsPage() {
             await saveProfile({ wakeLock: v });
           }}
         />
+        <details className="mt-6 border-t border-line pt-3">
+          <summary className="min-h-11 cursor-pointer py-2 font-semibold">
+            Gym Mode, music and optional location
+          </summary>
+          <p className="mb-4 text-sm text-muted-foreground">
+            Configure this only when it is useful. Location permission is requested from a direct
+            action inside this section.
+          </p>
+          <GymSettings />
+        </details>
       </Section>
 
-      <Section title="Appearance">
+      <Section {...sectionProps("appearance")} title="Appearance">
         <Segmented
           label="Theme"
           value={theme}
@@ -432,22 +619,77 @@ function SettingsPage() {
             { value: "system", label: "Match device" },
           ]}
         />
+        <Field
+          label="Colour world"
+          hint="Curated for readable light and dark contrast; no identity is inferred."
+        >
+          <Select
+            value={accent}
+            onChange={(event) => {
+              const value = event.target.value as AccentWorld;
+              setAccent(value);
+              setAccentWorld(value);
+            }}
+          >
+            <option value="mint">Mint signal</option>
+            <option value="cobalt">Cobalt</option>
+            <option value="violet">Violet</option>
+            <option value="coral">Ember coral</option>
+            <option value="amber">Amber</option>
+            <option value="rose">Rose</option>
+            <option value="slate">Monochrome slate</option>
+          </Select>
+        </Field>
+        <div className="spatial-glass border p-4" aria-live="polite">
+          <p className="eyebrow text-primary">Live signal preview</p>
+          <div className="mt-2 h-1.5 w-full bg-surface-2">
+            <div className="h-full w-2/3 bg-primary" />
+          </div>
+          <p className="mt-2 text-sm">
+            Focus rings, active navigation, charts, Buddy and Gym Mode use this semantic signal.
+          </p>
+        </div>
+        <Button
+          variant="ghost"
+          onClick={() => {
+            setAccent("cobalt");
+            setAccentWorld("cobalt");
+          }}
+        >
+          Reset colour
+        </Button>
         <p className="text-xs text-muted-foreground">Saved on this device.</p>
       </Section>
 
-      <Section title="Install VAYVOR" hint="App-like launch and an offline shell on this device.">
+      <Section
+        {...sectionProps("install")}
+        title="Install VAYVOR"
+        hint="App-like launch and an offline shell on this device."
+      >
         <InstallSection />
       </Section>
 
-      <Section title="Reminders" hint="Opt in per type. Off by default.">
-        <RemindersSection />
+      <Section
+        {...sectionProps("reminders")}
+        title="Reminders"
+        hint="Opt in per type. Off by default."
+      >
+        <RemindersSection showPrayer={hasIslamicPrayerPack(resolveFaithProfile(profile))} />
       </Section>
 
-      <Section title="Account" hint="Sign in for backup and friends. Guests stay on this device.">
+      <Section
+        {...sectionProps("account")}
+        title="Account"
+        hint="Sign in for backup and friends. Guests stay on this device."
+      >
         <AccountSection />
       </Section>
 
-      <Section title="Your data" hint="Where it lives, backups, and moving between devices.">
+      <Section
+        {...sectionProps("data")}
+        title="Your data"
+        hint="Where it lives, backups, and moving between devices."
+      >
         <DataSection />
         <div>
           <Link
@@ -460,6 +702,7 @@ function SettingsPage() {
       </Section>
 
       <Section
+        {...sectionProps("help")}
         title="Help and feedback"
         hint="Report a bug, correction, accessibility issue or idea without exposing private records."
       >
@@ -467,6 +710,7 @@ function SettingsPage() {
       </Section>
 
       <Section
+        {...sectionProps("companion")}
         title="Companion"
         hint="An optional, private coach for real plan and app states—not a decorative mascot."
       >
@@ -474,6 +718,7 @@ function SettingsPage() {
       </Section>
 
       <Section
+        {...sectionProps("credits")}
         title="Credits & licences"
         hint="Sources and open-content licences for the exercise library."
       >
@@ -491,6 +736,7 @@ function SettingsPage() {
       </Section>
 
       <Section
+        {...sectionProps("checklist")}
         title="Reminder checklist"
         hint="Supplements, water, food prep. Items from your original app are only a record of what you used to track, not advice."
       >
@@ -509,17 +755,17 @@ function SettingsPage() {
                 </button>
                 <button
                   aria-label={`Archive ${i.label}`}
-                  className="inline-flex size-11 shrink-0 items-center justify-center rounded-full hover:bg-surface-2"
+                  className="inline-flex size-11 shrink-0 items-center justify-center rounded-md hover:bg-surface-2"
                   onClick={() => setArchive(i)}
                 >
-                  <Archive className="size-4" />
+                  <VIcon name="archive" size={16} />
                 </button>
               </Row>
             ))}
         </ul>
         <div>
           <Button variant="secondary" onClick={() => setItem({ label: "", detail: "" })}>
-            <Plus className="size-4" />
+            <VIcon name="add" size={16} />
             Add reminder
           </Button>
         </div>

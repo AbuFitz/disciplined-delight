@@ -1,5 +1,4 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { Check, ChevronDown, Dumbbell, Play } from "lucide-react";
 import { useState } from "react";
 import { Button, Chip, EmptyState, PageHeader, Panel, Row, Skeleton } from "@/components/nl/ui";
 import { startSession } from "@/data/actions";
@@ -22,6 +21,8 @@ import { useActiveSession } from "@/data/session-hooks";
 import { TemplateEditor } from "@/components/nl/programme";
 import { blankTemplate } from "@/data/editor-defaults";
 import { cn } from "@/lib/utils";
+import { WorkoutLibrary, type WorkoutLibraryTab } from "@/components/nl/workout-library";
+import { VIcon } from "@/components/nl/icon";
 
 export const Route = createFileRoute("/train/")({ component: TrainPage });
 
@@ -37,6 +38,7 @@ function TrainPage() {
   const plans = useCollection<PlanRecord>(COL.plans);
   const [restoring, setRestoring] = useState<string | null>(null);
   const [showArchived, setShowArchived] = useState(false);
+  const [discoverTab, setDiscoverTab] = useState<WorkoutLibraryTab>("workouts");
   const templates = activeTemplates(t.items);
   const archived = t.items.filter((x) => x.archivedAt);
   const livePlans = plans.items.filter(
@@ -54,7 +56,7 @@ function TrainPage() {
     <>
       <PageHeader
         eyebrow="Train"
-        title="Your programme"
+        title="Training"
         sub={`${week.completed} of ${week.planned} planned sessions done this week${week.partial ? `, ${week.partial} partial` : ""}.`}
         actions={
           <>
@@ -62,14 +64,14 @@ function TrainPage() {
               Build me a plan
             </Button>
             <Button variant="secondary" onClick={() => nav({ to: "/library" })}>
-              Library
+              Exercise library
             </Button>
             <Button variant="secondary" onClick={() => setEditing(blankTemplate(t.items.length))}>
               New workout
             </Button>
             {active ? (
               <Button variant="primary" onClick={() => nav({ to: "/train/session" })}>
-                <Play className="size-4 fill-current" />
+                <VIcon name="play" size={16} active />
                 Continue session
               </Button>
             ) : null}
@@ -98,109 +100,156 @@ function TrainPage() {
         })}
       </div>
 
-      <div className="grid gap-3 lg:grid-cols-2 lg:gap-4">
-        {templates.map((tpl) => {
-          const isOpen = open === tpl.id;
-          const img = workoutImage(tpl.legacyId);
-          return (
-            <Panel key={tpl.id} className="overflow-hidden !p-0">
-              <div className="flex gap-4 p-4 md:p-5">
-                {img && (
-                  <img
-                    src={img}
-                    alt=""
-                    loading="lazy"
-                    className="hidden size-20 shrink-0 rounded-2xl object-cover sm:block"
-                  />
-                )}
-                <div className="min-w-0 flex-1">
-                  <p className="eyebrow">
-                    Workout {tpl.letter} ·{" "}
-                    {tpl.weekday != null ? WEEKDAY_SHORT[tpl.weekday] : "Unscheduled"}
-                    {tpl.time ? ` · ${to12h(tpl.time)}` : ""}
-                  </p>
-                  <h2 className="font-display text-2xl font-semibold leading-tight">{tpl.title}</h2>
-                  <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{tpl.focus}</p>
-                </div>
-              </div>
-              <div className="flex flex-wrap items-center gap-2 border-t border-line px-4 py-3 md:px-5">
-                <Button
-                  variant="primary"
-                  size="sm"
-                  disabled={!!active}
-                  onClick={async () => {
-                    await startSession(tpl, today);
-                    nav({ to: "/train/session" });
-                  }}
-                >
-                  <Dumbbell className="size-4" />
-                  Start now
-                </Button>
-                <Button variant="ghost" size="sm" onClick={() => setEditing(tpl)}>
-                  Edit
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  aria-expanded={isOpen}
-                  onClick={() => setOpen(isOpen ? null : tpl.id)}
-                >
-                  {tpl.exercises.length} exercises
-                  <ChevronDown className={cn("size-4 transition", isOpen && "rotate-180")} />
-                </Button>
-                {active && (
-                  <span className="text-xs text-muted-foreground">
-                    Finish the current session first.
-                  </span>
-                )}
-              </div>
-              {isOpen && (
-                <ul className="border-t border-line px-4 pb-3 md:px-5">
-                  {tpl.exercises.map((e) => {
-                    const m = exerciseImage(e.legacyId);
-                    return (
-                      <Row as="li" key={e.id} className="items-start py-3">
-                        {m ? (
-                          <img
-                            src={m.image}
-                            alt={`${e.name} reference`}
-                            loading="lazy"
-                            className="size-14 shrink-0 rounded-xl object-cover"
-                          />
-                        ) : (
-                          <div className="size-14 shrink-0 rounded-xl bg-surface-2" aria-hidden />
-                        )}
-                        <div className="min-w-0">
-                          <p className="font-medium">{e.name}</p>
-                          <p className="text-sm text-muted-foreground tnum">
-                            {e.schemeText}
-                            {e.rest ? ` · ${e.rest}` : ""}
-                          </p>
-                          {e.equipment && (
-                            <p className="text-xs text-muted-foreground">{e.equipment}</p>
-                          )}
-                          {e.alternative && (
-                            <p className="text-xs text-muted-foreground">
-                              Alternative: {e.alternative}
-                            </p>
-                          )}
-                          {e.cue && <p className="mt-1 text-sm">{e.cue}</p>}
-                        </div>
-                      </Row>
-                    );
-                  })}
-                  {tpl.cardio && (
-                    <p className="py-3 text-sm text-muted-foreground">
-                      Optional cardio: {tpl.cardio.machine}, {tpl.cardio.text}. Cardio is separate
-                      and doesn't count as a lifting session.
-                    </p>
+      <nav
+        className="mb-8 grid gap-px border-y border-line bg-line sm:grid-cols-4"
+        aria-label="Training areas"
+      >
+        <a
+          href="#personal-training"
+          className="flex min-h-14 items-center gap-2 bg-background px-4 font-semibold hover:bg-surface-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+        >
+          <VIcon name="checklist" size={18} /> Personal
+        </a>
+        {(["workouts", "programmes"] as const).map((tab) => (
+          <button
+            key={tab}
+            type="button"
+            className="flex min-h-14 items-center gap-2 bg-background px-4 text-left font-semibold hover:bg-surface-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+            onClick={() => {
+              setDiscoverTab(tab);
+              requestAnimationFrame(() => {
+                document.getElementById("discover-workouts")?.focus();
+              });
+            }}
+          >
+            <VIcon name={tab === "workouts" ? "training" : "calendar"} size={18} />
+            {tab === "workouts" ? "Discover workouts" : "Programmes"}
+          </button>
+        ))}
+        <Link
+          to="/library"
+          className="flex min-h-14 items-center gap-2 bg-background px-4 font-semibold hover:bg-surface-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+        >
+          <VIcon name="library" size={18} /> Exercise library
+        </Link>
+      </nav>
+
+      <section id="personal-training" className="scroll-mt-24" aria-labelledby="personal-title">
+        <p className="eyebrow">Personal</p>
+        <h2 id="personal-title" className="mb-4 mt-1 font-display text-3xl font-semibold">
+          Your current workouts
+        </h2>
+
+        <div className="grid gap-3 lg:grid-cols-2 lg:gap-4">
+          {templates.map((tpl) => {
+            const isOpen = open === tpl.id;
+            const img = workoutImage(tpl.legacyId);
+            return (
+              <Panel key={tpl.id} className="overflow-hidden !p-0">
+                <div className="flex gap-4 p-4 md:p-5">
+                  {img && (
+                    <img
+                      src={img}
+                      alt=""
+                      loading="lazy"
+                      className="hidden size-20 shrink-0 rounded-2xl object-cover sm:block"
+                    />
                   )}
-                </ul>
-              )}
-            </Panel>
-          );
-        })}
-      </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="eyebrow">
+                      Workout {tpl.letter} ·{" "}
+                      {tpl.weekday != null ? WEEKDAY_SHORT[tpl.weekday] : "Unscheduled"}
+                      {tpl.time ? ` · ${to12h(tpl.time)}` : ""}
+                    </p>
+                    <h2 className="font-display text-2xl font-semibold leading-tight">
+                      {tpl.title}
+                    </h2>
+                    <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{tpl.focus}</p>
+                  </div>
+                </div>
+                <div className="flex flex-wrap items-center gap-2 border-t border-line px-4 py-3 md:px-5">
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    disabled={!!active}
+                    onClick={async () => {
+                      await startSession(tpl, today);
+                      nav({ to: "/train/session" });
+                    }}
+                  >
+                    <VIcon name="training" size={16} />
+                    Start now
+                  </Button>
+                  <Button variant="ghost" size="sm" onClick={() => setEditing(tpl)}>
+                    Edit
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    aria-expanded={isOpen}
+                    onClick={() => setOpen(isOpen ? null : tpl.id)}
+                  >
+                    {tpl.exercises.length} exercises
+                    <VIcon
+                      name="collapse"
+                      size={16}
+                      className={cn("transition", isOpen && "rotate-180")}
+                    />
+                  </Button>
+                  {active && (
+                    <span className="text-xs text-muted-foreground">
+                      Finish the current session first.
+                    </span>
+                  )}
+                </div>
+                {isOpen && (
+                  <ul className="border-t border-line px-4 pb-3 md:px-5">
+                    {tpl.exercises.map((e) => {
+                      const m = exerciseImage(e.legacyId);
+                      return (
+                        <Row as="li" key={e.id} className="items-start py-3">
+                          {m ? (
+                            <img
+                              src={m.image}
+                              alt={`${e.name} reference`}
+                              loading="lazy"
+                              className="size-14 shrink-0 rounded-xl object-cover"
+                            />
+                          ) : (
+                            <div className="size-14 shrink-0 rounded-xl bg-surface-2" aria-hidden />
+                          )}
+                          <div className="min-w-0">
+                            <p className="font-medium">{e.name}</p>
+                            <p className="text-sm text-muted-foreground tnum">
+                              {e.schemeText}
+                              {e.rest ? ` · ${e.rest}` : ""}
+                            </p>
+                            {e.equipment && (
+                              <p className="text-xs text-muted-foreground">{e.equipment}</p>
+                            )}
+                            {e.alternative && (
+                              <p className="text-xs text-muted-foreground">
+                                Alternative: {e.alternative}
+                              </p>
+                            )}
+                            {e.cue && <p className="mt-1 text-sm">{e.cue}</p>}
+                          </div>
+                        </Row>
+                      );
+                    })}
+                    {tpl.cardio && (
+                      <p className="py-3 text-sm text-muted-foreground">
+                        Optional cardio: {tpl.cardio.machine}, {tpl.cardio.text}. Cardio is separate
+                        and doesn't count as a lifting session.
+                      </p>
+                    )}
+                  </ul>
+                )}
+              </Panel>
+            );
+          })}
+        </div>
+      </section>
 
       {livePlans.length > 0 && (
         <section className="mt-10" aria-label="Generated plans">
@@ -223,7 +272,7 @@ function TrainPage() {
                 <Link
                   to="/train/build"
                   search={{ from: p.id }}
-                  className="inline-flex min-h-11 items-center rounded-full border border-input px-5 text-sm font-semibold hover:bg-surface-2"
+                  className="inline-flex min-h-11 items-center rounded-md border border-input px-5 text-sm font-semibold hover:bg-surface-2"
                 >
                   Regenerate
                 </Link>
@@ -241,7 +290,11 @@ function TrainPage() {
             onClick={() => setShowArchived((v) => !v)}
           >
             Archived workouts ({archived.length})
-            <ChevronDown className={cn("size-4 transition", showArchived && "rotate-180")} />
+            <VIcon
+              name="collapse"
+              size={16}
+              className={cn("transition", showArchived && "rotate-180")}
+            />
           </button>
           {showArchived && (
             <ul className="mt-1 grid gap-2">
@@ -286,6 +339,8 @@ function TrainPage() {
         </section>
       )}
 
+      <WorkoutLibrary activeTab={discoverTab} onTabChange={setDiscoverTab} />
+
       <section className="mt-10" aria-label="Session history">
         <h2 className="eyebrow mb-2">Recent sessions</h2>
         {history.length === 0 ? (
@@ -313,7 +368,7 @@ function TrainPage() {
                     </p>
                   </div>
                   {h.status === "completed" ? (
-                    <Chip tone="ok" icon={<Check className="size-3.5" />}>
+                    <Chip tone="ok" icon={<VIcon name="check" size={16} />}>
                       Completed
                     </Chip>
                   ) : (

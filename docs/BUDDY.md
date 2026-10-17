@@ -18,3 +18,11 @@ Voice is concise, autonomy-supportive and factual. It offers one achievable choi
 People can choose a name; one of three base forms (orb, totem, spark); mint, amber or violet contrast-safe palettes; calm, bright or focused expression; quiet/direct/warm tone; low/medium/high energy; off/gentle/full motion; off/subtle/full celebration; setup/dashboard/on-demand placement; topic permissions; and quiet hours. A live preview and reset are available. Core choices are never paywalled. Future accessories may acknowledge positive milestones, but must never be tied to streak punishment.
 
 The current shapes are CSS integration primitives, not final character art. Production state art should be commissioned only after this inventory is approved: idle, listening/setup-guide, explaining-why, conflict-repair, active, planned, celebration, recovery, offline and sync-attention. Every animated state needs a static reduced-motion equivalent and screen-reader text.
+
+# Contextual integration map
+
+Buddy is not a floating chatbot or pseudo-therapist. `companion-guidance.ts` selects one deterministic, real-state intervention for readiness review, adaptation review, Gym Mode start/rest, return after a gap, library save, completion or missed-session recovery. Readiness and Gym Mode are integrated now; adaptation explanations appear beside the underlying suggestion.
+
+Configuration gates every intervention by enabled state, training module permission, placement, intervention frequency, quiet hours, snooze/dismiss history and the existing form/palette/motion choice. Reduced motion removes character movement without hiding the guidance. Seen/dismissed records persist locally/sync with the other private collections and suppress repetitive prompts.
+
+Buddy cannot inspect private notes or infer faith/health. It offers a concrete action or explanation and never claims open-ended AI conversation.

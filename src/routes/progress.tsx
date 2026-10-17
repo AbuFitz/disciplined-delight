@@ -1,5 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import {
   CartesianGrid,
@@ -46,6 +45,8 @@ import { progressMilestones } from "@/domain/milestones";
 import type { MealLog } from "@/domain/nutrition";
 import { estimateMaintenance, type TdeeDay } from "@/domain/tdee";
 import { linearTrend } from "@/domain/trend";
+import { readinessAssociation } from "@/domain/adaptation";
+import { VIcon } from "@/components/nl/icon";
 
 export const Route = createFileRoute("/progress")({ component: ProgressPage });
 
@@ -92,6 +93,37 @@ function ProgressPage() {
     });
   }, [done, range, today]);
   const planned = tpl.items.filter((t) => !t.archivedAt && t.weekday != null).length;
+  const currentWeekDates = weekDates(today);
+  const weeklyMuscles = useMemo(() => {
+    const counts = new Map<string, { sets: number; fatigue: number }>();
+    done
+      .filter((session) => currentWeekDates.includes(session.date))
+      .flatMap((session) => session.exercises)
+      .forEach((exercise) => {
+        const muscles = (exercise.muscle ?? "Other")
+          .split(/[,/&]/)
+          .map((value) => value.trim())
+          .filter(Boolean);
+        const work = exercise.sets.filter(
+          (set) => set.kind !== "warmup" && set.completed && !set.skipped,
+        );
+        for (const muscle of muscles) {
+          const old = counts.get(muscle) ?? { sets: 0, fatigue: 0 };
+          counts.set(muscle, {
+            sets: old.sets + work.length,
+            fatigue:
+              old.fatigue +
+              work.reduce(
+                (sum, set) =>
+                  sum + (set.kind === "failure" || set.rir === 0 || set.rpe === 10 ? 1.3 : 1),
+                0,
+              ),
+          });
+        }
+      });
+    return [...counts].sort((a, b) => b[1].sets - a[1].sets);
+  }, [done, currentWeekDates]);
+  const readinessLink = useMemo(() => readinessAssociation(done), [done]);
 
   const exerciseNames = useMemo(
     () =>
@@ -222,6 +254,43 @@ function ProgressPage() {
         }
       />
 
+      <section className="mb-5 border-y border-line py-5" aria-labelledby="training-load-title">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <Eyebrow>Training intelligence</Eyebrow>
+            <h2 id="training-load-title" className="mt-1 font-display text-2xl font-semibold">
+              Estimated weekly muscle load
+            </h2>
+          </div>
+          <p className="max-w-xl text-sm text-muted-foreground">
+            Estimated from completed non-warm-up sets and each workout’s editable muscle label—not a
+            physiological measurement.
+          </p>
+        </div>
+        {weeklyMuscles.length ? (
+          <div className="mt-4 grid gap-px border border-line bg-line sm:grid-cols-2 lg:grid-cols-4">
+            {weeklyMuscles.map(([muscle, load]) => (
+              <div key={muscle} className="bg-background p-4">
+                <p className="eyebrow">{muscle}</p>
+                <p className="num mt-1 text-2xl font-semibold">{load.sets} sets</p>
+                <p className="text-xs text-muted-foreground">
+                  Fatigue estimate {load.fatigue.toFixed(1)} · failure sets weighted modestly
+                </p>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="mt-4 text-sm text-muted-foreground">
+            Complete a session to establish this week’s estimated load.
+          </p>
+        )}
+        <p className="mt-3 text-sm text-muted-foreground">
+          {readinessLink
+            ? `${readinessLink.statement} Based on ${readinessLink.observations} self-reports.`
+            : "Readiness associations appear only after at least 6 usable self-reported check-ins, including both higher and lower readiness days."}
+        </p>
+      </section>
+
       <div className="grid gap-5 lg:grid-cols-2">
         <MilestoneLedger milestones={milestones} />
 
@@ -334,7 +403,7 @@ function ProgressPage() {
                           toast("Weigh-in removed");
                         }}
                       >
-                        <Trash2 className="size-4" />
+                        <VIcon name="delete" size={16} />
                       </button>
                     </Row>
                   ))}

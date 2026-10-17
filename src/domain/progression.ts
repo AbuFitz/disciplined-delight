@@ -4,7 +4,7 @@
  * Nothing here ever writes to logs; the user accepts a suggestion.
  */
 export type RecordedSet = {
-  kind: "warmup" | "working";
+  kind: "warmup" | "working" | "drop" | "failure";
   weightKg?: number;
   reps?: number;
   /** Timed holds and distance work. */
@@ -15,6 +15,8 @@ export type RecordedSet = {
   completed: boolean;
   skipped?: boolean;
   rir?: number;
+  /** Optional subjective effort. 1–10, entered by the person. */
+  rpe?: number;
 };
 
 export type Prescription = { sets: number; repMin: number; repMax: number };

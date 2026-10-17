@@ -82,8 +82,9 @@
 }
 
 /*
- * Tokens: dark is the default canvas (charcoal/green-black, warm paper text,
- * restrained green). Light is a designed alternative, not an inversion.
+ * Tokens: dark is a neutral graphite canvas with warm paper text. Colour worlds
+ * are restrained semantic signals, never assumed identity. Light is designed,
+ * not a mechanical inversion.
  * Reference tokens (onesimplesite.co.uk): ink #0e1311, paper #f8f6f1,
  * green #26b07d, spring #4fd9a0, moss #0c6a49.
  */
@@ -91,14 +92,14 @@
 :root[data-theme="dark"] {
   color-scheme: dark;
   --radius: 1.25rem;
-  --background: #0e1311;
+  --background: #101114;
   --foreground: #f3efe7;
-  --surface: #151c19;
-  --surface-2: #1c2622;
+  --surface: #181a1e;
+  --surface-2: #21242a;
   --line: rgb(243 239 231 / 0.11);
   --card: var(--surface);
   --card-foreground: var(--foreground);
-  --popover: #18211d;
+  --popover: #1c1f24;
   --popover-foreground: var(--foreground);
   --primary: #4fd9a0;
   --primary-foreground: #08140f;
@@ -106,7 +107,7 @@
   --secondary-foreground: var(--foreground);
   --muted: var(--surface-2);
   --muted-foreground: #a7aaa3;
-  --accent: #1f2d27;
+  --accent: #262b33;
   --accent-foreground: var(--foreground);
   --destructive: #f0806e;
   --destructive-foreground: #1a0a07;
@@ -186,6 +187,116 @@
   --vital-foreground: #f8f6f1;
   --loud-ink-bg: #0e1311;
   --loud-ink-fg: #f8f6f1;
+}
+
+/* Curated colour worlds change semantic signals only; surfaces and body copy keep audited contrast. */
+:root[data-theme="dark"][data-accent="cobalt"] {
+  --primary: #78a9ff;
+  --ring: #78a9ff;
+  --spring: #78a9ff;
+  --ok: #62d9ad;
+  --chart-1: #78a9ff;
+  --primary-foreground: #071325;
+}
+:root[data-theme="dark"][data-accent="violet"] {
+  --primary: #b9a1ff;
+  --ring: #b9a1ff;
+  --spring: #b9a1ff;
+  --chart-1: #b9a1ff;
+  --primary-foreground: #160d2b;
+}
+:root[data-theme="dark"][data-accent="coral"] {
+  --primary: #ff9a83;
+  --ring: #ff9a83;
+  --spring: #ff9a83;
+  --chart-1: #ff9a83;
+  --primary-foreground: #260b06;
+}
+:root[data-theme="dark"][data-accent="amber"] {
+  --primary: #f2c66d;
+  --ring: #f2c66d;
+  --spring: #f2c66d;
+  --chart-1: #f2c66d;
+  --primary-foreground: #211500;
+}
+:root[data-theme="dark"][data-accent="rose"] {
+  --primary: #f2a0bd;
+  --ring: #f2a0bd;
+  --spring: #f2a0bd;
+  --chart-1: #f2a0bd;
+  --primary-foreground: #260817;
+}
+:root[data-theme="dark"][data-accent="slate"] {
+  --primary: #c5ced4;
+  --ring: #c5ced4;
+  --spring: #c5ced4;
+  --chart-1: #c5ced4;
+  --primary-foreground: #10171b;
+}
+:root[data-theme="light"][data-accent="cobalt"] {
+  --primary: #1558b0;
+  --ring: #1558b0;
+  --spring: #1558b0;
+  --chart-1: #1558b0;
+  --primary-foreground: #fff;
+}
+:root[data-theme="light"][data-accent="violet"] {
+  --primary: #6841a7;
+  --ring: #6841a7;
+  --spring: #6841a7;
+  --chart-1: #6841a7;
+  --primary-foreground: #fff;
+}
+:root[data-theme="light"][data-accent="coral"] {
+  --primary: #a93824;
+  --ring: #a93824;
+  --spring: #a93824;
+  --chart-1: #a93824;
+  --primary-foreground: #fff;
+}
+:root[data-theme="light"][data-accent="amber"] {
+  --primary: #7b5200;
+  --ring: #7b5200;
+  --spring: #7b5200;
+  --chart-1: #7b5200;
+  --primary-foreground: #fff;
+}
+:root[data-theme="light"][data-accent="rose"] {
+  --primary: #9b315a;
+  --ring: #9b315a;
+  --spring: #9b315a;
+  --chart-1: #9b315a;
+  --primary-foreground: #fff;
+}
+:root[data-theme="light"][data-accent="slate"] {
+  --primary: #394b55;
+  --ring: #394b55;
+  --spring: #394b55;
+  --chart-1: #394b55;
+  --primary-foreground: #fff;
+}
+
+.spatial-glass {
+  background: color-mix(in oklab, var(--background) 84%, transparent);
+  border-color: color-mix(in oklab, var(--foreground) 15%, transparent);
+  box-shadow:
+    0 18px 50px rgb(0 0 0 / 0.22),
+    inset 0 1px rgb(255 255 255 / 0.07);
+  backdrop-filter: blur(18px) saturate(115%);
+}
+@media (prefers-reduced-transparency: reduce) {
+  .spatial-glass {
+    background: var(--background);
+    backdrop-filter: none;
+  }
+}
+@media (forced-colors: active) {
+  .spatial-glass {
+    background: Canvas;
+    border-color: CanvasText;
+    box-shadow: none;
+    backdrop-filter: none;
+  }
 }
 
 @layer base {
@@ -313,6 +424,9 @@
   }
   .scroll-pad-bottom {
     padding-bottom: calc(6.5rem + var(--safe-bottom));
+  }
+  .scroll-pad-with-resume {
+    padding-bottom: calc(10.5rem + var(--safe-bottom));
   }
 }
 

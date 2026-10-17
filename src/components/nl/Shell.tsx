@@ -1,17 +1,4 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import {
-  CalendarDays,
-  Dumbbell,
-  Home,
-  LineChart,
-  MoonStar,
-  Play,
-  Settings,
-  Utensils,
-  BookOpen,
-  Brain,
-  Users,
-} from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 import { useActiveSession } from "@/data/session-hooks";
 import { SYNC_LABEL, useSyncStatus } from "@/data/sync-status";
@@ -19,53 +6,53 @@ import { Wordmark } from "@/components/brand/Wordmark";
 import { cn } from "@/lib/utils";
 import { useProfile } from "@/data/hooks";
 import type { AppModule } from "@/data/types";
-import { Companion } from "./companion";
+import { VIcon, type VIconName } from "./icon";
 
 type NavItem = {
   to: string;
   label: string;
-  icon: typeof Home;
+  icon: VIconName;
   match: string[];
   module?: AppModule;
 };
 
 /** Product areas feed the shared Today and Plan views; optional areas disappear when not selected. */
 const PRIMARY: NavItem[] = [
-  { to: "/", label: "Today", icon: Home, match: [] },
+  { to: "/", label: "Today", icon: "today", match: [] },
   {
     to: "/train",
     label: "Training",
-    icon: Dumbbell,
+    icon: "training",
     match: ["/train", "/workouts", "/library", "/progress"],
     module: "training",
   },
   {
     to: "/food",
     label: "Nutrition",
-    icon: Utensils,
+    icon: "nutrition",
     match: ["/food", "/nutrition"],
     module: "nutrition",
   },
-  { to: "/mind", label: "Mind", icon: Brain, match: ["/mind"], module: "mind" },
+  { to: "/mind", label: "Mind", icon: "mind", match: ["/mind"], module: "mind" },
   {
     to: "/plan",
     label: "Plan",
-    icon: CalendarDays,
+    icon: "calendar",
     match: ["/plan", "/schedule"],
     module: "routines",
   },
-  { to: "/circle", label: "Community", icon: Users, match: ["/circle"], module: "community" },
+  { to: "/circle", label: "Community", icon: "community", match: ["/circle"], module: "community" },
   {
     to: "/soul",
-    label: "Spirituality",
-    icon: MoonStar,
+    label: "Faith & reflection",
+    icon: "spirituality",
     match: ["/soul", "/salah"],
     module: "spirituality",
   },
 ];
 const QUICK: NavItem[] = [
-  { to: "/progress", label: "Progress", icon: LineChart, match: ["/progress"] },
-  { to: "/library", label: "Library", icon: BookOpen, match: ["/library"] },
+  { to: "/progress", label: "Progress", icon: "progress", match: ["/progress"] },
+  { to: "/library", label: "Library", icon: "library", match: ["/library"] },
 ];
 
 function useTyping() {
@@ -149,13 +136,13 @@ export function Shell({ children }: { children: ReactNode }) {
                 to={t.to}
                 aria-current={isActive(t.to, t.match) ? "page" : undefined}
                 className={cn(
-                  "flex min-h-11 items-center gap-3 rounded-2xl px-3 text-[0.95rem] font-medium transition",
+                  "flex min-h-11 items-center gap-3 border-l-2 px-3 text-[0.95rem] font-medium transition",
                   isActive(t.to, t.match)
-                    ? "bg-surface text-foreground"
-                    : "text-muted-foreground hover:text-foreground",
+                    ? "border-primary text-foreground"
+                    : "border-transparent text-muted-foreground hover:text-foreground",
                 )}
               >
-                <t.icon className="size-5" strokeWidth={isActive(t.to, t.match) ? 2.4 : 1.9} />
+                <VIcon name={t.icon} active={isActive(t.to, t.match)} />
                 {t.label}
               </Link>
             ))}
@@ -174,7 +161,7 @@ export function Shell({ children }: { children: ReactNode }) {
                     : "text-muted-foreground hover:text-foreground",
                 )}
               >
-                <t.icon className="size-4" strokeWidth={1.9} />
+                <VIcon name={t.icon} size={18} active={isActive(t.to, t.match)} />
                 {t.label}
               </Link>
             ))}
@@ -189,7 +176,7 @@ export function Shell({ children }: { children: ReactNode }) {
               isActive("/settings") ? "bg-surface" : "text-muted-foreground hover:text-foreground",
             )}
           >
-            <Settings className="size-5" />
+            <VIcon name="settings" active={isActive("/settings")} />
             Settings
           </Link>
           <div className="px-3">
@@ -200,7 +187,7 @@ export function Shell({ children }: { children: ReactNode }) {
 
       <div className="min-w-0">
         {/* Mobile header */}
-        <div className="sticky top-0 z-30 flex items-center justify-between px-4 pb-1 pt-[calc(0.5rem+var(--safe-top))] backdrop-blur-md [background:color-mix(in_oklab,var(--background)_82%,transparent)] lg:hidden">
+        <div className="spatial-glass sticky top-0 z-30 flex items-center justify-between border-b px-4 pb-1 pt-[calc(0.5rem+var(--safe-top))] lg:hidden">
           <Link to="/" aria-label="VAYVOR, Today" className="flex min-h-11 items-center">
             <Wordmark className="text-[1.05rem]" />
           </Link>
@@ -210,21 +197,24 @@ export function Shell({ children }: { children: ReactNode }) {
               aria-label="Plan the week"
               className="inline-flex size-[44px] items-center justify-center rounded-full hover:bg-surface-2"
             >
-              <CalendarDays className="size-5" />
+              <VIcon name="calendar" />
             </Link>
             <Link
               to="/settings"
               aria-label="Settings"
               className="inline-flex size-[44px] items-center justify-center rounded-full hover:bg-surface-2"
             >
-              <Settings className="size-5" />
+              <VIcon name="settings" />
             </Link>
           </div>
         </div>
 
         <main
           id="main"
-          className="scroll-pad-bottom mx-auto w-full max-w-[88rem] px-4 pb-10 pt-4 md:px-8 md:pt-8 lg:pb-12"
+          className={cn(
+            "scroll-pad-bottom mx-auto w-full max-w-[88rem] px-4 pb-10 pt-4 md:px-8 md:pt-8 lg:pb-12",
+            active && !onSession && loc.pathname !== "/" && "scroll-pad-with-resume",
+          )}
         >
           {children}
         </main>
@@ -235,13 +225,13 @@ export function Shell({ children }: { children: ReactNode }) {
         <Link
           to="/train/session"
           className={cn(
-            "fixed inset-x-3 z-40 flex min-h-12 items-center justify-between gap-3 rounded-full bg-primary px-5 text-primary-foreground shadow-xl lg:inset-x-auto lg:bottom-6 lg:right-8 lg:w-80",
+            "spatial-glass fixed inset-x-3 z-40 flex min-h-12 items-center justify-between gap-3 border-l-2 border-l-primary px-5 text-foreground lg:inset-x-auto lg:bottom-6 lg:right-8 lg:w-80",
             "bottom-[calc(5.25rem+var(--safe-bottom))]",
             typing && "hidden",
           )}
         >
           <span className="flex items-center gap-2 font-medium">
-            <Play className="size-4 fill-current" />
+            <VIcon name="play" size={16} active />
             Continue session
           </span>
           <span className="text-sm opacity-80">
@@ -250,12 +240,11 @@ export function Shell({ children }: { children: ReactNode }) {
         </Link>
       )}
 
-      {/* Mobile tabs */}
-      <Companion />
+      {/* Mobile tabs. Buddy guidance is rendered in context, never as a floating overlay. */}
       <nav
         aria-label="Primary"
         className={cn(
-          "fixed inset-x-0 bottom-0 z-40 border-t border-line px-2 pb-[var(--safe-bottom)] backdrop-blur-xl [background:color-mix(in_oklab,var(--background)_88%,transparent)] lg:hidden",
+          "spatial-glass fixed inset-x-0 bottom-0 z-40 border-t px-2 pb-[var(--safe-bottom)] lg:hidden",
           (typing || onSession) && "hidden",
         )}
       >
@@ -272,11 +261,11 @@ export function Shell({ children }: { children: ReactNode }) {
               >
                 <span
                   className={cn(
-                    "flex h-7 w-12 max-w-full items-center justify-center rounded-full transition",
-                    isActive(t.to, t.match) && "bg-primary text-primary-foreground",
+                    "flex h-7 w-12 max-w-full items-center justify-center border-b-2 transition",
+                    isActive(t.to, t.match) ? "border-primary text-primary" : "border-transparent",
                   )}
                 >
-                  <t.icon className="size-[1.15rem]" strokeWidth={2.2} />
+                  <VIcon name={t.icon} size={20} active={isActive(t.to, t.match)} />
                 </span>
                 {t.label}
               </Link>

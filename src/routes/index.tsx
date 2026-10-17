@@ -1,7 +1,7 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
-import { SlidersHorizontal } from "lucide-react";
 import { useMemo, useState, type ReactElement } from "react";
-import { Button, PageHeader, Skeleton } from "@/components/nl/ui";
+import { Button, PageHeader, SignalRail, Skeleton } from "@/components/nl/ui";
+import { VIcon } from "@/components/nl/icon";
 import {
   BudgetWidget,
   ChecklistWidget,
@@ -106,10 +106,26 @@ function TodayPage() {
         sub={focus}
         actions={
           <Button variant="secondary" onClick={() => setEdit(true)}>
-            <SlidersHorizontal className="size-4" />
+            <VIcon name="settings" size={16} />
             Edit Today
           </Button>
         }
+      />
+      <SignalRail
+        items={[
+          { label: "Readiness", value: "Self-report when you start", state: "next" },
+          {
+            label: "Plan",
+            value: planned ? planned.title : "Recovery day",
+            state: planned ? "current" : "done",
+          },
+          {
+            label: "Current work",
+            value: planned ? "Training scheduled" : "No forced target",
+            state: planned ? "next" : "done",
+          },
+          { label: "Recovery", value: "Adjust from your records", state: "next" },
+        ]}
       />
       {!profile.setup.skipped &&
         !(profile.setup.goals && (!salah.enabled || prayerCfg.items.length > 0)) && (

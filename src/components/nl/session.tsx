@@ -1,15 +1,3 @@
-import {
-  ChevronDown,
-  Flag,
-  MoreHorizontal,
-  Pause,
-  Play,
-  Plus,
-  Repeat,
-  SkipForward,
-  StickyNote,
-  Timer,
-} from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import {
@@ -41,7 +29,6 @@ import {
   placeholderFor,
   previousComparable,
   sessionSummary,
-  suggestionFor,
 } from "@/data/session-logic";
 import type {
   LegacyDayLog,
@@ -54,6 +41,10 @@ import { formatSet, trackingOf } from "@/domain/tracking";
 import { cn } from "@/lib/utils";
 import type { MediaItem } from "@/domain/catalogue";
 import { ExerciseMedia } from "./exercise-media";
+import { suggestAdaptation, type AdaptationSuggestion } from "@/domain/adaptation";
+import { VIcon } from "./icon";
+import { BuddyGuide } from "./buddy-guide";
+import { livePersonalRecord, plateBreakdown, warmupRamp } from "@/domain/training-tools";
 
 const fmtClock = (ms: number) => {
   const s = Math.max(0, Math.round(ms / 1000));
@@ -69,6 +60,29 @@ const updateEx = (s: Session, id: string, f: (e: SessionExercise) => SessionExer
   ...s,
   exercises: s.exercises.map((e) => (e.id === id ? f(e) : e)),
 });
+const removeLastWorking = (sets: SessionSet[]) => {
+  let target = -1;
+  for (let index = sets.length - 1; index >= 0; index--) {
+    if (sets[index]?.kind === "working") {
+      target = index;
+      break;
+    }
+  }
+  return target < 0 ? sets : sets.filter((_, index) => index !== target);
+};
+const keepWorking = (sets: SessionSet[], count: number) => {
+  let seen = 0;
+  return sets.filter((set) => set.kind !== "working" || seen++ < count);
+};
+const applyReadinessPlaceholder = (
+  placeholder: { weightKg?: number; reps?: number; seconds?: number; distanceM?: number },
+  session: Session,
+) =>
+  session.readiness?.decision === "accepted" &&
+  session.readiness.suggestion === "lower_load" &&
+  placeholder.weightKg != null
+    ? { ...placeholder, weightKg: Math.round(placeholder.weightKg * 0.9 * 2) / 2 }
+    : placeholder;
 
 /* ------------------------------ Rest timer bar ------------------------------ */
 export function RestBar({ session, now }: { session: Session; now: number }) {
@@ -86,7 +100,7 @@ export function RestBar({ session, now }: { session: Session; now: number }) {
   const done = (rem ?? 0) === 0;
   return (
     <div className="flex items-center gap-2" role="timer" aria-label="Rest timer">
-      <Timer className="size-5 shrink-0" aria-hidden />
+      <VIcon name="timer" />
       <span className={cn("num min-w-[4.2rem] text-2xl font-semibold tnum", done && "text-spring")}>
         {done ? "Go" : fmtClock(rem ?? 0)}
       </span>
@@ -109,7 +123,7 @@ export function RestBar({ session, now }: { session: Session; now: number }) {
               })
             }
           >
-            {running ? <Pause className="size-4" /> : <Play className="size-4" />}
+            <VIcon name={running ? "pause" : "play"} size={16} />
           </Button>
           <Button
             size="sm"
@@ -134,9 +148,325 @@ export function RestBar({ session, now }: { session: Session; now: number }) {
         variant="ghost"
         onClick={() => saveSession({ ...session, rest: undefined })}
       >
-        <SkipForward className="size-4" />
+        <VIcon name="skip" size={16} />
         {done ? "Dismiss" : "Skip"}
       </Button>
+    </div>
+  );
+}
+
+/* ------------------------------ Gym mode ------------------------------ */
+export function GymMode({
+  session,
+  sessions,
+  now,
+  mediaFor,
+  preferences,
+  music,
+  wake,
+  onExit,
+  onFinish,
+}: {
+  session: Session;
+  sessions: Session[];
+  now: number;
+  mediaFor: (exercise: SessionExercise) => MediaItem | undefined;
+  preferences: { voice: boolean; haptics: boolean; autoMedia: boolean; livePulse?: boolean };
+  music?: { provider: "spotify" | "apple"; url: string };
+  wake: { status: "off" | "active" | "unavailable" | "denied"; retry: () => void };
+  onExit: () => void;
+  onFinish: () => void;
+}) {
+  const firstPending = session.exercises.findIndex((exercise) =>
+    exercise.sets.some((set) => set.kind !== "warmup" && !set.completed && !set.skipped),
+  );
+  const [index, setExerciseIndex] = useState(Math.max(0, firstPending));
+  const [showMedia, setShowMedia] = useState(preferences.autoMedia);
+  const [lastCompleted, setLastCompleted] = useState<{ exerciseId: string; setId: string } | null>(
+    null,
+  );
+  const [note, setNote] = useState(false);
+  const [replace, setReplace] = useState(false);
+  const exercise = session.exercises[Math.min(index, session.exercises.length - 1)]!;
+  const pendingIndex = exercise.sets.findIndex((set) => !set.completed && !set.skipped);
+  const currentSetIndex = pendingIndex >= 0 ? pendingIndex : Math.max(0, exercise.sets.length - 1);
+  const set = exercise.sets[currentSetIndex]!;
+  const previous = previousComparable(exercise, sessions, session.id);
+  const placeholder = placeholderFor(exercise, currentSetIndex, previous);
+  const nextExercise = session.exercises[index + 1];
+  const media = mediaFor(exercise);
+  useEffect(() => {
+    if (pendingIndex < 0 && index < session.exercises.length - 1) {
+      setExerciseIndex(index + 1);
+      setShowMedia(preferences.autoMedia);
+    }
+  }, [pendingIndex, index, session.exercises.length, preferences.autoMedia]);
+  const patch = (change: Partial<SessionSet>) =>
+    saveSession(
+      updateEx(session, exercise.id, (item) => ({
+        ...item,
+        sets: item.sets.map((entry) => (entry.id === set.id ? { ...entry, ...change } : entry)),
+      })),
+    );
+  const complete = async () => {
+    const next = startRest(
+      updateEx(session, exercise.id, (item) => ({
+        ...item,
+        sets: item.sets.map((entry) =>
+          entry.id === set.id
+            ? {
+                ...entry,
+                completed: true,
+                skipped: false,
+                weightKg: entry.weightKg ?? placeholder.weightKg,
+                reps: entry.reps ?? placeholder.reps,
+                seconds: entry.seconds ?? placeholder.seconds,
+              }
+            : entry,
+        ),
+      })),
+      exercise.restSeconds ?? 90,
+    );
+    await saveSession(next);
+    setLastCompleted({ exerciseId: exercise.id, setId: set.id });
+    if (preferences.haptics && navigator.vibrate) navigator.vibrate(80);
+    if (preferences.voice && "speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+      window.speechSynthesis.speak(
+        new SpeechSynthesisUtterance(`Set complete. Rest ${exercise.restSeconds ?? 90} seconds.`),
+      );
+    }
+  };
+  const undo = async () => {
+    if (!lastCompleted) return;
+    await saveSession({
+      ...updateEx(session, lastCompleted.exerciseId, (item) => ({
+        ...item,
+        sets: item.sets.map((entry) =>
+          entry.id === lastCompleted.setId ? { ...entry, completed: false } : entry,
+        ),
+      })),
+      rest: undefined,
+    });
+    setLastCompleted(null);
+  };
+
+  if (session.rest) {
+    return (
+      <div className="gym-mode mx-auto min-h-[calc(100dvh-9rem)] max-w-3xl border-x border-line px-4 py-6 sm:px-8">
+        <div className="flex items-center justify-between border-b border-line pb-4">
+          <button onClick={onExit} className="min-h-11 text-sm font-semibold">
+            Exit heads-up
+          </button>
+          {lastCompleted && (
+            <Button size="sm" variant="ghost" onClick={() => void undo()}>
+              Undo set
+            </Button>
+          )}
+        </div>
+        <p className="eyebrow mt-12 text-center">Rest interval</p>
+        <div className="mt-5 flex justify-center">
+          <RestBar session={session} now={now} />
+        </div>
+        <div className="mx-auto mt-12 max-w-md border-t border-line pt-5 text-center">
+          <p className="eyebrow">Next</p>
+          <p className="mt-2 font-display text-4xl font-semibold">
+            {pendingIndex >= 0 ? exercise.name : (nextExercise?.name ?? "Finish the session")}
+          </p>
+        </div>
+        <div className="mx-auto mt-6 max-w-md text-left">
+          <BuddyGuide
+            compact
+            event={{
+              kind: "rest",
+              seconds: Math.round(session.rest.durationMs / 1000),
+              next: pendingIndex >= 0 ? exercise.name : (nextExercise?.name ?? "finish"),
+            }}
+          />
+        </div>
+        {music && (
+          <a
+            href={music.url}
+            target="_blank"
+            rel="noreferrer noopener"
+            className="mx-auto mt-8 flex min-h-12 w-fit items-center gap-2 border-b border-line px-2 text-sm font-semibold"
+          >
+            <VIcon name={music.provider === "spotify" ? "spotify" : "appleMusic"} />
+            Open {music.provider === "spotify" ? "Spotify" : "Apple Music"}
+          </a>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="gym-mode mx-auto min-h-[calc(100dvh-9rem)] max-w-4xl border-x border-line px-3 py-4 sm:px-8">
+      <header className="flex items-center justify-between gap-3 border-b border-line pb-3">
+        <button onClick={onExit} className="min-h-11 text-sm font-semibold">
+          Exit heads-up
+        </button>
+        <div className="text-right text-xs text-muted-foreground">
+          <p>Screen: {wake.status}</p>
+          {(wake.status === "denied" || wake.status === "off") && (
+            <button className="underline" onClick={wake.retry}>
+              Retry wake lock
+            </button>
+          )}
+          {wake.status === "unavailable" && <p>Use your device’s display setting if needed.</p>}
+          {wake.status === "denied" && (
+            <p>Allow screen wake in browser permissions or continue normally.</p>
+          )}
+        </div>
+        <Button size="sm" variant="danger" onClick={onFinish}>
+          End
+        </Button>
+      </header>
+      {preferences.livePulse && (
+        <div className="border-b border-line py-3 text-sm" role="status">
+          <span className="mr-2 inline-block size-2 bg-primary" aria-hidden />
+          You’re training now. Live aggregate counts are unavailable until authenticated realtime
+          presence is configured—no people or numbers are invented.
+        </div>
+      )}
+      <BuddyGuide compact event={{ kind: "gym_start", exercise: exercise.name }} />
+      <div className="mt-5 grid grid-cols-[1fr_auto_1fr] items-center border-y border-line py-3 text-sm">
+        <button
+          disabled={index === 0}
+          onClick={() => setExerciseIndex((value) => Math.max(0, value - 1))}
+          className="min-h-11 truncate text-left text-muted-foreground disabled:opacity-30"
+        >
+          ← {session.exercises[index - 1]?.name ?? "Start"}
+        </button>
+        <span className="num px-3 text-primary">
+          {index + 1}/{session.exercises.length}
+        </span>
+        <button
+          disabled={index === session.exercises.length - 1}
+          onClick={() =>
+            setExerciseIndex((value) => Math.min(session.exercises.length - 1, value + 1))
+          }
+          className="min-h-11 truncate text-right text-muted-foreground disabled:opacity-30"
+        >
+          {nextExercise?.name ?? "Finish"} →
+        </button>
+      </div>
+      <main className="py-7 text-center">
+        <p className="eyebrow">
+          Current movement · set {currentSetIndex + 1} of {exercise.sets.length}
+        </p>
+        <h1 className="mt-2 font-display text-[clamp(2.8rem,11vw,6rem)] font-semibold leading-[0.9] tracking-[-0.055em]">
+          {exercise.name}
+        </h1>
+        <p className="num mt-4 text-lg text-muted-foreground">
+          {previous
+            ? `Last: ${previous.sets.map((entry) => formatSet(entry, exercise.tracking)).join(" · ")}`
+            : exercise.prescription.schemeText}
+        </p>
+        {showMedia && media && (
+          <div className="mx-auto mt-5 max-w-xl">
+            <ExerciseMedia
+              item={media}
+              alt={`${exercise.name} form demonstration`}
+              className="h-64 w-full"
+              eager
+            />
+          </div>
+        )}
+        <div className="mx-auto mt-7 grid max-w-xl grid-cols-2 gap-3">
+          <NumberField
+            label="Weight"
+            value={set.weightKg}
+            placeholder={placeholder.weightKg?.toString() ?? "0"}
+            onChange={(weightKg) => void patch({ weightKg })}
+            unit="kg"
+            step={exercise.incrementKg ?? 2.5}
+            decimals={1}
+            className="[&_input]:h-20 [&_input]:text-3xl"
+          />
+          <NumberField
+            label="Reps"
+            value={set.reps}
+            placeholder={placeholder.reps?.toString() ?? String(exercise.prescription.repMax)}
+            onChange={(reps) => void patch({ reps })}
+            step={1}
+            decimals={0}
+            className="[&_input]:h-20 [&_input]:text-3xl"
+          />
+          <div className="col-span-2">
+            <Segmented
+              label="Reps in reserve"
+              value={set.rir == null ? "" : String(set.rir)}
+              onChange={(value) => void patch({ rir: Number(value) })}
+              options={["0", "1", "2", "3", "4"].map((value) => ({
+                value,
+                label: value === "4" ? "4+" : value,
+              }))}
+            />
+          </div>
+        </div>
+        <button
+          onClick={() => void complete()}
+          disabled={session.status === "paused"}
+          className="mx-auto mt-7 min-h-24 w-full max-w-xl border border-primary bg-primary px-8 font-display text-3xl font-semibold text-primary-foreground active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100"
+        >
+          {session.status === "paused" ? "Session paused" : "Complete set"}
+        </button>
+        <div className="mx-auto mt-3 flex max-w-xl flex-wrap justify-center gap-1">
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => void patch({ skipped: true, completed: false })}
+          >
+            Skip set
+          </Button>
+          <Button size="sm" variant="ghost" onClick={() => setReplace(true)}>
+            Swap
+          </Button>
+          <Button size="sm" variant="ghost" onClick={() => setNote(true)}>
+            Note
+          </Button>
+          {media && (
+            <Button size="sm" variant="ghost" onClick={() => setShowMedia((value) => !value)}>
+              {showMedia ? "Hide" : "Show"} form
+            </Button>
+          )}
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() =>
+              session.status === "paused" ? resumeSession(session) : pauseSession(session)
+            }
+          >
+            {session.status === "paused" ? "Resume" : "Pause"}
+          </Button>
+        </div>
+      </main>
+      <ReplaceSheet
+        open={replace}
+        onOpenChange={setReplace}
+        ex={exercise}
+        onReplace={(name) => {
+          void saveSession(
+            updateEx(session, exercise.id, (item) => ({
+              ...item,
+              name,
+              substitutedFrom: item.substitutedFrom ?? item.name,
+            })),
+          );
+          setReplace(false);
+        }}
+      />
+      <NoteSheet
+        open={note}
+        onOpenChange={setNote}
+        value={exercise.note ?? ""}
+        onSave={(value) => {
+          void saveSession(
+            updateEx(session, exercise.id, (item) => ({ ...item, note: value || undefined })),
+          );
+          setNote(false);
+        }}
+      />
     </div>
   );
 }
@@ -167,7 +497,11 @@ function SetRow({
   const label =
     set.kind === "warmup"
       ? "Warm-up"
-      : `Set ${ex.sets.slice(0, index + 1).filter((x) => x.kind === "working").length}`;
+      : set.kind === "drop"
+        ? "Drop set"
+        : set.kind === "failure"
+          ? "Failure set"
+          : `Set ${ex.sets.slice(0, index + 1).filter((x) => x.kind === "working").length}`;
   const tr = trackingOf(ex.tracking);
   const canComplete =
     tr === "weight_reps"
@@ -208,11 +542,14 @@ function SetRow({
         </span>
         <Menu
           label={`Options for ${label}`}
-          trigger={<MoreHorizontal className="size-5" />}
+          trigger={<VIcon name="more" />}
           items={[
+            { label: "Working set", onSelect: () => onChange({ kind: "working" }) },
+            { label: "Warm-up set", onSelect: () => onChange({ kind: "warmup" }) },
+            { label: "Drop set", onSelect: () => onChange({ kind: "drop" }) },
             {
-              label: set.kind === "warmup" ? "Count as working set" : "Mark as warm-up",
-              onSelect: () => onChange({ kind: set.kind === "warmup" ? "working" : "warmup" }),
+              label: "Failure set",
+              onSelect: () => onChange({ kind: "failure", rir: 0, rpe: 10 }),
             },
             {
               label: set.skipped ? "Unskip set" : "Skip set",
@@ -301,7 +638,7 @@ function SetRow({
         </p>
       )}
       {showEffort && (
-        <div className="mt-2">
+        <div className="mt-2 grid gap-2 sm:grid-cols-2">
           <Segmented
             label="Reps in reserve"
             value={set.rir == null ? "" : String(set.rir)}
@@ -311,7 +648,12 @@ function SetRow({
               label: x === "4" ? "4+" : x,
             }))}
           />
-          <span className="ml-2 text-xs text-muted-foreground">RIR</span>
+          <Segmented
+            label="Rate of perceived exertion"
+            value={set.rpe == null ? "" : String(set.rpe)}
+            onChange={(v) => onChange({ rpe: Number(v) })}
+            options={["6", "7", "8", "9", "10"].map((x) => ({ value: x, label: x }))}
+          />
         </div>
       )}
     </li>
@@ -345,14 +687,23 @@ export function ExerciseCard({
   const [effort, setEffort] = useState(false);
   const [replace, setReplace] = useState(false);
   const [note, setNote] = useState(false);
+  const [adaptEdit, setAdaptEdit] = useState(false);
   const prev = useMemo(
     () => previousComparable(ex, sessions, session.id),
     [ex, sessions, session.id],
   );
-  const sug = suggestionFor(ex, prev);
+  const adaptation = useMemo(() => suggestAdaptation(ex, sessions, _now), [ex, sessions, _now]);
   const old = !prev ? legacyHint(ex, legacy) : null;
   const working = ex.sets.filter((s) => s.kind === "working");
   const doneCount = working.filter((s) => s.completed).length;
+  const pr = useMemo(
+    () => livePersonalRecord(ex, sessions, session.id),
+    [ex, sessions, session.id],
+  );
+  const toolTarget =
+    adaptation.weightKg ??
+    working.find((set) => set.weightKg != null)?.weightKg ??
+    prev?.sets.find((set) => set.weightKg != null)?.weightKg;
 
   const patchSet = (sid: string, patch: Partial<SessionSet>, completedNow?: boolean) => {
     let next = updateEx(session, ex.id, (e) => ({
@@ -395,17 +746,48 @@ export function ExerciseCard({
               {ex.substitutedFrom ? " · substitute" : ""}
             </span>
           </span>
-          <ChevronDown className={cn("ml-auto size-5 shrink-0 transition", open && "rotate-180")} />
+          <VIcon name="collapse" className={cn("ml-auto transition", open && "rotate-180")} />
         </button>
         <Menu
           label={`Options for ${ex.name}`}
-          trigger={<MoreHorizontal className="size-5" />}
+          trigger={<VIcon name="more" />}
           items={[
             { label: "Replace exercise", onSelect: () => setReplace(true) },
             { label: "Add note", onSelect: () => setNote(true) },
             {
               label: effort ? "Hide effort (RIR)" : "Track effort (RIR)",
               onSelect: () => setEffort((v) => !v),
+            },
+            {
+              label: "Preference: more next time",
+              onSelect: () =>
+                void saveSession(
+                  updateEx(session, ex.id, (item) => ({ ...item, preference: "more" })),
+                ),
+            },
+            {
+              label: "Preference: less next time",
+              onSelect: () =>
+                void saveSession(
+                  updateEx(session, ex.id, (item) => ({ ...item, preference: "less" })),
+                ),
+            },
+            {
+              label: "Preference: never use this",
+              onSelect: () =>
+                void saveSession(
+                  updateEx(session, ex.id, (item) => ({ ...item, preference: "never" })),
+                ),
+            },
+            {
+              label: "Equipment unavailable",
+              onSelect: () =>
+                void saveSession(
+                  updateEx(session, ex.id, (item) => ({
+                    ...item,
+                    preference: "equipment_unavailable",
+                  })),
+                ),
             },
             { label: "Move up", disabled: index === 0, onSelect: () => moveEx(-1) },
             { label: "Move down", disabled: index === total - 1, onSelect: () => moveEx(1) },
@@ -441,11 +823,28 @@ export function ExerciseCard({
           {ex.cue && <p className="px-1 text-sm text-muted-foreground">{ex.cue}</p>}
           {ex.note && (
             <p className="rounded-xl bg-surface-2 px-3 py-2 text-sm">
-              <StickyNote className="mr-1.5 inline size-3.5" />
+              <VIcon name="note" size={16} className="mr-1.5 inline" />
               {ex.note}
             </p>
           )}
+          {ex.preference && (
+            <p className="border-l-2 border-warm pl-3 text-xs text-muted-foreground">
+              Saved preference: {ex.preference.replaceAll("_", " ")}. This will inform the next
+              suggestion.
+            </p>
+          )}
           <div className="rounded-2xl bg-surface-2/60 px-3 py-2.5 text-sm">
+            {pr && (
+              <p
+                className="mb-2 border-l-2 border-primary pl-3 font-semibold text-primary"
+                role="status"
+              >
+                Estimated strength best: {pr.current} kg e1RM
+                {pr.improvement
+                  ? ` · +${pr.improvement.toFixed(1)} kg`
+                  : " · first recorded baseline"}
+              </p>
+            )}
             {prev ? (
               <p className="tnum">
                 <span className="text-muted-foreground">Last time ({prev.date}):</span>{" "}
@@ -459,36 +858,79 @@ export function ExerciseCard({
             ) : (
               <p className="text-muted-foreground">No earlier session for this exercise.</p>
             )}
-            {sug.kind === "increase" && (
-              <div className="mt-2 flex flex-wrap items-center gap-2">
-                <Chip tone="ok">Suggestion</Chip>
-                <span>
-                  {sug.reason} Try {sug.toKg} kg.
-                </span>
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  onClick={() =>
-                    void saveSession(
-                      updateEx(session, ex.id, (e) => ({
-                        ...e,
-                        sets: e.sets.map((s) =>
-                          s.kind === "working" && !s.completed
-                            ? { ...s, weightKg: sug.toKg, suggested: true }
-                            : s,
-                        ),
-                      })),
-                    )
-                  }
-                >
-                  Use {sug.toKg} kg
-                </Button>
-              </div>
-            )}
-            {sug.kind === "hold" && <p className="mt-1.5 text-muted-foreground">{sug.reason}</p>}
-            {sug.kind === "none" && prev && (
-              <p className="mt-1.5 text-muted-foreground">{sug.reason}</p>
-            )}
+            <AdaptationBox
+              exercise={ex.name}
+              suggestion={adaptation}
+              decision={ex.adaptation}
+              onAccept={() => {
+                if (adaptation.action === "swap") return setReplace(true);
+                const next = updateEx(session, ex.id, (exercise) => {
+                  const sets =
+                    adaptation.action === "reduce_set"
+                      ? removeLastWorking(exercise.sets)
+                      : exercise.sets.map((set) =>
+                          set.kind === "working" && !set.completed && adaptation.weightKg != null
+                            ? { ...set, weightKg: adaptation.weightKg, suggested: true }
+                            : set,
+                        );
+                  return {
+                    ...exercise,
+                    sets,
+                    adaptation: {
+                      id: newId(),
+                      action: adaptation.action,
+                      status: "accepted",
+                      reason: adaptation.reason,
+                      suggestedWeightKg: adaptation.weightKg,
+                      appliedWeightKg: adaptation.weightKg,
+                      suggestedSets: adaptation.sets,
+                      appliedSets: adaptation.sets,
+                      decidedAt: Date.now(),
+                    },
+                  };
+                });
+                void saveSession(next);
+              }}
+              onModify={() => setAdaptEdit(true)}
+              onDismiss={() =>
+                void saveSession(
+                  updateEx(session, ex.id, (exercise) => ({
+                    ...exercise,
+                    adaptation: {
+                      id: newId(),
+                      action: adaptation.action,
+                      status: "dismissed",
+                      reason: adaptation.reason,
+                      suggestedWeightKg: adaptation.weightKg,
+                      suggestedSets: adaptation.sets,
+                      decidedAt: Date.now(),
+                    },
+                  })),
+                )
+              }
+            />
+            {ex.tracking === "weight_reps" && toolTarget && toolTarget > 0 ? (
+              <TrainingCalculators
+                targetKg={toolTarget}
+                barbell={ex.equipment?.toLowerCase().includes("barbell") ?? false}
+                hasWarmups={ex.sets.some((set) => set.kind === "warmup")}
+                onAddWarmups={() => {
+                  const warmups = warmupRamp(toolTarget).map((set) => ({
+                    ...set,
+                    id: newId(),
+                    completed: false,
+                    skipped: false,
+                  }));
+                  void saveSession(
+                    updateEx(session, ex.id, (exercise) => ({
+                      ...exercise,
+                      sets: [...warmups, ...exercise.sets],
+                    })),
+                  );
+                  toast.success("Warm-up ramp added");
+                }}
+              />
+            ) : null}
           </div>
           <ul className="grid gap-2">
             {ex.sets.map((s, i) => (
@@ -497,7 +939,7 @@ export function ExerciseCard({
                 ex={ex}
                 index={i}
                 set={s}
-                ph={placeholderFor(ex, i, prev)}
+                ph={applyReadinessPlaceholder(placeholderFor(ex, i, prev), session)}
                 showEffort={effort}
                 onChange={(p, c) => patchSet(s.id, p, c)}
                 onRemove={() =>
@@ -524,7 +966,7 @@ export function ExerciseCard({
                 )
               }
             >
-              <Plus className="size-4" />
+              <VIcon name="add" size={16} />
               Add set
             </Button>
             <Button
@@ -556,6 +998,16 @@ export function ExerciseCard({
               name,
               substitutedFrom: e.substitutedFrom ?? e.name,
               templateExerciseId: undefined,
+              adaptation:
+                adaptation.action === "swap" && !e.adaptation
+                  ? {
+                      id: newId(),
+                      action: "swap",
+                      status: "accepted",
+                      reason: adaptation.reason,
+                      decidedAt: Date.now(),
+                    }
+                  : e.adaptation,
             })),
           );
           setReplace(false);
@@ -571,7 +1023,192 @@ export function ExerciseCard({
           setNote(false);
         }}
       />
+      <AdaptationEditSheet
+        open={adaptEdit}
+        onOpenChange={setAdaptEdit}
+        suggestion={adaptation}
+        currentSets={working.length}
+        onSave={(weight, sets) => {
+          void saveSession(
+            updateEx(session, ex.id, (exercise) => ({
+              ...exercise,
+              sets: keepWorking(exercise.sets, sets).map((set) =>
+                set.kind === "working" && !set.completed && weight != null
+                  ? { ...set, weightKg: weight, suggested: true }
+                  : set,
+              ),
+              adaptation: {
+                id: newId(),
+                action: adaptation.action,
+                status: "modified",
+                reason: adaptation.reason,
+                suggestedWeightKg: adaptation.weightKg,
+                appliedWeightKg: weight,
+                suggestedSets: adaptation.sets,
+                appliedSets: sets,
+                decidedAt: Date.now(),
+              },
+            })),
+          );
+          setAdaptEdit(false);
+        }}
+      />
     </section>
+  );
+}
+
+function TrainingCalculators({
+  targetKg,
+  barbell,
+  hasWarmups,
+  onAddWarmups,
+}: {
+  targetKg: number;
+  barbell: boolean;
+  hasWarmups: boolean;
+  onAddWarmups: () => void;
+}) {
+  const ramp = warmupRamp(targetKg);
+  const plates = plateBreakdown(targetKg);
+  return (
+    <details className="mt-3 border-t border-line pt-2">
+      <summary className="min-h-11 cursor-pointer py-2 font-semibold">
+        Warm-up & plate tools
+      </summary>
+      <div className="grid gap-3 pb-2 text-sm">
+        <div>
+          <p className="text-muted-foreground">Warm-up estimate for a {targetKg} kg working set</p>
+          <p className="num mt-1">
+            {ramp.map((set) => `${set.weightKg} kg × ${set.reps}`).join(" · ")}
+          </p>
+          <Button size="sm" className="mt-2" disabled={hasWarmups} onClick={onAddWarmups}>
+            {hasWarmups ? "Warm-ups already added" : "Add warm-up sets"}
+          </Button>
+        </div>
+        {barbell && (
+          <div className="border-l-2 border-line pl-3">
+            <p className="text-muted-foreground">Plates per side · assumes a 20 kg bar</p>
+            <p className="num mt-1">
+              {plates.plates.length
+                ? plates.plates.map((plate) => `${plate.countPerSide} × ${plate.kg} kg`).join(" + ")
+                : "Bar only"}
+              {plates.remainderPerSide > 0
+                ? ` · ${plates.remainderPerSide} kg unavailable per side`
+                : ""}
+            </p>
+          </div>
+        )}
+      </div>
+    </details>
+  );
+}
+
+function AdaptationBox({
+  exercise,
+  suggestion,
+  decision,
+  onAccept,
+  onModify,
+  onDismiss,
+}: {
+  exercise: string;
+  suggestion: AdaptationSuggestion;
+  decision?: SessionExercise["adaptation"];
+  onAccept: () => void;
+  onModify: () => void;
+  onDismiss: () => void;
+}) {
+  if (decision)
+    return (
+      <p className="mt-2 border-t border-line pt-2 text-xs text-muted-foreground">
+        Adaptation {decision.status}: {decision.reason}
+      </p>
+    );
+  return (
+    <div className="mt-3 border-l-2 border-primary pl-3">
+      <BuddyGuide compact event={{ kind: "adaptation", exercise, reason: suggestion.reason }} />
+      <div className="flex flex-wrap items-center gap-2">
+        <Chip tone={suggestion.action === "hold" ? "neutral" : "ok"}>Adaptation</Chip>
+        <span className="text-xs uppercase tracking-wide text-muted-foreground">
+          {suggestion.confidence} · {suggestion.observations} observations
+        </span>
+      </div>
+      <p className="mt-1.5">{suggestion.reason}</p>
+      {(suggestion.weightKg != null || suggestion.sets != null) && (
+        <p className="num mt-1 text-sm text-primary">
+          {suggestion.weightKg != null ? `${suggestion.weightKg} kg` : ""}
+          {suggestion.weightKg != null && suggestion.sets != null ? " · " : ""}
+          {suggestion.sets != null ? `${suggestion.sets} sets` : ""}
+        </p>
+      )}
+      {suggestion.action !== "hold" && (
+        <div className="mt-2 flex flex-wrap gap-1">
+          <Button size="sm" variant="secondary" onClick={onAccept}>
+            Accept
+          </Button>
+          <Button size="sm" variant="ghost" onClick={onModify}>
+            Modify
+          </Button>
+          <Button size="sm" variant="ghost" onClick={onDismiss}>
+            Dismiss
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function AdaptationEditSheet({
+  open,
+  onOpenChange,
+  suggestion,
+  currentSets,
+  onSave,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  suggestion: AdaptationSuggestion;
+  currentSets: number;
+  onSave: (weight: number | undefined, sets: number) => void;
+}) {
+  const [weight, setWeight] = useState<number | undefined>();
+  const [sets, setSets] = useState(currentSets);
+  useEffect(() => {
+    if (open) {
+      setWeight(suggestion.weightKg);
+      setSets(suggestion.sets ?? currentSets);
+    }
+  }, [open, suggestion.weightKg, suggestion.sets, currentSets]);
+  return (
+    <Sheet
+      open={open}
+      onOpenChange={onOpenChange}
+      title="Modify adaptation"
+      description="Your value wins. The original suggestion and your modification are both retained in this session."
+      footer={
+        <Button variant="primary" className="w-full" onClick={() => onSave(weight, sets)}>
+          Use my targets
+        </Button>
+      }
+    >
+      <div className="grid gap-4 pb-3">
+        <NumberField
+          label="Target weight"
+          value={weight}
+          onChange={setWeight}
+          unit="kg"
+          step={0.5}
+          decimals={1}
+        />
+        <NumberField
+          label="Working sets"
+          value={sets}
+          onChange={(value) => setSets(Math.max(1, Math.min(currentSets, value ?? currentSets)))}
+          step={1}
+          decimals={0}
+        />
+      </div>
+    </Sheet>
   );
 }
 
@@ -609,7 +1246,7 @@ function ReplaceSheet({
       <div className="grid gap-4 pb-2">
         {alt && (
           <Button variant="secondary" onClick={() => onReplace(alt)}>
-            <Repeat className="size-4" />
+            <VIcon name="replace" size={16} />
             Use {alt}
           </Button>
         )}
@@ -677,25 +1314,36 @@ export function SessionHeader({ session, now }: { session: Session; now: number 
           <h1 className="display-title text-3xl md:text-4xl">{session.templateName}</h1>
         </div>
         <div className="flex items-center gap-3">
-          <span className="num text-3xl font-semibold tnum" role="timer" aria-label="Session time">
-            {fmtClock(sessionElapsedMs(session, now))}
-          </span>
-          <Button
-            variant="secondary"
-            onClick={() => (paused ? resumeSession(session) : pauseSession(session))}
-          >
-            {paused ? (
-              <>
-                <Play className="size-4" />
-                Resume
-              </>
-            ) : (
-              <>
-                <Pause className="size-4" />
-                Pause
-              </>
-            )}
-          </Button>
+          <div className="text-right">
+            <span
+              className="num block text-3xl font-semibold tnum"
+              role="timer"
+              aria-label="Session time"
+            >
+              {fmtClock(sessionElapsedMs(session, now))}
+            </span>
+            {!session.readiness?.decision ? (
+              <span className="text-xs text-foreground/70">Starts after check-in</span>
+            ) : null}
+          </div>
+          {session.readiness?.decision ? (
+            <Button
+              variant="secondary"
+              onClick={() => (paused ? resumeSession(session) : pauseSession(session))}
+            >
+              {paused ? (
+                <>
+                  <VIcon name="play" size={16} />
+                  Resume
+                </>
+              ) : (
+                <>
+                  <VIcon name="pause" size={16} />
+                  Pause
+                </>
+              )}
+            </Button>
+          ) : null}
         </div>
       </div>
     </Panel>
@@ -752,7 +1400,7 @@ export function FinishSheet({
             onDone();
           }}
         >
-          <Flag className="size-4" />
+          <VIcon name="finish" size={16} />
           Complete workout
         </Button>
         <Button

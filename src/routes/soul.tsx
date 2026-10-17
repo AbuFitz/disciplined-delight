@@ -1,34 +1,37 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { MoonStar } from "lucide-react";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { MindHistory, PrivacyNote, ReflectPanel } from "@/components/nl/mind";
 import { Button, PageHeader, Panel, Skeleton } from "@/components/nl/ui";
 import { useSalahEnabled } from "@/data/agenda";
-import { useNow, useToday } from "@/data/hooks";
+import { useNow, useProfile, useToday } from "@/data/hooks";
 import { usePrayer } from "@/data/prayer-hooks";
 import { setSalahEnabled } from "@/data/routine-actions";
 import { formatClock, localMinutes } from "@/domain/dates";
 import { PRAYER_LABEL, PRAYERS, nextPrayer } from "@/domain/prayer";
+import { hasIslamicPrayerPack, resolveFaithProfile } from "@/domain/faith";
+import { VIcon } from "@/components/nl/icon";
 
 export const Route = createFileRoute("/soul")({ component: SoulPage });
 
 function SoulPage() {
-  const nav = useNavigate();
   const now = useNow(30_000);
   const date = useToday();
   const salah = useSalahEnabled();
   const prayer = usePrayer(now);
-  if (!salah.ready || !prayer.ready) return <Skeleton className="h-64" />;
+  const { profile, ready: profileReady } = useProfile();
+  if (!salah.ready || !prayer.ready || !profileReady || !profile)
+    return <Skeleton className="h-64" />;
+  const prayerPack = hasIslamicPrayerPack(resolveFaithProfile(profile));
   const todayLogged = prayer.logs.filter((l) => l.date === prayer.today).length;
   const next = prayer.configured ? nextPrayer(now, prayer.lookup, prayer.tz) : null;
   void localMinutes;
   return (
     <>
       <PageHeader
-        eyebrow="Soul"
-        title="Still point"
-        sub="Optional prayer routines and quiet reflection."
+        eyebrow="Faith & reflection"
+        title="A private pause"
+        sub="Your selected practices and quiet reflection. No tradition is assumed."
       />
-      {salah.enabled ? (
+      {prayerPack && salah.enabled ? (
         <Panel aria-label="Salah" className="mb-4">
           <div className="flex items-start justify-between gap-3">
             <p className="eyebrow">Salah</p>
@@ -79,28 +82,22 @@ function SoulPage() {
             <PrivacyNote what="Your prayer record" />
           </div>
         </Panel>
-      ) : (
-        <Panel aria-label="Salah is optional" className="mb-4">
-          <MoonStar className="size-6 text-primary" aria-hidden />
-          <h2 className="mt-2 font-display text-2xl font-bold">Salah is optional</h2>
+      ) : prayerPack ? (
+        <Panel aria-label="Islamic prayer practice" className="mb-4">
+          <VIcon name="spirituality" size={24} className="text-primary" />
+          <h2 className="mt-2 font-display text-2xl font-bold">Islamic prayer practice</h2>
           <p className="mt-1 max-w-prose text-sm text-muted-foreground">
             If you pray, VAYVOR can show prayer times on Today, remind you and keep a private
             record. If not, nothing about prayer appears anywhere.
           </p>
           <div className="mt-4 flex flex-wrap gap-2">
-            <Button
-              variant="primary"
-              onClick={async () => {
-                await setSalahEnabled(true);
-                nav({ to: "/salah" });
-              }}
-            >
+            <Button variant="primary" onClick={() => void setSalahEnabled(true)}>
               Turn on Salah
             </Button>
             <Button onClick={() => void setSalahEnabled(false)}>Not for me</Button>
           </div>
         </Panel>
-      )}
+      ) : null}
       <ReflectPanel date={date} space="soul" />
       <div className="mt-6">
         <MindHistory space="soul" kinds={["reflection"]} />

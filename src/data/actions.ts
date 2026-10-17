@@ -11,6 +11,7 @@ import {
   type WorkoutTemplate,
   type PrayerLog,
   type WeighIn,
+  type ProgramRevision,
 } from "./types";
 import { defaultIncrementKg } from "@/domain/progression";
 import { localDate, DEFAULT_TZ, type ISODate } from "@/domain/dates";
@@ -42,6 +43,7 @@ export function exerciseFromTemplate(t: WorkoutTemplate["exercises"][number]): S
     superset: t.superset,
     prescription: { sets: t.sets, repMin: t.repMin, repMax: t.repMax, schemeText: t.schemeText },
     equipment: t.equipment,
+    muscle: t.muscle,
     incrementKg: defaultIncrementKg(t.equipment),
     restSeconds: t.restSeconds,
     alternative: t.alternative,
@@ -109,8 +111,9 @@ export async function discardSession(id: string) {
 
 /** Time spent in a session, excluding pauses. */
 export function sessionElapsedMs(s: Session, now = Date.now()): number {
+  if (!s.workStartedAt && !s.readiness?.decision && !s.endedAt) return 0;
   const end = s.endedAt ?? (s.status === "paused" && s.pausedAt ? s.pausedAt : now);
-  return Math.max(0, end - s.startedAt - s.pausedMs);
+  return Math.max(0, end - (s.workStartedAt ?? s.startedAt) - s.pausedMs);
 }
 
 /* ------------------------------ Rest timer (timestamp based) ------------------------------ */
@@ -232,6 +235,44 @@ export function resolveLayout(saved?: TodayLayout): TodayLayout["widgets"] {
 export const saveLayout = (widgets: TodayLayout["widgets"]) =>
   put(COL.layout, "today", { id: "today", widgets } satisfies TodayLayout);
 export const resetLayout = () => remove(COL.layout, "today");
+
+/* ------------------------------ Programme revisions ------------------------------ */
+export async function saveTemplateRevision(
+  before: WorkoutTemplate,
+  after: WorkoutTemplate,
+  reason: string,
+  source: ProgramRevision["source"] = "manual",
+) {
+  const revision: ProgramRevision = {
+    id: newId(),
+    templateId: before.id,
+    createdAt: Date.now(),
+    source,
+    reason,
+    before,
+    after,
+  };
+  await put(COL.programRevisions, revision.id, revision);
+  await put(COL.templates, after.id, after);
+  return revision;
+}
+
+export async function restoreTemplateRevision(revision: ProgramRevision) {
+  const current = await get<WorkoutTemplate>(COL.templates, revision.templateId);
+  if (current) {
+    const id = newId();
+    await put(COL.programRevisions, id, {
+      id,
+      templateId: current.id,
+      createdAt: Date.now(),
+      source: "manual",
+      reason: `Before restoring version from ${new Date(revision.createdAt).toLocaleDateString("en-GB")}`,
+      before: current,
+      after: revision.before,
+    } satisfies ProgramRevision);
+  }
+  await put(COL.templates, revision.before.id, revision.before);
+}
 
 /* ------------------------------ Meal planning ------------------------------ */
 import type { DayTemplate, Batch } from "./types";
