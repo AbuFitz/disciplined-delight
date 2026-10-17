@@ -1,0 +1,508 @@
+/* Setup journey: one quiet canvas, ruled rows, a ledger progress map. Mobile first; desktop adds a rail. */
+.jr {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--background);
+  color: var(--foreground);
+}
+.jr-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: calc(0.5rem + var(--safe-top, 0px)) 1rem 0.5rem;
+}
+.jr-skip {
+  min-height: 44px;
+  padding: 0 0.25rem;
+  font-size: 0.85rem;
+  color: var(--muted-foreground);
+  background: none;
+  border: 0;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  cursor: pointer;
+}
+.jr-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.jr-rail {
+  display: none;
+}
+
+/* Progress map: one tick per screen. Done ticks are inked in the accent. */
+.jr-map {
+  padding: 0 1rem 0.25rem;
+}
+.jr-ticks {
+  display: flex;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.jr-tick {
+  position: relative;
+  flex: 1;
+  height: 4px;
+  background: var(--line);
+  overflow: hidden;
+}
+.jr-tick::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--primary);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.5s cubic-bezier(0.3, 0.7, 0.2, 1);
+}
+.jr-tick[data-state="done"]::after {
+  transform: scaleX(1);
+}
+.jr-tick[data-state="current"]::after {
+  transform: scaleX(0.5);
+}
+@media (prefers-reduced-motion: reduce) {
+  .jr-tick::after {
+    transition: none;
+  }
+}
+.jr-count {
+  margin: 0.45rem 0 0;
+  font-size: 0.78rem;
+  color: var(--muted-foreground);
+}
+
+.jr-main {
+  flex: 1;
+  width: 100%;
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: 1rem 1rem 1.5rem;
+}
+.jr-hint {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5rem;
+  min-height: 2.5rem;
+  color: var(--muted-foreground);
+  font-size: 0.85rem;
+}
+.jr-h1 {
+  margin: 0.75rem 0 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.75rem, 7.5vw, 2.5rem);
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  outline: none;
+  overflow-wrap: anywhere;
+}
+.jr-lead {
+  margin: 0.6rem 0 0;
+  font-size: 1rem;
+  color: var(--muted-foreground);
+}
+.jr-why {
+  margin-top: 0.75rem;
+  font-size: 0.88rem;
+}
+.jr-why summary {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  cursor: pointer;
+  color: var(--muted-foreground);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.jr-why p {
+  margin: 0 0 0.5rem;
+  padding-left: 0.75rem;
+  border-left: 2px solid var(--primary);
+  color: var(--muted-foreground);
+}
+
+/* Ruled option rows */
+.jr-rows {
+  margin: 1rem 0 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+.jr-rows > legend {
+  padding: 0;
+}
+.jr-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+  min-height: 60px;
+  padding: 0.8rem 0.25rem;
+  border-top: 1px solid var(--line);
+  cursor: pointer;
+  position: relative;
+}
+.jr-rows > .jr-row:last-of-type,
+.jr-rows > :last-child.jr-row {
+  border-bottom: 1px solid var(--line);
+}
+.jr-row:has(input:focus-visible) {
+  outline: 2px solid var(--ring);
+  outline-offset: -2px;
+}
+.jr-mark {
+  flex: none;
+  margin-top: 0.2rem;
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 1.5px solid var(--muted-foreground);
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+}
+.jr-row[data-type="check"] .jr-mark {
+  border-radius: 4px;
+}
+.jr-row[data-on="true"] .jr-mark {
+  border-color: var(--primary);
+  background: var(--primary);
+}
+.jr-row[data-on="true"] .jr-mark::after {
+  content: "";
+  width: 0.45rem;
+  height: 0.7rem;
+  border: solid var(--primary-foreground);
+  border-width: 0 2px 2px 0;
+  transform: translateY(-1px) rotate(45deg);
+}
+.jr-row[data-on="true"]::before {
+  content: "";
+  position: absolute;
+  left: -1rem;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--primary);
+}
+.jr-row-title {
+  display: block;
+  font-size: 1.05rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+.jr-row-text {
+  display: block;
+  margin-top: 0.15rem;
+  font-size: 0.86rem;
+  color: var(--muted-foreground);
+}
+
+/* Day cells and chips */
+.jr-days {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.35rem;
+  margin: 1.25rem 0 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+.jr-day {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 3.4rem;
+  border: 1px solid var(--line);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.jr-day[data-on="true"] {
+  background: var(--primary);
+  color: var(--primary-foreground);
+  border-color: var(--primary);
+}
+.jr-day:has(input:focus-visible) {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+.jr-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0.75rem 0 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+.jr-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  max-width: 100%;
+  padding: 0 0.9rem;
+  border: 1px solid var(--line);
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.jr-chip[data-on="true"] {
+  background: var(--primary);
+  color: var(--primary-foreground);
+  border-color: var(--primary);
+}
+.jr-chip:has(input:focus-visible) {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+.jr-field {
+  display: grid;
+  gap: 0.35rem;
+  margin-top: 1.1rem;
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+.jr-field textarea,
+.jr-field input[type="text"] {
+  width: 100%;
+  min-height: 44px;
+  padding: 0.6rem 0.75rem;
+  font: inherit;
+  font-weight: 400;
+  color: var(--foreground);
+  background: var(--surface-2);
+  border: 1px solid var(--input, var(--line));
+  border-radius: 4px;
+}
+.jr-note {
+  margin-top: 0.75rem;
+  padding-left: 0.75rem;
+  border-left: 2px solid var(--warn, var(--primary));
+  font-size: 0.88rem;
+}
+.jr-sub {
+  margin: 1.5rem 0 0;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+/* Plan preview and review */
+.jr-plan {
+  margin: 1rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+.jr-plan li {
+  display: grid;
+  grid-template-columns: 3.2rem minmax(0, 1fr);
+  gap: 0.75rem;
+  padding: 0.7rem 0;
+  border-top: 1px solid var(--line);
+}
+.jr-plan li:last-child {
+  border-bottom: 1px solid var(--line);
+}
+.jr-plan b {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+}
+.jr-plan small {
+  display: block;
+  color: var(--muted-foreground);
+}
+.jr-list {
+  margin: 0.75rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+.jr-list li {
+  position: relative;
+  padding: 0.35rem 0 0.35rem 1rem;
+  font-size: 0.92rem;
+}
+.jr-list li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.95em;
+  width: 0.5rem;
+  height: 2px;
+  background: var(--primary);
+}
+.jr-review {
+  margin: 0.75rem 0 0;
+  padding: 0;
+}
+.jr-review > div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  column-gap: 0.5rem;
+  align-items: center;
+  min-height: 52px;
+  padding: 0.35rem 0;
+  border-top: 1px solid var(--line);
+}
+.jr-review > div:last-child {
+  border-bottom: 1px solid var(--line);
+}
+.jr-review dt {
+  grid-column: 1;
+  font-size: 0.74rem;
+  color: var(--muted-foreground);
+}
+.jr-review dd {
+  grid-column: 1;
+  margin: 0;
+  font-size: 0.95rem;
+  overflow-wrap: anywhere;
+}
+.jr-review .jr-link {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+}
+.jr-link {
+  min-height: 44px;
+  padding: 0 0.4rem;
+  font-size: 0.85rem;
+  color: var(--foreground);
+  background: none;
+  border: 0;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  cursor: pointer;
+}
+.jr-skel {
+  height: 4.5rem;
+  margin-top: 0.75rem;
+  background: var(--surface-2);
+  animation: jr-pulse 1.4s ease-in-out infinite;
+}
+@keyframes jr-pulse {
+  50% {
+    opacity: 0.55;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .jr-skel {
+    animation: none;
+  }
+}
+
+/* Action bar: in flow at the end of the screen on tall content, sticky to the thumb zone otherwise */
+.jr-bar {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem calc(0.75rem + var(--safe-bottom, 0px));
+  background: var(--background);
+  border-top: 1px solid var(--line);
+}
+.jr-bar-in {
+  display: flex;
+  width: 100%;
+  max-width: 40rem;
+  margin: 0 auto;
+  gap: 0.75rem;
+}
+.jr-btn {
+  min-height: 52px;
+  padding: 0 1.25rem;
+  font: inherit;
+  font-weight: 700;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.jr-btn-ghost {
+  flex: 0 0 auto;
+  background: none;
+  border: 1px solid var(--line);
+  color: var(--foreground);
+}
+.jr-btn-primary {
+  flex: 1;
+  background: var(--primary);
+  border: 1px solid var(--primary);
+  color: var(--primary-foreground);
+}
+.jr-btn[disabled] {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.jr-btn:focus-visible,
+.jr-skip:focus-visible,
+.jr-link:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+.jr-error {
+  margin-top: 0.75rem;
+  color: var(--destructive);
+  font-size: 0.9rem;
+}
+
+/* Wider screens: the same journey with a ledger rail on the left */
+@media (min-width: 900px) {
+  .jr-body {
+    flex-direction: row;
+  }
+  .jr-rail {
+    display: block;
+    flex: none;
+    width: 15rem;
+    padding: 2rem 1.5rem;
+    border-right: 1px solid var(--line);
+  }
+  .jr-rail ol {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    position: sticky;
+    top: 2rem;
+  }
+  .jr-rail li {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-height: 44px;
+    font-size: 0.9rem;
+    color: var(--muted-foreground);
+    border-left: 2px solid var(--line);
+    padding-left: 0.9rem;
+  }
+  .jr-rail li[data-state="done"] {
+    color: var(--foreground);
+    border-left-color: var(--primary);
+  }
+  .jr-rail li[data-state="current"] {
+    color: var(--foreground);
+    font-weight: 700;
+    border-left-color: var(--primary);
+  }
+  .jr-map {
+    display: none;
+  }
+  .jr-col {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .jr-main {
+    padding-top: 2rem;
+  }
+  .jr-bar {
+    position: static;
+    border-top: 0;
+    padding-top: 0;
+  }
+}
