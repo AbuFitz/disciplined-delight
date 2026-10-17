@@ -81,3 +81,12 @@ and can mark it `curated: "new" | "some"`.
   person (the author of this change); it has **not** been reviewed by a coach. Rebuild with
   `bun scripts/catalogue/cli.ts build` after editing the file; `build --dry-run` shows what would change.
 - Adding to the curated set is a deliberate edit to that file, with a pattern, equipment and tracking that you have checked.
+
+## Licensed motion bundle: exact requirements
+
+`npm run catalogue:repdb:motion -- --source <dir> --license-file <file>` installs motion only
+from a bundle you have licensed. It requires: at least 100 `.webp`, `.mp4` or `.webm` motion files
+(preview/sample folders such as `premium-samples` are refused; `-start`/`-peak` stills are
+ignored); file names matching a catalogue RepDB slug (optionally suffixed `-animation`,
+`-animated` or `-loop`); and a non-empty licence or purchase record whose hash is stored. Until
+then every exercise shows stills or "illustrated steps" and is never labelled as motion.

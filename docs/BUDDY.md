@@ -1,28 +1,73 @@
-# Buddy: character, interaction and state specification
+# Buddy: what ships
 
-## Character and voice
+Buddy is an optional companion. It is not a therapist, authority figure or open-ended chatbot,
+and no language model is involved: every line is chosen by a deterministic brain from status
+signals.
 
-Buddy is an optional VAYVOR companion, not a therapist, authority figure or open-ended chatbot. The visual direction is an ownable, ungendered and culturally neutral silhouette that reads at 64–160 px in dark and light themes. It should feel mature and premium—never babyish, anime, humanoid-gendered or robotic. The first exploratory ImageGen sheet is explicitly rejected as final production art and is not included in the app.
+## Character
 
-Voice is concise, autonomy-supportive and factual. It offers one achievable choice, explains why, and never shames, diagnoses, invents health claims, implies a relationship, infers faith, or treats a missed day as a broken streak. Approved tones are quiet, direct and warm; all share the same safety rules.
+Three original SVG characters, drawn in this repository (`src/components/buddy/BuddyCharacter.tsx`)
+and sharing one rig of eyes, mouth, two arms, accessories and a ledger baseline:
 
-## Interaction model
+- **Bell**: a kettlebell with a face. Steady and compact.
+- **Cairn**: three balanced stones. Patient; the cap stone wobbles when it thinks.
+- **Plate**: a weight plate with a rim, tick marks and a bar hole. Round and rolling.
 
-- During setup, Buddy explains why the current question exists and which downstream choice it changes. Back, skip and edit-later remain visible. The final step previews the selected fit; safety-relevant answers switch to a non-diagnostic clinician/qualified-trainer gate.
-- After setup, the deterministic state machine surfaces at most one next action from coarse app state. It can link to a relevant screen; it cannot hold an open-ended conversation.
-- The state priority is sync/error, offline, active workout, completion/milestone, planned workout, meal planning, focus, recovery, idle. Module permissions and quiet hours are checked before any message.
-- Status-only privacy means Buddy cannot read journal or prayer content, health notes, passwords/tokens, account content or workout notes.
+Colour is `--primary` from the selected colour world (or a fixed world if the person picks one),
+so light and dark both stay legible. There is no raster art, no stock asset and no AI-generated art.
 
-## Curated customisation
+## Animation state machine
 
-People can choose a name; one of three base forms (orb, totem, spark); mint, amber or violet contrast-safe palettes; calm, bright or focused expression; quiet/direct/warm tone; low/medium/high energy; off/gentle/full motion; off/subtle/full celebration; setup/dashboard/on-demand placement; topic permissions; and quiet hours. A live preview and reset are available. Core choices are never paywalled. Future accessories may acknowledge positive milestones, but must never be tied to streak punishment.
+`src/domain/buddy/state.ts` is pure and tested. 13 states: enter, idle, breathe, listen, think,
+explain, point, encourage, celebrate, recover, rest, error, offline. Each has a distinct *static*
+pose (eyes, mouth, arms, accessory, lean), so state is visible with motion off. Transient states
+settle back to a base state; higher-priority states (error, celebrate, recover) are not displaced
+by lower ones.
 
-The current shapes are CSS integration primitives, not final character art. Production state art should be commissioned only after this inventory is approved: idle, listening/setup-guide, explaining-why, conflict-repair, active, planned, celebration, recovery, offline and sync-attention. Every animated state needs a static reduced-motion equivalent and screen-reader text.
+Motion levels: Still (poses only), Gentle (breathing, blinking), Lively (full). Reduced-motion
+preference always forces Still. All animation is transform/opacity only, pauses off-screen and in
+background tabs (`data-live`), and is gated by `prefers-reduced-motion: no-preference`.
 
-# Contextual integration map
+## Context awareness
 
-Buddy is not a floating chatbot or pseudo-therapist. `companion-guidance.ts` selects one deterministic, real-state intervention for readiness review, adaptation review, Gym Mode start/rest, return after a gap, library save, completion or missed-session recovery. Readiness and Gym Mode are integrated now; adaptation explanations appear beside the underlying suggestion.
+`src/domain/buddy/brain.ts` maps the screen and status signals to a scene, state, short line,
+panel text, tips and one action: first run, onboarding, Today, plan setup, Library, readiness,
+low readiness, next exercise, form cue, rest, personal best, workout done, missed-session
+recovery, reflection, help, empty, error, offline and quiet hours. Inputs are status only:
+planned/active/completed workouts, sync state, online state, set counts. It never reads notes,
+journal text, health text or faith settings.
 
-Configuration gates every intervention by enabled state, training module permission, placement, intervention frequency, quiet hours, snooze/dismiss history and the existing form/palette/motion choice. Reduced motion removes character movement without hiding the guidance. Seen/dismissed records persist locally/sync with the other private collections and suppress repetitive prompts.
+## Surfaces
 
-Buddy cannot inspect private notes or infer faith/health. It offers a concrete action or explanation and never claims open-ended AI conversation.
+- **Dock** (`BuddyDock`): persistent in the app shell. Tap to open a panel with guidance,
+  Snooze 4h, Hide today, Mute, Read aloud, Buddy settings, Report a problem. Snoozed or hidden
+  Buddy leaves a "Wake Buddy" peek tab; it is never lost. The dock measures `[data-dock-avoid]`
+  elements (tab bar, resume bar) and lifts itself to avoid overlap at any size.
+- **Inline strip** (`BuddyStrip`): inside Gym Mode and rest screens, in the layout flow.
+- **Guidance cards** (`BuddyGuide`): readiness, adaptation, rest, gym start.
+- The dock is hidden on `/train/session` and `/onboarding`, which use inline surfaces.
+
+## Setup and customisation
+
+Progressive step in onboarding (opt in or out, name, form, colour, then expandable personality,
+rhythm, sound and placement) and the full form in Settings > Companion. Options: form, name,
+colour (match world or fixed), expression, personality, coaching tone, intensity, frequency,
+movement, celebration, sound (silent by default, soft chime, device voice), placement (right,
+left, in context only, only when tapped), quiet hours, topics, mute. Stored configs from earlier
+builds are migrated by `normaliseCompanion` (orb/totem/spark to bell/cairn/plate, dashboard to
+dock_right). Faith is never inferred or mentioned.
+
+## Mirror Mode ("You vs You")
+
+`src/domain/buddy/mirror.ts`. Compares only with the person's own earlier sessions: last time,
+a personal ghost target (match it, or one small step), ahead / matched / lighter wording that
+treats a lighter day as information, consistency against their own usual week, personal bests
+against their own history, and a compassionate comeback line after a long gap. Shown in Gym
+Mode, exercise cards, the finish sheet and the Buddy panel on Today. No leaderboards, no other
+people.
+
+## Not built
+
+- Voice uses the device speech engine; quality varies by device.
+- No server-side or LLM-driven coaching.
+- Real-device and screen-reader verification of the dock has not been done (only headless Chromium).
