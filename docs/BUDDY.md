@@ -39,10 +39,14 @@ journal text, health text or faith settings.
 
 ## Surfaces
 
-- **Dock** (`BuddyDock`): persistent in the app shell. Tap to open a panel with guidance,
-  Snooze 4h, Hide today, Mute, Read aloud, Buddy settings, Report a problem. Snoozed or hidden
-  Buddy leaves a "Wake Buddy" peek tab; it is never lost. The dock measures `[data-dock-avoid]`
-  elements (tab bar, resume bar) and lifts itself to avoid overlap at any size.
+- **Placement contract: Buddy never floats over content.** On small screens the bottom bars
+  (resume bar, Buddy bar, tabs) are one stack that the shell *reserves* out of the scrolling area
+  (`html[data-shell="bars"]`, `--reserve-bottom`, measured with a ResizeObserver), so the page
+  scrolls in the space above them. The expanded panel is part of that stack, so opening it shrinks
+  the scrollport instead of covering anything. On desktop Buddy lives in the sidebar rail and the
+  expanded panel is a third layout column that content reflows around. Snoozed or on-demand
+  Buddy is a header button on mobile and a rail control on desktop; a snoozed Buddy is never lost.
+  Panel: guidance, Snooze 4h, Hide today, Mute, Read aloud, Buddy settings, Report a problem.
 - **Inline strip** (`BuddyStrip`): inside Gym Mode and rest screens, in the layout flow.
 - **Guidance cards** (`BuddyGuide`): readiness, adaptation, rest, gym start.
 - The dock is hidden on `/train/session` and `/onboarding`, which use inline surfaces.

@@ -114,13 +114,15 @@ export type Montage = {
 export function workoutMontage(
   exercises: readonly { name: string; media: readonly MediaItem[] | undefined }[],
   max = 4,
+  /** Item URLs that failed to load; they are treated as absent so the badge reflects what is shown. */
+  failed: ReadonlySet<string> = new Set(),
 ): Montage {
   const tiles: Montage["tiles"] = [];
   let steps = 0;
   let motion = 0;
   let missing = 0;
   for (const ex of exercises) {
-    const d = describeMedia(ex.media);
+    const d = describeMedia(ex.media?.filter((item) => !failed.has(item.url)));
     if (d.mode === "none") {
       missing++;
       continue;
@@ -137,7 +139,7 @@ export function workoutMontage(
         ? "Illustrated steps"
         : tiles.length
           ? "Illustrations"
-          : "No demos yet";
+          : "No demo yet";
   return { tiles, badge, steps, motion, missing };
 }
 

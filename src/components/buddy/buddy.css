@@ -666,105 +666,127 @@
   }
 }
 
-/* ---- Dock: a persistent companion that stays clear of navigation and action bars ---- */
-.buddy-dock {
-  --dock-base: calc(4.9rem + var(--safe-bottom, 0px));
-  --dock-lift: 0px;
-  position: fixed;
-  z-index: 35;
-  bottom: calc(var(--dock-base) + var(--dock-lift));
+/* ---- Shell placement: Buddy is in flow (bar, rail, panel). It never floats over content ---- */
+.buddy-bar {
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 0.4rem;
-  max-width: calc(100vw - 1rem);
-  pointer-events: none;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 56px;
+  padding: 0 0.75rem;
+  border-bottom: 1px solid var(--line);
+  border-top: 2px solid var(--primary);
 }
-.buddy-dock > * {
-  pointer-events: auto;
+.buddy-bar[data-side="left"] {
+  flex-direction: row;
 }
-.buddy-dock[data-side="right"] {
-  right: 0.5rem;
+.buddy-bar[data-side="right"] {
+  flex-direction: row-reverse;
 }
-.buddy-dock[data-side="left"] {
-  left: 0.5rem;
-  align-items: flex-start;
-}
-@media (min-width: 1024px) {
-  .buddy-dock {
-    --dock-base: 1.25rem;
-  }
-  .buddy-dock[data-side="right"] {
-    right: 1.5rem;
-  }
-  .buddy-dock[data-side="left"] {
-    left: 17rem;
-  }
-}
-.buddy-hit {
+.buddy-bar-char {
   display: grid;
+  flex: none;
+  place-items: end center;
+  min-width: 44px;
+  min-height: 52px;
+  padding: 0;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+.buddy-bar-line {
+  min-width: 0;
+  flex: 1;
+  min-height: 44px;
+  padding: 0.2rem 0;
+  text-align: left;
+  font-size: 0.85rem;
+  line-height: 1.25;
+  color: var(--foreground);
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+.buddy-bar-text {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+}
+.buddy-bar-char:focus-visible,
+.buddy-bar-line:focus-visible,
+.buddy-rail button:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: -2px;
+}
+.buddy-sheet {
+  max-height: 50dvh;
+  border-bottom: 1px solid var(--line);
+}
+.buddy-column {
+  position: sticky;
+  top: 0;
+  height: 100dvh;
+  overflow-y: auto;
+  border-left: 1px solid var(--line);
+}
+.buddy-column .buddy-panel {
+  min-height: 100%;
+  border-top: 0;
+}
+.buddy-rail {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5rem;
+  border-top: 1px solid var(--line);
+  padding-top: 0.5rem;
+}
+.buddy-rail[data-mode="demand"] {
+  align-items: center;
+}
+.buddy-rail-char {
+  display: grid;
+  flex: none;
   place-items: end center;
   min-width: 44px;
   min-height: 44px;
   padding: 0;
-  background: transparent;
+  background: none;
   border: 0;
   cursor: pointer;
-  border-radius: 14px;
 }
-.buddy-hit:focus-visible,
-.buddy-peek:focus-visible,
-.buddy-bubble:focus-visible {
-  outline: 2px solid var(--ring);
-  outline-offset: 3px;
-}
-.buddy-bubble {
-  max-width: min(15rem, calc(100vw - 6.5rem));
-  padding: 0.55rem 0.8rem;
+.buddy-rail-line {
+  min-width: 0;
+  flex: 1;
+  min-height: 44px;
+  padding: 0.1rem 0;
   text-align: left;
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   line-height: 1.3;
   color: var(--foreground);
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-left: 2px solid var(--primary);
-  box-shadow: 0 6px 22px rgb(0 0 0 / 0.18);
+  background: none;
+  border: 0;
   cursor: pointer;
-  animation: bd-bubble 0.3s ease-out both;
 }
-@keyframes bd-bubble {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .buddy-bubble {
-    animation: none;
-  }
-}
-.buddy-peek {
+.buddy-rail-wake {
   display: flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.5rem;
   min-height: 44px;
-  padding: 0 0.7rem 0 0.3rem;
-  font-size: 0.78rem;
+  width: 100%;
+  font-size: 0.82rem;
   color: var(--muted-foreground);
-  background: var(--surface);
-  border: 1px solid var(--line);
+  background: none;
+  border: 0;
   cursor: pointer;
+  text-align: left;
 }
 .buddy-panel {
-  width: min(22rem, calc(100vw - 1rem));
-  max-height: min(70dvh, 34rem);
+  width: 100%;
   overflow-y: auto;
-  padding: 0.9rem 1rem 0.8rem;
+  padding: 0.8rem 1rem 0.6rem;
   color: var(--foreground);
   background: var(--surface);
-  border: 1px solid var(--line);
-  border-top: 2px solid var(--primary);
-  box-shadow: 0 14px 40px rgb(0 0 0 / 0.28);
   outline: none;
 }
 .buddy-panel-head {

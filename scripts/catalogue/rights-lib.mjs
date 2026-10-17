@@ -41,7 +41,19 @@ export function computeRights(root = process.cwd()) {
       }
     }
   }
-  const meals = existsSync(join(root, "public/meals")) ? readdirSync(join(root, "public/meals")).filter((f) => statSync(join(root, "public/meals", f)).isFile()).sort() : [];
+  // Every raster outside the licensed catalogue media must be a known original (icons, brand).
+  const ORIGINAL = new Set(["apple-touch-icon.png", "icon-192.png", "icon-512.png", "icon-maskable-512.png", "brand/vayvor-wordmark-email.png"]);
+  const rasters = [];
+  const scan = (dir, rel = "") => {
+    for (const name of readdirSync(dir)) {
+      const full = join(dir, name), r = rel ? `${rel}/${name}` : name;
+      if (statSync(full).isDirectory()) {
+        if (r !== "catalogue") scan(full, r);
+      } else if (/\.(png|jpe?g|gif|webp|avif)$/i.test(name)) rasters.push(r);
+    }
+  };
+  scan(join(root, "public"));
+  const unknown = rasters.filter((r) => !ORIGINAL.has(r)).sort();
   return {
     snapshot: snap.snapshot,
     sources: Object.fromEntries(Object.entries(byProvider).map(([k, v]) => [k, { ...(SOURCES[k] ?? { name: k }), ...v }])),
@@ -49,9 +61,8 @@ export function computeRights(root = process.cwd()) {
     mediaKinds: Object.fromEntries(Object.entries(kinds).sort()),
     totals: { exercises: snap.exercises.length, mediaItems: assets, remoteUrls: remote, missingFiles: missing },
     motion: { genuineMotionItems: (kinds.animation ?? 0) + (kinds.video ?? 0), note: "All current assets are static images. RepDB Standard (paid) motion is not included; install a licensed bundle with `npm run catalogue:repdb:motion`." },
-    unverifiedProvenance: [
-      { path: "public/meals/*", files: meals, reason: "Meal photographs supplied with the original app. Their source and licence are not recorded. They are not exercise media. Confirm or replace before public launch." },
-    ],
+    unverifiedProvenance: unknown.map((path) => ({ path, reason: "Raster image outside the licensed catalogue with no recorded provenance." })),
+    originalAssets: [...ORIGINAL].sort(),
     allowedMediaLicences: [...ALLOWED_LICENCES].sort(),
   };
 }

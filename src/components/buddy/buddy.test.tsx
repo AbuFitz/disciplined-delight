@@ -54,8 +54,18 @@ describe("Buddy styles", () => {
   it("pauses animation when off-screen", () => {
     expect(css).toContain('[data-live="false"]');
   });
-  it("keeps the dock clear via a measured lift variable", () => {
-    expect(css).toMatch(/bottom: calc\(var\(--dock-base\) \+ var\(--dock-lift\)\)/);
+  it("never positions Buddy over content: no fixed or absolute placement for its shell parts", () => {
+    for (const cls of ["buddy-bar", "buddy-sheet", "buddy-rail", "buddy-panel", "buddy-column"]) {
+      const rule = css.match(new RegExp(`\\.${cls}\\s*\\{([^}]*)\\}`))?.[1] ?? "";
+      expect(rule, cls).not.toMatch(/position:\s*(fixed|absolute)/);
+    }
+    expect(css).not.toMatch(/\.buddy-dock|\.buddy-bubble|--dock-lift/);
+  });
+  it("reserves the bottom stack out of the scrolling area on small screens", () => {
+    const global = readFileSync(new URL("../../styles.css", import.meta.url), "utf8");
+    expect(global).toMatch(
+      /html\[data-shell="bars"\] body\s*\{[^}]*inset:\s*0 0 var\(--reserve-bottom/,
+    );
   });
 });
 

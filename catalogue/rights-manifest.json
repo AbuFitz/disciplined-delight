@@ -38,20 +38,13 @@
     "genuineMotionItems": 0,
     "note": "All current assets are static images. RepDB Standard (paid) motion is not included; install a licensed bundle with `npm run catalogue:repdb:motion`."
   },
-  "unverifiedProvenance": [
-    {
-      "path": "public/meals/*",
-      "files": [
-        ".gitkeep",
-        "bagel-nuts-oj.webp",
-        "chicken-rice.jpg",
-        "eggs-bagel-milk.webp",
-        "shake.webp",
-        "tuna-lunch.webp",
-        "tuna-sandwich.webp"
-      ],
-      "reason": "Meal photographs supplied with the original app. Their source and licence are not recorded. They are not exercise media. Confirm or replace before public launch."
-    }
+  "unverifiedProvenance": [],
+  "originalAssets": [
+    "apple-touch-icon.png",
+    "brand/vayvor-wordmark-email.png",
+    "icon-192.png",
+    "icon-512.png",
+    "icon-maskable-512.png"
   ],
   "allowedMediaLicences": [
     "CC BY-SA 3.0",

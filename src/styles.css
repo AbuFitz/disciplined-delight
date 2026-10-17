@@ -136,12 +136,27 @@
   --sidebar-ring: var(--ring);
   --vital: var(--spring);
   --vital-foreground: #08140f;
-  --glow:
-    radial-gradient(60rem 30rem at 85% -10%, color-mix(in oklab, var(--primary) 14%, transparent), transparent 60%);
+  --glow: radial-gradient(
+    60rem 30rem at 85% -10%,
+    color-mix(in oklab, var(--primary) 14%, transparent),
+    transparent 60%
+  );
   /* Tinted panels follow the selected colour world; there is no fixed green. */
-  --panel-green: linear-gradient(160deg, color-mix(in oklab, var(--primary) 26%, var(--background)) 0%, color-mix(in oklab, var(--primary) 12%, var(--background)) 100%);
-  --panel-dusk: linear-gradient(160deg, color-mix(in oklab, var(--primary) 16%, var(--surface-2)) 0%, var(--surface) 100%);
-  --panel-warm: linear-gradient(160deg, color-mix(in oklab, var(--primary) 10%, var(--surface-2)) 0%, var(--surface) 100%);
+  --panel-green: linear-gradient(
+    160deg,
+    color-mix(in oklab, var(--primary) 26%, var(--background)) 0%,
+    color-mix(in oklab, var(--primary) 12%, var(--background)) 100%
+  );
+  --panel-dusk: linear-gradient(
+    160deg,
+    color-mix(in oklab, var(--primary) 16%, var(--surface-2)) 0%,
+    var(--surface) 100%
+  );
+  --panel-warm: linear-gradient(
+    160deg,
+    color-mix(in oklab, var(--primary) 10%, var(--surface-2)) 0%,
+    var(--surface) 100%
+  );
   /* Colour roles: canvas / ink / surface / rule / accent / action. */
   --canvas: var(--background);
   --ink: var(--foreground);
@@ -187,10 +202,26 @@
   --chart-3: #4a4fb0;
   --chart-4: #b3321f;
   --chart-5: #565b56;
-  --glow: radial-gradient(50rem 26rem at 85% -10%, color-mix(in oklab, var(--primary) 9%, transparent), transparent 60%);
-  --panel-green: linear-gradient(160deg, color-mix(in oklab, var(--primary) 16%, var(--background)) 0%, color-mix(in oklab, var(--primary) 8%, var(--background)) 100%);
-  --panel-dusk: linear-gradient(160deg, color-mix(in oklab, var(--primary) 10%, var(--surface-2)) 0%, var(--surface) 100%);
-  --panel-warm: linear-gradient(160deg, color-mix(in oklab, var(--primary) 6%, var(--surface-2)) 0%, var(--surface) 100%);
+  --glow: radial-gradient(
+    50rem 26rem at 85% -10%,
+    color-mix(in oklab, var(--primary) 9%, transparent),
+    transparent 60%
+  );
+  --panel-green: linear-gradient(
+    160deg,
+    color-mix(in oklab, var(--primary) 16%, var(--background)) 0%,
+    color-mix(in oklab, var(--primary) 8%, var(--background)) 100%
+  );
+  --panel-dusk: linear-gradient(
+    160deg,
+    color-mix(in oklab, var(--primary) 10%, var(--surface-2)) 0%,
+    var(--surface) 100%
+  );
+  --panel-warm: linear-gradient(
+    160deg,
+    color-mix(in oklab, var(--primary) 6%, var(--surface-2)) 0%,
+    var(--surface) 100%
+  );
   --vital-foreground: #f8f6f1;
   --loud-ink-bg: #0e1311;
   --loud-ink-fg: #f8f6f1;
@@ -445,5 +476,22 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
     scroll-behavior: auto !important;
+  }
+}
+
+/* Small screens: the page scrolls inside the space above the reserved bottom stack (resume bar, Buddy, tabs),
+   so fixed bars sit in their own band and never cover page content. The stack height is measured in Shell. */
+@media (max-width: 1023.98px) {
+  html[data-shell="bars"] {
+    overflow: hidden;
+    height: 100%;
+  }
+  html[data-shell="bars"] body {
+    position: fixed;
+    inset: 0 0 var(--reserve-bottom, 0px) 0;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
   }
 }

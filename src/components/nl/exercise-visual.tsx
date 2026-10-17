@@ -19,7 +19,7 @@ export function MediaBadge({ d, className }: { d: MediaDescription; className?: 
     <span
       title={d.note}
       className={cn(
-        "inline-flex items-center gap-1.5 border border-line bg-background/80 px-2 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.08em] backdrop-blur",
+        "inline-flex max-w-[calc(100%-1rem)] items-center gap-1.5 border border-line bg-background/80 px-2 py-1 text-[0.68rem] leading-tight font-semibold uppercase tracking-[0.08em] backdrop-blur",
         d.mode === "motion" && "border-primary/60 text-primary",
         className,
       )}
@@ -301,9 +301,10 @@ export function WorkoutMedia({
   title: string;
   className?: string;
 }) {
-  const m = useMemo(() => workoutMontage(exercises, 4), [exercises]);
   const [broken, setBroken] = useState<Set<string>>(new Set());
-  const tiles = m.tiles.filter((t) => !broken.has(t.item.url));
+  // Failed files are removed before the badge is derived, so it always describes what is on screen.
+  const m = useMemo(() => workoutMontage(exercises, 4, broken), [exercises, broken]);
+  const tiles = m.tiles;
   const cols =
     tiles.length >= 3 ? "grid-cols-2" : tiles.length === 2 ? "grid-cols-2" : "grid-cols-1";
   return (
@@ -314,7 +315,7 @@ export function WorkoutMedia({
       )}
     >
       {tiles.length === 0 ? (
-        <ExerciseArt name={title} pattern="Demos coming" className="size-full" />
+        <ExerciseArt name={title} className="size-full" />
       ) : (
         <div
           role="img"
@@ -331,7 +332,7 @@ export function WorkoutMedia({
           ))}
         </div>
       )}
-      <span className="absolute bottom-2 left-2 inline-flex items-center gap-1.5 border border-line bg-background/85 px-2 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.08em] backdrop-blur">
+      <span className="absolute bottom-2 left-2 inline-flex max-w-[calc(100%-1rem)] flex-wrap items-center gap-x-1.5 border border-line bg-background/85 px-2 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.08em] backdrop-blur">
         {m.badge}
         {m.steps > 0 && <span className="text-muted-foreground">· {m.steps} with steps</span>}
       </span>

@@ -63,7 +63,21 @@ describe("workout montage", () => {
   });
   it("is honest when nothing has media", () => {
     const m = workoutMontage([ex("A", [])]);
-    expect(m.badge).toBe("No demos yet");
+    expect(m.badge).toBe("No demo yet");
     expect(montageAlt(m)).toBe("No demonstration available");
+  });
+  it("derives the badge from files that actually loaded", () => {
+    const a = [img("repdb-img:a:start"), img("repdb-img:a:peak")];
+    const b = [img("repdb-img:b:start"), img("repdb-img:b:peak")];
+    const all = workoutMontage([ex("A", a), ex("B", b)]);
+    expect(all.badge).toBe("Illustrated steps");
+    const failedAll = new Set([...a, ...b].map((i) => i.url));
+    const none = workoutMontage([ex("A", a), ex("B", b)], 4, failedAll);
+    expect(none.badge).toBe("No demo yet");
+    expect(none.tiles).toEqual([]);
+    expect(none.steps).toBe(0);
+    // One frame of two lost: no longer "steps", honestly an illustration.
+    const part = workoutMontage([ex("A", a)], 4, new Set([a[1]!.url]));
+    expect(part.badge).toBe("Illustrations");
   });
 });

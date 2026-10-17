@@ -500,8 +500,7 @@ export const SHOPPING: ShoppingItem[] = [
   },
 ];
 
-// `image` is a /public path, e.g. /meals/shake.jpg. Missing files fail
-// gracefully — ThumbImage falls back to an icon tile.
+// Meals are text-only by design: no photographs are bundled or referenced.
 export type DayMealSlot = "breakfast" | "lunch" | "dinner" | "evening";
 
 export type DayMeal = {
@@ -513,7 +512,6 @@ export type DayMeal = {
   fat: number;
   protein: number;
   items: string[];
-  image: string;
 };
 
 export type DayTotals = { kcal: number; carbs: number; fat: number; protein: number };
@@ -551,7 +549,6 @@ export const DAY_PLANS: DayPlan[] = [
           "25g honey",
           "Water or ice to thin it out — blend oats first so it's drinkable, not concrete",
         ],
-        image: "/meals/shake.webp",
       },
       {
         id: "a-lunch",
@@ -566,7 +563,6 @@ export const DAY_PLANS: DayPlan[] = [
           "2 boiled eggs",
           "1 Arla Protein Chocolate 482ml (225 kcal, 26.3g protein, 23g carbs, 2.9g fat)",
         ],
-        image: "/meals/tuna-lunch.webp",
       },
       {
         id: "a-dinner",
@@ -583,7 +579,6 @@ export const DAY_PLANS: DayPlan[] = [
           "20g olive oil, measured — mix into the rice or use in cooking",
           "Seasoning or sauce",
         ],
-        image: "/meals/chicken-rice.jpg",
       },
       {
         id: "a-evening",
@@ -598,7 +593,6 @@ export const DAY_PLANS: DayPlan[] = [
           "38g mixed nuts or peanuts",
           "250ml orange juice",
         ],
-        image: "/meals/bagel-nuts-oj.webp",
       },
     ],
   },
@@ -623,7 +617,6 @@ export const DAY_PLANS: DayPlan[] = [
           "300ml whole milk",
           "1 medium banana",
         ],
-        image: "/meals/eggs-bagel-milk.webp",
       },
       {
         id: "b-lunch",
@@ -641,7 +634,6 @@ export const DAY_PLANS: DayPlan[] = [
           "Sauce or seasoning",
           "Split across two containers if it's a lot to eat in one sitting",
         ],
-        image: "/meals/chicken-rice.jpg",
       },
       {
         id: "b-dinner",
@@ -655,7 +647,6 @@ export const DAY_PLANS: DayPlan[] = [
           "1 Tesco Tuna & Sweetcorn Sandwich",
           "No Arla shake needed today — chicken, eggs, milk and tuna already cover the protein target",
         ],
-        image: "/meals/tuna-sandwich.webp",
       },
       {
         id: "b-evening",
@@ -673,7 +664,6 @@ export const DAY_PLANS: DayPlan[] = [
           "36g mixed nuts or peanuts, alongside",
           "260ml orange juice, alongside",
         ],
-        image: "/meals/shake.webp",
       },
     ],
   },

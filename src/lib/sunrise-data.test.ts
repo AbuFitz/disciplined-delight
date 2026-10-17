@@ -51,11 +51,9 @@ describe("curated seed content and media", () => {
       }
     }
 
-    const missing = DAY_PLANS.flatMap((day) => day.meals)
-      .map((meal) => meal.image)
-      .filter((image) => !existsSync(resolve(process.cwd(), "public", image.replace(/^\//, ""))));
-
-    expect(missing).toEqual([]);
+    // Meals carry no imagery: no photograph is bundled or referenced.
+    for (const meal of DAY_PLANS.flatMap((day) => day.meals))
+      expect(meal).not.toHaveProperty("image");
 
     for (const day of DAY_PLANS) {
       expect(

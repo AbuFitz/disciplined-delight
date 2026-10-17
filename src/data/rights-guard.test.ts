@@ -86,3 +86,15 @@ describe("catalogue media integrity and rights", () => {
     expect(JSON.stringify(snap).toLowerCase()).not.toContain("premium-samples");
   });
 });
+
+describe("no unverified imagery anywhere in public/", () => {
+  it("has no raster outside licensed catalogue media except known original brand and icon files", () => {
+    const rights = computeRights(ROOT) as { unverifiedProvenance: unknown[] };
+    expect(rights.unverifiedProvenance).toEqual([]);
+    expect(existsSync(join(ROOT, "public/meals"))).toBe(false);
+  });
+  it("references no meal photographs from data or the service worker", () => {
+    for (const f of [...sourceFiles, join(ROOT, "public/sw.js")].filter(existsSync))
+      expect(readFileSync(f, "utf8"), f).not.toMatch(/\/meals\//);
+  });
+});

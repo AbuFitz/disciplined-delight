@@ -131,7 +131,6 @@ export function buildSeed() {
         yield: 1,
         lines: parseLegacyItems(m.items),
         items: m.items,
-        image: m.image,
         legacyEstimate: { kcal: m.kcal, protein: m.protein, carbs: m.carbs, fat: m.fat },
         notes: "Original author-entered estimate. Replace with ingredient-level data when ready.",
       });
