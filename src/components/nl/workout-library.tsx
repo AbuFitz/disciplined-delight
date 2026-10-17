@@ -450,9 +450,9 @@ function WorkoutCard({
       >
         <WorkoutMedia title={workout.title} exercises={moves} />
       </button>
-      <div className="grid content-start gap-3">
+      <div className="grid min-w-0 content-start gap-3">
         <div className="flex items-start justify-between gap-3">
-          <p className="num text-sm text-primary">
+          <p className="num min-w-0 text-sm text-primary [overflow-wrap:anywhere]">
             {workout.duration} MIN · {workout.location.toUpperCase()} ·{" "}
             {workout.level.join("/").toUpperCase()}
           </p>
@@ -460,7 +460,7 @@ function WorkoutCard({
             aria-label={`${favourite ? "Remove" : "Add"} ${workout.title} favourite`}
             aria-pressed={favourite}
             onClick={onFavourite}
-            className="-mr-2 -mt-2 grid min-h-11 min-w-11 place-items-center"
+            className="-mr-2 -mt-2 grid min-h-11 min-w-11 shrink-0 place-items-center"
           >
             <VIcon
               name="favourite"
