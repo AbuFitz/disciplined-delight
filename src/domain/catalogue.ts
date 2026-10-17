@@ -120,9 +120,13 @@ export const PATTERN_LABEL: Record<Pattern, string> = {
 export type Licence = { id: string; short: string; url: string };
 export type MediaItem = {
   id: string;
-  kind: "image";
+  /** Images are stills; animations are image-based loops (for example WebP); videos are playable clips. */
+  kind: "image" | "animation" | "video";
   url: string;
   thumb?: string;
+  /** Required for motion media so reduced-motion and paused states never show a blank frame. */
+  poster?: string;
+  mimeType?: string;
   isMain: boolean;
   licence: Licence;
   author: string;
@@ -134,7 +138,7 @@ export type CatalogueExercise = {
   id: string;
   source: {
     provider: string;
-    externalId: number;
+    externalId: number | string;
     uuid: string;
     url: string;
     sourceUpdatedAt: string;
@@ -168,6 +172,8 @@ export type CatalogueSnapshot = {
   schema: 1;
   snapshot: string;
   provider: { name: string; url: string; fetchedAt: string };
+  /** Present on merged snapshots. `provider` remains for backwards compatibility. */
+  providers?: { name: string; url: string; fetchedAt: string }[];
   counts: { published: number; generator: number; quarantined: number };
   exercises: CatalogueExercise[];
 };

@@ -185,7 +185,8 @@ function score(
   let s = 0;
   const idx = slot.patterns.indexOf(e.pattern);
   s -= idx * 6;
-  if (input.favourites?.includes(e.id)) s += 30;
+  // An explicit favourite should win over ordinary quality nudges when it is otherwise valid.
+  if (input.favourites?.includes(e.id)) s += 100;
   s += Math.min(input.history?.[e.id] ?? 0, 10);
   s += styleBonus(e, input.style);
   const gear = e.equipment.filter((q) => !ALWAYS.includes(q)).length;

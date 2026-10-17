@@ -19,6 +19,10 @@ const snapshot = JSON.parse(
 const manifest = JSON.parse(
   readFileSync(fromRepo("public/catalogue/v1/media-manifest.json"), "utf8"),
 ) as { entries: ManifestEntry[] };
+const motionManifestPath = fromRepo("public/catalogue/v1/motion-manifest.json");
+const motionManifest = existsSync(motionManifestPath)
+  ? (JSON.parse(readFileSync(motionManifestPath, "utf8")) as { entries: ManifestEntry[] })
+  : { entries: [] };
 const overrides = JSON.parse(
   readFileSync(fromRepo("catalogue/overrides.json"), "utf8"),
 ) as Overrides;
@@ -28,7 +32,9 @@ const digest = (path: string) => createHash("sha256").update(readFileSync(path))
 describe("committed catalogue media", () => {
   it("has one accurate manifest record for every referenced local image", () => {
     const referenced = snapshot.exercises.flatMap((exercise) =>
-      exercise.media.map((item) => ({ ...item, exerciseId: exercise.id })),
+      exercise.media
+        .filter((item) => item.kind === "image")
+        .map((item) => ({ ...item, exerciseId: exercise.id })),
     );
     expect(new Set(referenced.map((item) => item.id)).size).toBe(referenced.length);
     expect(new Set(manifest.entries.map((item) => item.id)).size).toBe(manifest.entries.length);
@@ -49,6 +55,24 @@ describe("committed catalogue media", () => {
       expect(existsSync(file), file).toBe(true);
       const bytes = readFileSync(file);
       expect(entry?.bytes).toBe(bytes.length);
+      expect(entry?.sha256).toBe(digest(file));
+    }
+  });
+
+  it("requires provenance and hashes for every installed motion asset", () => {
+    const referenced = snapshot.exercises.flatMap((exercise) =>
+      exercise.media
+        .filter((item) => item.kind !== "image")
+        .map((item) => ({ ...item, exerciseId: exercise.id })),
+    );
+    expect(motionManifest.entries).toHaveLength(referenced.length);
+    const byId = new Map(motionManifest.entries.map((entry) => [entry.id, entry]));
+    for (const item of referenced) {
+      expect(item.poster, item.id).toMatch(/^\/catalogue\/media\//);
+      expect(item.url, item.id).toMatch(/^\/catalogue\/motion\//);
+      const entry = byId.get(item.id);
+      expect(entry?.exerciseId).toBe(item.exerciseId);
+      const file = fromRepo(`public${item.url}`);
       expect(entry?.sha256).toBe(digest(file));
     }
   });

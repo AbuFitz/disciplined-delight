@@ -17,28 +17,55 @@ import { useActiveSession } from "@/data/session-hooks";
 import { SYNC_LABEL, useSyncStatus } from "@/data/sync-status";
 import { Wordmark } from "@/components/brand/Wordmark";
 import { cn } from "@/lib/utils";
+import { useProfile } from "@/data/hooks";
+import type { AppModule } from "@/data/types";
+import { Companion } from "./companion";
 
-type NavItem = { to: string; label: string; icon: typeof Home; match: string[] };
+type NavItem = {
+  to: string;
+  label: string;
+  icon: typeof Home;
+  match: string[];
+  module?: AppModule;
+};
 
-/** Today, Body, Mind, Soul, Circle. Older URLs (/train, /food, /salah …) still work and light up their space. */
+/** Product areas feed the shared Today and Plan views; optional areas disappear when not selected. */
 const PRIMARY: NavItem[] = [
   { to: "/", label: "Today", icon: Home, match: [] },
   {
-    to: "/body",
-    label: "Body",
+    to: "/train",
+    label: "Training",
     icon: Dumbbell,
-    match: ["/body", "/train", "/food", "/progress", "/library", "/nutrition", "/workouts"],
+    match: ["/train", "/workouts", "/library", "/progress"],
+    module: "training",
   },
-  { to: "/mind", label: "Mind", icon: Brain, match: ["/mind"] },
-  { to: "/soul", label: "Soul", icon: MoonStar, match: ["/soul", "/salah"] },
-  { to: "/circle", label: "Circle", icon: Users, match: ["/circle"] },
+  {
+    to: "/food",
+    label: "Nutrition",
+    icon: Utensils,
+    match: ["/food", "/nutrition"],
+    module: "nutrition",
+  },
+  { to: "/mind", label: "Mind", icon: Brain, match: ["/mind"], module: "mind" },
+  {
+    to: "/plan",
+    label: "Plan",
+    icon: CalendarDays,
+    match: ["/plan", "/schedule"],
+    module: "routines",
+  },
+  { to: "/circle", label: "Community", icon: Users, match: ["/circle"], module: "community" },
+  {
+    to: "/soul",
+    label: "Spirituality",
+    icon: MoonStar,
+    match: ["/soul", "/salah"],
+    module: "spirituality",
+  },
 ];
 const QUICK: NavItem[] = [
-  { to: "/train", label: "Train", icon: Dumbbell, match: ["/train"] },
-  { to: "/food", label: "Food", icon: Utensils, match: ["/food"] },
   { to: "/progress", label: "Progress", icon: LineChart, match: ["/progress"] },
   { to: "/library", label: "Library", icon: BookOpen, match: ["/library"] },
-  { to: "/plan", label: "Week", icon: CalendarDays, match: ["/plan", "/schedule"] },
 ];
 
 function useTyping() {
@@ -86,6 +113,11 @@ export function Shell({ children }: { children: ReactNode }) {
   const loc = useLocation();
   const typing = useTyping();
   const active = useActiveSession();
+  const { profile } = useProfile();
+  const selected = profile?.modules;
+  const primary = PRIMARY.filter(
+    (item) => !item.module || !selected || selected.includes(item.module),
+  );
   const onSession = loc.pathname.startsWith("/train/session");
   const isActive = (to: string, match: string[] = []) =>
     to === "/"
@@ -111,7 +143,7 @@ export function Shell({ children }: { children: ReactNode }) {
             <Wordmark className="text-[1.05rem]" />
           </Link>
           <nav aria-label="Primary" className="grid gap-1">
-            {PRIMARY.map((t) => (
+            {primary.map((t) => (
               <Link
                 key={t.to}
                 to={t.to}
@@ -219,6 +251,7 @@ export function Shell({ children }: { children: ReactNode }) {
       )}
 
       {/* Mobile tabs */}
+      <Companion />
       <nav
         aria-label="Primary"
         className={cn(
@@ -226,9 +259,9 @@ export function Shell({ children }: { children: ReactNode }) {
           (typing || onSession) && "hidden",
         )}
       >
-        <ul className="mx-auto flex max-w-xl">
-          {PRIMARY.map((t) => (
-            <li key={t.to} className="min-w-0 flex-1">
+        <ul className="mx-auto flex max-w-2xl overflow-x-auto">
+          {primary.map((t) => (
+            <li key={t.to} className="w-20 shrink-0 flex-1">
               <Link
                 to={t.to}
                 aria-current={isActive(t.to, t.match) ? "page" : undefined}

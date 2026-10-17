@@ -61,20 +61,35 @@ function TodayPage() {
       : "Today's focus: rest and food.";
   const hasBudget = profile.budgetPencePerWeek != null;
   const hasWeight = weights.items.length > 0;
+  const modules = profile.modules;
+  const enabled = (id: "training" | "nutrition" | "mind" | "routines" | "spirituality") =>
+    !modules || modules.includes(id);
   const hiddenReasons: Partial<Record<WidgetId, string>> = {
     ...(salah.enabled ? {} : { prayer: "Salah is off. Turn it on in Soul." }),
     ...(hasWeight ? {} : { weight: "Appears once you log a weigh-in." }),
     ...(hasBudget ? {} : { budget: "Appears once you set a weekly budget in Food." }),
+    ...(enabled("nutrition")
+      ? {}
+      : {
+          food: "Nutrition is hidden in your areas.",
+          budget: "Nutrition is hidden in your areas.",
+        }),
+    ...(enabled("training")
+      ? {}
+      : {
+          training: "Training is hidden in your areas.",
+          weight: "Training is hidden in your areas.",
+        }),
   };
   const ctx = { profile, today, now };
   const render: Record<WidgetId, () => ReactElement | null> = {
     "next-action": () => <AgendaNextWidget {...ctx} />,
     prayer: () => (salah.enabled ? <PrayerWidget {...ctx} /> : null),
-    food: () => <FoodWidget {...ctx} />,
-    training: () => <TrainingWidget {...ctx} />,
-    weight: () => (hasWeight ? <WeightWidget {...ctx} /> : null),
-    budget: () => (hasBudget ? <BudgetWidget {...ctx} /> : null),
-    timeline: () => <AgendaTimelineWidget {...ctx} />,
+    food: () => (enabled("nutrition") ? <FoodWidget {...ctx} /> : null),
+    training: () => (enabled("training") ? <TrainingWidget {...ctx} /> : null),
+    weight: () => (enabled("training") && hasWeight ? <WeightWidget {...ctx} /> : null),
+    budget: () => (enabled("nutrition") && hasBudget ? <BudgetWidget {...ctx} /> : null),
+    timeline: () => (enabled("routines") ? <AgendaTimelineWidget {...ctx} /> : null),
     checklist: () => <ChecklistWidget {...ctx} />,
   };
 

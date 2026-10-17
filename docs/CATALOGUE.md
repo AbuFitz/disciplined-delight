@@ -5,12 +5,14 @@ Pilot run 16 October 2026 against the live wger public API. Numbers below come f
 
 ## Source decision
 
-| Candidate                        | Finding                                                                                        | Decision                                                                          |
-| -------------------------------- | ---------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
-| **wger** `/api/v2/exerciseinfo/` | Public, paginated, per-entry licences, authors, images with their own licences                 | **Imported** (first and only source)                                              |
-| ExerciseDB                       | Terms prohibit persistent storage and limit caching to one hour                                | **Not used.** Incompatible with an offline catalogue without a separate agreement |
-| free-exercise-db                 | Claims Unlicense, but the repository has no licence file and its images' provenance is unclear | **Not imported.** Candidate only after provenance is verified                     |
-| Lyfta                            | A product benchmark                                                                            | **Nothing copied** (no descriptions, demonstrations or data)                      |
+| Candidate                        | Finding                                                                                                             | Decision                                                                          |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| **wger** `/api/v2/exerciseinfo/` | Public, paginated, per-entry licences, authors, images with their own licences                                      | **Imported** for broad text coverage and reviewed generator records               |
+| **RepDB free tier**              | 643 structured exercises and 1,138 original flat WebP illustrations; commercial in-app use with visible attribution | **Imported**; exact-name records merge media, otherwise remain library-only       |
+| ExerciseDB                       | Terms prohibit persistent storage and limit caching to one hour                                                     | **Not used.** Incompatible with an offline catalogue without a separate agreement |
+| free-exercise-db                 | Claims Unlicense, but the repository has no licence file and its images' provenance is unclear                      | **Not imported.** Candidate only after provenance is verified                     |
+| Lyfta                            | A product benchmark                                                                                                 | **Nothing copied** (no descriptions, demonstrations or data)                      |
+| Flow exercise dataset            | Animation prompts/provenance are incomplete and movement accuracy is not professionally reviewed                    | **Not imported**                                                                  |
 
 ## What the wger pilot found
 
@@ -21,6 +23,13 @@ Pilot run 16 October 2026 against the live wger public API. Numbers below come f
 - Images: 383 across 279 upstream exercises, CC BY-SA 3/4, 46 flagged AI-generated (34 exercises have **only** AI images). AI images are excluded and the exclusion is recorded. The first licensed import produced 253 images; a frame-by-frame human review removed four semantically wrong associations and 14 byte-identical frames within the same exercise. The committed snapshot now has **235 credited images across 186 exercises**.
 - Videos: 78 on 46 exercises, mostly ~60 MB HEVC `.MOV`. Unsuitable for the web or offline use. **Out of scope.**
 - Not covered by the source: setup steps as a separate field, difficulty/experience level, selectorised machine variety, much pull-up/vertical-pull and overhead-press depth (26 and 15 entries).
+
+## RepDB illustration and motion layer
+
+- The committed merged snapshot contains **1,421 exercises** and **1,373 self-hosted media assets**. RepDB contributed all 643 free-tier records: 542 new library records and 101 exact-name media merges, with 1,138 WebP illustrations. Fuzzy names are never merged automatically.
+- The free-tier licence permits personal and commercial use inside applications with visible attribution, prohibits republishing the collection as a standalone dataset/API, and excludes the evaluation-only premium samples. VAYVOR keeps RepDB attribution on every item and on `/credits`; `premium-samples/` is never imported.
+- Cards use still thumbnails. Detail and active-session surfaces use the shared `ExerciseMedia` player. It supports stills, animated image loops and MP4/WebM clips, poster fallback, error recovery, play/pause, off-screen suspension and `prefers-reduced-motion`.
+- RepDB Standard's production motion loops are **not included** and have not been purchased. `npm run catalogue:repdb:motion -- --source /licensed/bundle --license-file /purchase/record` validates a user-supplied complete licensed bundle, rejects preview samples, records the licence proof hash and installs matching motion assets. The command refuses small/partial bundles.
 
 ## Rights obligations (to confirm with the owner)
 
@@ -37,6 +46,8 @@ bun scripts/catalogue/cli.ts build --dry-run   # diff vs committed snapshot, wri
 bun scripts/catalogue/cli.ts build             # writes public/catalogue/v1/{exercises,report}.json + catalogue/quarantine.json
 npm run catalogue:media                        # apply reviewed exclusions and self-host licensed media
 npm run catalogue:media:check                  # verify paths, provenance, bytes, hashes and review state
+npm run catalogue:repdb -- --source /path/to/exercise-dataset
+npm run catalogue:repdb:motion -- --source /licensed/bundle --license-file /purchase/record
 ```
 
 - Stable IDs `wger:<uuid>`; source version = wger `last_update_global`.

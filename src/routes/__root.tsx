@@ -23,7 +23,7 @@ import { useAccountProfile } from "@/data/account-profile";
 import { getMeta, setMeta } from "@/data/db";
 import { useAuth } from "@/lib/auth";
 import { isSupabaseConfigured } from "@/lib/supabase";
-import { DataProvider, useData } from "@/data/hooks";
+import { DataProvider, useData, useProfile } from "@/data/hooks";
 import { THEME_BOOT, applyTheme, getThemePref } from "@/lib/theme";
 import { useEffect } from "react";
 import appCss from "../styles.css?url";
@@ -98,7 +98,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         name: "description",
         content:
-          "Body, mind, soul, together. Train, eat well, reflect and pray on time, with friends beside you.",
+          "One flexible plan for training, nutrition, focus, routines and optional faith support.",
       },
       { name: "theme-color", content: "#0e1311" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
@@ -157,6 +157,7 @@ function Gate() {
   const scope = useScope();
   const auth = useAuth();
   const acct = useAccountProfile();
+  const { profile } = useProfile();
   const loc = useLocation();
   const nav = useNavigate();
   useSyncRunner();
@@ -185,6 +186,22 @@ function Gate() {
       if (!seen) nav({ to: "/welcome", replace: true });
     });
   }, [ready, scope, bare, report, nav]);
+
+  // New guests get the same real setup as accounts. Legacy owners are never interrupted.
+  useEffect(() => {
+    if (
+      !ready ||
+      bare ||
+      report?.seeded ||
+      !profile ||
+      profile.setup.completed ||
+      profile.setup.skipped
+    )
+      return;
+    void getMeta<boolean>("welcome:seen").then((seen) => {
+      if (!isSupabaseConfigured || seen) nav({ to: "/onboarding", replace: true });
+    });
+  }, [ready, bare, report, profile, nav]);
 
   // Remember who this on-device storage belongs to (shown when it's a signed-out, remembered account).
   useEffect(() => {

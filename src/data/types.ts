@@ -35,7 +35,43 @@ export const COL = {
   exercisePrefs: "exercisePrefs",
   customExercises: "customExercises",
   equipmentProfile: "equipmentProfile",
+  companion: "companion",
 } as const;
+
+export type AppModule =
+  "training" | "nutrition" | "mind" | "routines" | "community" | "spirituality";
+
+export type PlanningProfile = {
+  primaryGoal: Profile["goal"]["kind"];
+  secondaryGoals: ("mobility" | "endurance" | "energy" | "consistency")[];
+  experience: "new" | "returning" | "some" | "experienced";
+  trainingDays: number[];
+  sessionMinutes: number;
+  environment: "gym" | "home" | "outdoors" | "mixed";
+  constraints: string;
+  dislikedMovements: string;
+  nutritionApproach: "balanced" | "high-protein" | "plant-based" | "intuitive" | "custom";
+  dietaryNeeds: string;
+  sleep: { start: string; end: string };
+  work: { start: string; end: string; weekdays: number[] };
+  quiet: { start: string; end: string };
+  reminderIntensity: "off" | "essential" | "supportive" | "active";
+  /** Optional, minimal physiology inputs used only for conservative volume/time guardrails. */
+  physiology?: {
+    ageBand?: "under-18" | "18-29" | "30-44" | "45-64" | "65-plus";
+    units: "metric" | "imperial";
+    heightCm?: number;
+    weightKg?: number;
+    activity: "low" | "moderate" | "high";
+    trainingYears?: number;
+    currentSessionsPerWeek?: number;
+    typicalSleepHours?: number;
+    recovery: "low" | "okay" | "good";
+    energy: "low" | "okay" | "good";
+    limitations: string;
+    medicalSafetyFlag: boolean;
+  };
+};
 
 export type Profile = {
   name: string;
@@ -57,7 +93,14 @@ export type Profile = {
   budgetPencePerWeek?: number;
   allergies?: string;
   dietaryNotes?: string;
-  setup: { goals: boolean; routine: boolean; prayer: boolean; food: boolean; skipped?: boolean };
+  setup: {
+    goals: boolean;
+    routine: boolean;
+    prayer: boolean;
+    food: boolean;
+    skipped?: boolean;
+    completed?: boolean;
+  };
   returnToTraining?: boolean;
   wakeLock?: boolean;
   /** Social identity (mirrors the server profile; the server is the source of truth for the handle). */
@@ -65,6 +108,10 @@ export type Profile = {
   /** Which pillars the person chose to use; others are hidden. */
   pillars?: ("body" | "mind" | "soul")[];
   faithRoutines?: boolean;
+  /** Selected product areas. Missing on old profiles means all non-faith areas remain available. */
+  modules?: AppModule[];
+  /** Inputs used by deterministic programme, schedule and reminder decisions. */
+  planning?: PlanningProfile;
 };
 
 export type TemplateExercise = {

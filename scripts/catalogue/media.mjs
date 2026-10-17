@@ -114,6 +114,7 @@ for (const exercise of catalogue.exercises) {
 const jobs = [];
 for (const exercise of catalogue.exercises) {
   for (const media of exercise.media ?? []) {
+    if (media.kind !== "image") continue; // Licensed motion has its own manifest/importer.
     const existing = previousById.get(media.id);
     const remoteUrl = media.url.startsWith("http") ? media.url : existing?.originalUrl;
     const remoteThumb = media.thumb?.startsWith("http") ? media.thumb : existing?.originalThumb;

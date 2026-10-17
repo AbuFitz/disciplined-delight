@@ -29,7 +29,7 @@ function CreditsPage() {
       <PageHeader
         eyebrow="About the library"
         title="Credits & licences"
-        sub="The exercise library is built from open, credited work. The credit stays attached to every exercise and photo."
+        sub="The exercise library is built from licensed, credited work. The credit stays attached to every exercise, illustration and motion asset."
         actions={
           <Link
             to="/library"
@@ -56,28 +56,35 @@ function CreditsPage() {
               {summary.exercises.toLocaleString("en-GB")} credited exercises
             </h2>
             <p className="mt-3 max-w-3xl text-muted-foreground">
-              Exercise names, instructions and metadata come from contributors to{" "}
-              <a
-                href={catalogue.snapshot.provider.url}
-                target="_blank"
-                rel="noreferrer noopener"
-                className="font-semibold text-foreground underline underline-offset-4"
-              >
-                {catalogue.snapshot.provider.name}
-              </a>
+              Exercise names, instructions and media come from{" "}
+              {(catalogue.snapshot.providers ?? [catalogue.snapshot.provider]).map(
+                (provider, index, all) => (
+                  <span key={provider.name}>
+                    <a
+                      href={provider.url}
+                      target="_blank"
+                      rel="noreferrer noopener"
+                      className="font-semibold text-foreground underline underline-offset-4"
+                    >
+                      {provider.name}
+                    </a>
+                    {index < all.length - 1 ? " and " : ""}
+                  </span>
+                ),
+              )}
               . VAYVOR normalises that material for search, offline use and plan building without
               removing its attribution or licence.
             </p>
             <dl className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
               <Stat label="Exercises" value={summary.exercises} />
               <Stat label="Exercise contributors" value={summary.exerciseContributors} />
-              <Stat label="Photos" value={summary.media} />
-              <Stat label="Photo contributors" value={summary.mediaContributors} />
+              <Stat label="Media assets" value={summary.media} />
+              <Stat label="Media contributors" value={summary.mediaContributors} />
             </dl>
           </Panel>
 
           <Panel>
-            <p className="eyebrow">Open licences</p>
+            <p className="eyebrow">Source licences</p>
             <h2 className="mt-2 font-display text-2xl font-semibold">What may be reused</h2>
             <ul className="mt-4 divide-y divide-line">
               {summary.licences.map((licence) => (
@@ -93,7 +100,7 @@ function CreditsPage() {
                   <p className="text-sm text-muted-foreground">
                     {licence.exerciseCount.toLocaleString("en-GB")} exercise records
                     {licence.mediaCount > 0
-                      ? ` · ${licence.mediaCount.toLocaleString("en-GB")} photos`
+                      ? ` · ${licence.mediaCount.toLocaleString("en-GB")} media assets`
                       : ""}
                   </p>
                 </li>
@@ -106,10 +113,11 @@ function CreditsPage() {
             <h2 className="mt-2 font-display text-2xl font-semibold">Per-exercise detail</h2>
             <p className="mt-3 text-muted-foreground">
               Open any exercise in Library to see its contributor, exact licence, original source
-              and photo credit. User-created exercises remain yours and are labelled separately.
+              and media credit. Exercise data by RepDB (repdb.co) remains attributed throughout.
+              User-created exercises remain yours and are labelled separately.
             </p>
             <p className="mt-4 text-sm text-muted-foreground">
-              These open-content licences apply to the catalogue records and credited media—not to
+              These source licences apply to the catalogue records and credited media—not to
               unrelated VAYVOR app code or your private training data.
             </p>
             <Link

@@ -88,13 +88,15 @@ describe("catalogue credits", () => {
       "CC BY-SA 3.0",
       "CC BY-SA 4.0",
       "CC0 1.0",
+      "RepDB Free Tier 1.0",
     ]);
     expect(summary.licences.every((item) => item.url.startsWith("https://"))).toBe(true);
 
     for (const item of committed.exercises) {
       expect(item.attribution, item.name).toContain(item.source.url);
       expect(item.attribution, item.name).toContain(item.licence.url);
-      expect(item.attribution, item.name).toContain("Adapted: formatting simplified");
+      if (item.source.provider === "wger")
+        expect(item.attribution, item.name).toContain("Adapted: formatting simplified");
       for (const image of item.media) {
         expect(image.author.trim().length, `${item.name}: ${image.id}`).toBeGreaterThan(0);
         expect(image.licence.url, `${item.name}: ${image.id}`).toMatch(/^https:\/\//);

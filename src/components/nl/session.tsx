@@ -52,6 +52,8 @@ import type {
 } from "@/data/types";
 import { formatSet, trackingOf } from "@/domain/tracking";
 import { cn } from "@/lib/utils";
+import type { MediaItem } from "@/domain/catalogue";
+import { ExerciseMedia } from "./exercise-media";
 
 const fmtClock = (ms: number) => {
   const s = Math.max(0, Math.round(ms / 1000));
@@ -327,6 +329,7 @@ export function ExerciseCard({
   sessions,
   legacy,
   now: _now,
+  media,
 }: {
   session: Session;
   ex: SessionExercise;
@@ -337,6 +340,7 @@ export function ExerciseCard({
   sessions: Session[];
   legacy: LegacyDayLog[];
   now: number;
+  media?: MediaItem;
 }) {
   const [effort, setEffort] = useState(false);
   const [replace, setReplace] = useState(false);
@@ -420,6 +424,20 @@ export function ExerciseCard({
 
       {open && (
         <div className="grid grid-cols-[minmax(0,1fr)] gap-3 px-4 pb-4">
+          {media && (
+            <div>
+              <ExerciseMedia
+                item={media}
+                alt={`${ex.name} movement demonstration`}
+                className="h-56 w-full sm:h-72"
+                eager
+              />
+              <p className="mt-1 text-xs text-muted-foreground">
+                {media.kind === "image" ? "Illustration" : "Motion demonstration"} by{" "}
+                {media.author || "unknown author"} · {media.licence.short}
+              </p>
+            </div>
+          )}
           {ex.cue && <p className="px-1 text-sm text-muted-foreground">{ex.cue}</p>}
           {ex.note && (
             <p className="rounded-xl bg-surface-2 px-3 py-2 text-sm">

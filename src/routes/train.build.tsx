@@ -23,7 +23,7 @@ import {
 } from "@/components/nl/ui";
 import { useCatalogue, useEquipmentProfile, useFavourites } from "@/data/catalogue-runtime";
 import { acceptPlan, NeedsChoice, type HandleExisting } from "@/data/plan-actions";
-import { useCollection } from "@/data/hooks";
+import { useCollection, useProfile } from "@/data/hooks";
 import { activeTemplates } from "@/data/selectors";
 import { COL, type PlanRecord, type Session, type WorkoutTemplate } from "@/data/types";
 import {
@@ -54,6 +54,7 @@ import {
 } from "@/domain/planner";
 import type { Experience, Goal } from "@/domain/programmes";
 import { cn } from "@/lib/utils";
+import { derivePlanDefaults } from "@/domain/personalization";
 
 export const Route = createFileRoute("/train/build")({
   component: Builder,
@@ -187,6 +188,7 @@ function Builder() {
   const templates = useCollection<WorkoutTemplate>(COL.templates);
   const sessions = useCollection<Session>(COL.sessions);
   const plans = useCollection<PlanRecord>(COL.plans);
+  const { profile } = useProfile();
   const prior = from ? plans.items.find((p) => p.id === from) : undefined;
 
   const [step, setStep] = useState(from ? 5 : 0);
@@ -199,6 +201,7 @@ function Builder() {
   const [style, setStyle] = useState<Style>("mixed");
   const [priority, setPriority] = useState<MuscleId[]>([]);
   const [avoid, setAvoid] = useState<Pattern[]>([]);
+  const [excluded, setExcluded] = useState<string[]>([]);
   const [adult, setAdult] = useState(false);
   const [clear, setClear] = useState(false);
   const [variant, setVariant] = useState(0);
@@ -209,6 +212,7 @@ function Builder() {
   const [swap, setSwap] = useState<{ si: number; slotKey: string } | null>(null);
   const [fill, setFill] = useState<{ si: number; slotKey: string } | null>(null);
   const [seeded, setSeeded] = useState(false);
+  const [personalised, setPersonalised] = useState(false);
 
   // Regeneration: start from the answers the plan was made with.
   useEffect(() => {
@@ -229,6 +233,23 @@ function Builder() {
     setSeeded(true);
   }, [prior, seeded]);
 
+  // A completed setup materially seeds the builder; every answer stays editable before generation.
+  useEffect(() => {
+    if (prior || personalised || !profile?.planning || !cat.snapshot || !kit.ready) return;
+    const value = derivePlanDefaults(profile.planning, kit.have, cat.exercises);
+    setGoal(value.goal);
+    setLevel(value.experience);
+    setDays(value.daysPerWeek);
+    setMinutes(value.sessionMinutes);
+    setPicked(value.preferredDays ?? []);
+    setHave(kit.have);
+    setStyle(value.style ?? "mixed");
+    setAvoid(value.avoidPatterns ?? []);
+    setExcluded(value.excludedExercises ?? []);
+    setClear(!value.clinicianRestricted);
+    setPersonalised(true);
+  }, [prior, personalised, profile, cat.snapshot, cat.exercises, kit.ready, kit.have]);
+
   const equipment = have ?? kit.have;
   const history = useMemo(() => {
     const h: Record<string, number> = {};
@@ -247,6 +268,7 @@ function Builder() {
     preferredDays: picked.length === days ? picked : undefined,
     priorityMuscles: priority,
     avoidPatterns: avoid,
+    excludedExercises: excluded,
     favourites: favs.ids,
     history,
     adult,

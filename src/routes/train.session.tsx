@@ -1,11 +1,12 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, Flag } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button, EmptyState, Skeleton } from "@/components/nl/ui";
 import { ExerciseCard, FinishSheet, RestBar, SessionHeader } from "@/components/nl/session";
 import { useCollection, useNow, useProfile } from "@/data/hooks";
 import { COL, type LegacyDayLog, type Session } from "@/data/types";
 import { useWakeLock } from "@/lib/wake-lock";
+import { useCatalogue } from "@/data/catalogue-runtime";
 
 export const Route = createFileRoute("/train/session")({ component: SessionPage });
 
@@ -18,6 +19,12 @@ function SessionPage() {
   const [finish, setFinish] = useState(false);
   const session = sessionsQ.items.find((s) => s.status === "active" || s.status === "paused");
   const [openId, setOpenId] = useState<string | null>(null);
+  const catalogue = useCatalogue();
+  const normalise = (value: string) => value.toLocaleLowerCase("en-GB").replace(/[^a-z0-9]+/g, "");
+  const byName = useMemo(
+    () => new Map(catalogue.exercises.map((item) => [normalise(item.name), item])),
+    [catalogue.exercises],
+  );
 
   useWakeLock(!!profile?.wakeLock && session?.status === "active");
   useEffect(() => {
@@ -71,6 +78,10 @@ function SessionPage() {
             onToggle={() => setOpenId(openId === ex.id ? null : ex.id)}
             sessions={sessionsQ.items}
             legacy={legacy}
+            media={
+              (ex.catalogueId ? catalogue.byId.get(ex.catalogueId) : undefined)?.media[0] ??
+              byName.get(normalise(ex.name))?.media[0]
+            }
           />
         ))}
       </div>

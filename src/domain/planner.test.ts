@@ -129,6 +129,7 @@ describe("generatePlan", () => {
     const alt = cat.find(
       (e) =>
         e.tier === "generator" &&
+        e.level !== "some" &&
         e.pattern === "squat" &&
         e.id !== fav.exerciseId &&
         e.equipment.every((q) => [...GYM, "bodyweight", "mat"].includes(q)),

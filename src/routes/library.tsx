@@ -33,6 +33,7 @@ import {
 } from "@/domain/catalogue";
 import { searchCatalogue } from "@/domain/catalogue-search";
 import { cn } from "@/lib/utils";
+import { ExerciseMedia, ExerciseMediaThumb } from "@/components/nl/exercise-media";
 
 export const Route = createFileRoute("/library")({ component: LibraryPage });
 
@@ -71,7 +72,7 @@ function LibraryPage() {
         title="Every move"
         sub={
           cat.snapshot
-            ? `${cat.snapshot.counts.published.toLocaleString("en-GB")} exercises with credited instructions and photos. Search, filter, favourite.`
+            ? `${cat.snapshot.counts.published.toLocaleString("en-GB")} exercises with credited instructions and demonstrations. Search, filter, favourite.`
             : "Search, filter and favourite exercises."
         }
         actions={
@@ -251,16 +252,7 @@ function Thumb({ e, big }: { e: CatalogueExercise; big?: boolean }) {
       </span>
     );
   }
-  return (
-    <img
-      src={m.thumb ?? m.url}
-      alt=""
-      loading="lazy"
-      decoding="async"
-      referrerPolicy="no-referrer"
-      className={cn("shrink-0 rounded-xl bg-white object-contain", size)}
-    />
-  );
+  return <ExerciseMediaThumb item={m} className={cn("shrink-0 rounded-xl", size)} />;
 }
 
 function DetailSheet({
@@ -308,18 +300,17 @@ function DetailSheet({
           {e.media.length > 0 && (
             <div className="grid gap-3">
               {e.media.slice(0, 2).map((m) => (
-                <figure key={m.id} className="grid gap-1">
-                  <img
-                    src={m.url}
-                    alt={`${e.name}, demonstration`}
-                    loading="lazy"
-                    referrerPolicy="no-referrer"
-                    className="max-h-72 w-full rounded-2xl bg-white object-contain"
+                <div key={m.id} className="grid gap-1">
+                  <ExerciseMedia
+                    item={m}
+                    alt={`${e.name}, ${m.kind === "image" ? "illustrated position" : "movement demonstration"}`}
+                    className="h-72 w-full"
                   />
-                  <figcaption className="text-xs text-muted-foreground">
-                    Photo by {m.author || "unknown author"} · {m.licence.short}
-                  </figcaption>
-                </figure>
+                  <p className="text-xs text-muted-foreground">
+                    {m.kind === "image" ? "Illustration" : "Motion demonstration"} by{" "}
+                    {m.author || "unknown author"} · {m.licence.short}
+                  </p>
+                </div>
               ))}
             </div>
           )}

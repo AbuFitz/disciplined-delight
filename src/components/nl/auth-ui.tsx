@@ -16,17 +16,46 @@ export function AuthLayout({
   footer?: ReactNode;
 }) {
   return (
-    <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col justify-center px-5 py-10">
-      <Link to="/" aria-label="VAYVOR, home" className="mb-3 inline-flex min-h-11 items-center">
-        <Wordmark className="text-[1.5rem]" />
-      </Link>
-      <p className="eyebrow mb-6" aria-label={`Pronounced ${BRAND.pronunciation}`}>
-        {BRAND.pronunciation} · {BRAND.tagline}
-      </p>
-      <h1 className="display-title text-[2.4rem]">{title}</h1>
-      {intro && <p className="mt-3 text-muted-foreground">{intro}</p>}
-      <div className="mt-7 grid gap-4">{children}</div>
-      {footer && <div className="mt-8 text-sm text-muted-foreground">{footer}</div>}
+    <div className="min-h-dvh bg-[radial-gradient(circle_at_15%_10%,color-mix(in_oklab,var(--primary)_16%,transparent),transparent_38%),var(--background)] px-4 py-5 sm:px-7 sm:py-8">
+      <div className="mx-auto grid min-h-[calc(100dvh-2.5rem)] w-full max-w-5xl overflow-hidden rounded-[2rem] border border-line bg-surface shadow-2xl sm:min-h-[calc(100dvh-4rem)] lg:grid-cols-[0.9fr_1.1fr]">
+        <aside className="relative hidden overflow-hidden border-r border-line bg-primary p-10 text-primary-foreground lg:flex lg:flex-col lg:justify-between">
+          <div className="absolute -right-24 -top-24 size-80 rounded-full border border-current/15" />
+          <div className="absolute -bottom-36 -left-20 size-96 rounded-full border border-current/10" />
+          <Link
+            to="/"
+            aria-label="VAYVOR, home"
+            className="relative inline-flex min-h-11 items-center"
+          >
+            <Wordmark className="text-[1.35rem]" />
+          </Link>
+          <div className="relative max-w-sm">
+            <p className="font-display text-4xl font-semibold leading-tight">
+              Build a routine that fits your actual life.
+            </p>
+            <p className="mt-4 text-sm leading-relaxed opacity-80">
+              Training, food, focus, reflection and optional faith tools—choose only what is useful
+              to you.
+            </p>
+          </div>
+          <p className="relative text-xs opacity-70">Private by default · Works as a guest</p>
+        </aside>
+        <main className="flex flex-col justify-center px-5 py-8 sm:px-10 lg:px-14">
+          <Link
+            to="/"
+            aria-label="VAYVOR, home"
+            className="mb-3 inline-flex min-h-11 items-center lg:hidden"
+          >
+            <Wordmark className="text-[1.35rem]" />
+          </Link>
+          <p className="eyebrow mb-5" aria-label={`Pronounced ${BRAND.pronunciation}`}>
+            {BRAND.pronunciation} · {BRAND.tagline}
+          </p>
+          <h1 className="display-title text-[2.4rem] sm:text-[3rem]">{title}</h1>
+          {intro && <p className="mt-3 max-w-xl leading-relaxed text-muted-foreground">{intro}</p>}
+          <div className="mt-7 grid gap-4">{children}</div>
+          {footer && <div className="mt-8 text-sm text-muted-foreground">{footer}</div>}
+        </main>
+      </div>
     </div>
   );
 }

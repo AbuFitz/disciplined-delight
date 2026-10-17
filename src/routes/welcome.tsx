@@ -94,7 +94,7 @@ function WelcomePage() {
           to="/"
           className="inline-flex min-h-[3.25rem] items-center justify-center rounded-full bg-primary px-7 font-medium text-primary-foreground"
         >
-          Continue as guest
+          Set up this device
         </Link>
       </AuthLayout>
     );
@@ -152,11 +152,14 @@ function WelcomePage() {
       intro={
         mode === "signin"
           ? "Sign in to pick up where you left off."
-          : "Free to use. Your training, food, mind and faith routines, with friends alongside if you want them."
+          : "Free to use. Choose the training, food, focus, reflection or optional faith tools that suit you."
       }
       footer={
-        <button className="min-h-11 underline underline-offset-4" onClick={() => nav({ to: "/" })}>
-          Continue as guest. Everything stays on this device.
+        <button
+          className="min-h-11 underline underline-offset-4"
+          onClick={() => nav({ to: "/onboarding" })}
+        >
+          Use without an account. Everything stays on this device.
         </button>
       }
     >

@@ -21,12 +21,21 @@ import {
 import { saveProfile } from "@/data/actions";
 import { newId, put } from "@/data/db";
 import { useCollection, useProfile } from "@/data/hooks";
-import { COL, type ChecklistItem, type PrayerSettings, type Profile } from "@/data/types";
+import {
+  COL,
+  type AppModule,
+  type ChecklistItem,
+  type PrayerSettings,
+  type Profile,
+} from "@/data/types";
 import { DataSection } from "@/components/nl/data-section";
 import { AccountSection } from "@/components/nl/account-section";
 import { RemindersSection } from "@/components/nl/reminders-section";
 import { InstallSection } from "@/components/nl/install-section";
 import { getThemePref, setThemePref, type ThemePref } from "@/lib/theme";
+import { setSalahEnabled } from "@/data/routine-actions";
+import { FeedbackSection } from "@/components/nl/feedback-section";
+import { CompanionSettings } from "@/components/nl/companion-settings";
 
 export const Route = createFileRoute("/settings")({ component: SettingsPage });
 
@@ -80,6 +89,14 @@ function SettingsPage() {
       />
 
       <Section title="You and your goal" hint="Used for wording and chart reference lines only.">
+        <div>
+          <Link
+            to="/onboarding"
+            className="inline-flex min-h-11 items-center rounded-full border border-input px-5 font-medium"
+          >
+            Review guided setup
+          </Link>
+        </div>
         <Field label="Name (optional)" htmlFor="s-name">
           <TextInput
             id="s-name"
@@ -157,6 +174,59 @@ function SettingsPage() {
             }}
           >
             Save
+          </Button>
+        </div>
+      </Section>
+
+      <Section
+        title="Your areas"
+        hint="These choices shape navigation and what appears on Today. Plan connects every enabled area."
+      >
+        {(
+          [
+            ["training", "Training"],
+            ["nutrition", "Nutrition"],
+            ["mind", "Mind"],
+            ["routines", "Routines and Plan"],
+            ["community", "Community"],
+            ["spirituality", "Spirituality"],
+          ] as [AppModule, string][]
+        ).map(([id, label]) => {
+          const selected = d.modules ?? ["training", "nutrition", "mind", "routines", "community"];
+          return (
+            <Switch
+              key={id}
+              label={label}
+              checked={selected.includes(id)}
+              onChange={(on) =>
+                setD({
+                  ...d,
+                  modules: on ? [...selected, id] : selected.filter((item) => item !== id),
+                })
+              }
+            />
+          );
+        })}
+        <div>
+          <Button
+            variant="secondary"
+            onClick={async () => {
+              const modules = d.modules ?? [
+                "training",
+                "nutrition",
+                "mind",
+                "routines",
+                "community",
+              ];
+              await saveProfile({
+                modules,
+                faithRoutines: modules.includes("spirituality") ? d.faithRoutines : false,
+              });
+              if (!modules.includes("spirituality")) await setSalahEnabled(false);
+              toast.success("Areas updated");
+            }}
+          >
+            Save areas
           </Button>
         </div>
       </Section>
@@ -387,6 +457,20 @@ function SettingsPage() {
             Read the privacy map
           </Link>
         </div>
+      </Section>
+
+      <Section
+        title="Help and feedback"
+        hint="Report a bug, correction, accessibility issue or idea without exposing private records."
+      >
+        <FeedbackSection />
+      </Section>
+
+      <Section
+        title="Companion"
+        hint="An optional, private coach for real plan and app states—not a decorative mascot."
+      >
+        <CompanionSettings />
       </Section>
 
       <Section

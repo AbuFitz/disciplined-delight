@@ -185,6 +185,8 @@ export const blankProfile = (): Profile => ({
   goal: { kind: "strength" },
   targets: { status: "unset" },
   setup: { goals: false, routine: false, prayer: false, food: false },
+  pillars: [],
+  faithRoutines: false,
 });
 
 export type MigrationReport = {
