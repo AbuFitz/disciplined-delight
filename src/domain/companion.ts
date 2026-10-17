@@ -1,39 +1,91 @@
 import type { AppModule } from "@/data/types";
+import type { AccentWorld } from "@/lib/theme";
+
+export type BuddyForm = "bell" | "cairn" | "plate";
+export type BuddyPalette = "world" | AccentWorld;
+export type BuddyPlacement = "dock_right" | "dock_left" | "inline" | "on_demand" | "setup";
+export type BuddyPersonality = "steady" | "playful" | "dry";
 
 export type CompanionConfig = {
   id: "main";
   enabled: boolean;
+  /** True once the person has been through (or skipped) guided setup. */
+  setupDone: boolean;
   name: string;
-  form: "orb" | "totem" | "spark";
-  palette: "mint" | "amber" | "violet";
+  form: BuddyForm;
+  /** "world" follows the selected colour world; otherwise a fixed world. */
+  palette: BuddyPalette;
   expression: "calm" | "bright" | "focused";
+  personality: BuddyPersonality;
   tone: "quiet" | "direct" | "warm";
   energy: "low" | "medium" | "high";
   frequency: "minimal" | "balanced" | "active";
   celebration: "off" | "subtle" | "full";
   motion: "off" | "gentle" | "full";
-  placement: "setup" | "dashboard" | "on_demand";
+  /** Off by default. "chime" is a soft tone; "voice" reads lines aloud with the device voice. */
+  sound: "off" | "chime" | "voice";
+  placement: BuddyPlacement;
+  /** Muted: no unprompted speech, sound or celebration. The panel still opens on tap. */
+  muted: boolean;
   quiet: { enabled: boolean; start: string; end: string };
   modules: AppModule[];
   privacy: "status_only";
 };
 export const DEFAULT_COMPANION: CompanionConfig = {
   id: "main",
-  enabled: false,
+  enabled: true,
+  setupDone: false,
   name: "Buddy",
-  form: "orb",
-  palette: "mint",
+  form: "bell",
+  palette: "world",
   expression: "calm",
+  personality: "steady",
   tone: "warm",
   energy: "medium",
   frequency: "balanced",
   celebration: "subtle",
   motion: "gentle",
-  placement: "dashboard",
+  sound: "off",
+  placement: "dock_right",
+  muted: false,
   quiet: { enabled: true, start: "21:30", end: "07:30" },
   modules: ["training", "nutrition", "mind", "routines"],
   privacy: "status_only",
 };
+
+const FORMS: BuddyForm[] = ["bell", "cairn", "plate"];
+const PLACEMENTS: BuddyPlacement[] = ["dock_right", "dock_left", "inline", "on_demand", "setup"];
+const WORLDS = ["mint", "cobalt", "violet", "coral", "amber", "rose", "slate"];
+/** Early builds stored orb/totem/spark and a dashboard placement; map them without losing choices. */
+const LEGACY_FORM: Record<string, BuddyForm> = { orb: "bell", totem: "cairn", spark: "plate" };
+
+/** Merge a stored (possibly old-shape) record over the defaults. */
+export function normaliseCompanion(
+  stored?: Partial<Record<keyof CompanionConfig, unknown>> | null,
+) {
+  const base = { ...DEFAULT_COMPANION, ...(stored ?? {}) } as CompanionConfig;
+  const form = String(base.form);
+  base.form = FORMS.includes(form as BuddyForm)
+    ? (form as BuddyForm)
+    : (LEGACY_FORM[form] ?? "bell");
+  const placement = String(base.placement);
+  base.placement =
+    placement === "dashboard"
+      ? "dock_right"
+      : PLACEMENTS.includes(placement as BuddyPlacement)
+        ? (placement as BuddyPlacement)
+        : "dock_right";
+  // A stored record from before the redesign had no setupDone flag; the choice was already made.
+  if (stored && !("setupDone" in stored)) base.setupDone = true;
+  const palette = String(base.palette);
+  base.palette =
+    palette === "world" || WORLDS.includes(palette) ? (palette as BuddyPalette) : "world";
+  if (stored && !("palette" in stored)) base.palette = "world";
+  // The legacy default palette was "mint"; that was a default, not a choice.
+  if (stored && stored.palette === "mint" && !("setupDone" in stored)) base.palette = "world";
+  return base;
+}
+
 export type CompanionSignals = {
   minute: number;
   activeWorkout?: boolean;

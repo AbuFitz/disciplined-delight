@@ -7,9 +7,13 @@ beforeEach(async () => {
   indexedDB.deleteDatabase("new-life");
 });
 describe("companion settings", () => {
-  it("persist as an explicit opt-in", async () => {
-    expect((await getCompanionConfig()).enabled).toBe(false);
-    await saveCompanionConfig({ ...DEFAULT_COMPANION, enabled: true, name: "Pip" });
-    expect(await getCompanionConfig()).toMatchObject({ enabled: true, name: "Pip" });
+  it("persist and default to on, with an easy opt-out", async () => {
+    expect((await getCompanionConfig()).enabled).toBe(true);
+    await saveCompanionConfig({ ...DEFAULT_COMPANION, enabled: false, name: "Pip" });
+    expect(await getCompanionConfig()).toMatchObject({
+      enabled: false,
+      name: "Pip",
+      setupDone: true,
+    });
   });
 });

@@ -31,6 +31,11 @@ import { cn } from "@/lib/utils";
 import { setupGuide } from "@/domain/setup-guide";
 import { useProfile } from "@/data/hooks";
 import { VIcon } from "@/components/nl/icon";
+import { BuddySetup } from "@/components/buddy/BuddySetup";
+import { BuddyCharacter } from "@/components/buddy/BuddyCharacter";
+import { ColourWorldPicker } from "@/components/nl/colour-world";
+import { saveCompanionConfig } from "@/data/companion";
+import { DEFAULT_COMPANION, type CompanionConfig } from "@/domain/companion";
 
 export const Route = createFileRoute("/onboarding")({ component: OnboardingPage });
 
@@ -136,6 +141,7 @@ function OnboardingPage() {
   const [faith, setFaith] = useState(false);
   const [kit, setKit] = useState<(typeof KIT)[number][]>(["bodyweight"]);
   const [plan, setPlan] = useState<PlanningProfile>(defaults);
+  const [buddy, setBuddy] = useState<CompanionConfig>(DEFAULT_COMPANION);
   const [availability, setAvailability] = useState<
     "idle" | "checking" | "free" | "taken" | "error"
   >("idle");
@@ -253,6 +259,9 @@ function OnboardingPage() {
           },
         }),
         equipment.save(skipped ? ["bodyweight"] : kit),
+        skipped
+          ? Promise.resolve()
+          : saveCompanionConfig({ ...buddy, name: buddy.name.trim() || "Buddy" }),
         setSalahEnabled(prayer),
         skipped
           ? Promise.resolve()
@@ -320,9 +329,10 @@ function OnboardingPage() {
     "Start with you",
     "Choose your areas",
     "Build your training fit",
+    "Make it yours",
     "Check your setup",
   ];
-  const guide = setupGuide(step === 2 ? 3 : step === 3 ? 5 : step, {
+  const guide = setupGuide(step === 2 ? 3 : step === 3 ? 4 : step === 4 ? 5 : step, {
     modules,
     safetyGate:
       !!plan.physiology?.medicalSafetyFlag ||
@@ -339,6 +349,7 @@ function OnboardingPage() {
       : "A name is optional. Your timezone keeps the daily plan accurate.",
     "These areas feed the same Today view, weekly plan and progress story. Change them later.",
     "These choices change exercise selection, weekly volume and session length.",
+    "Pick a colour world and meet Buddy. Both are optional and change any time.",
     "Your setup becomes a useful starting plan. Advanced preferences stay in the setup path.",
   ];
 
@@ -356,14 +367,19 @@ function OnboardingPage() {
         ))}
       </div>
       <aside className="flex items-start gap-3 rounded-2xl bg-primary/10 p-4" aria-live="polite">
-        <span
-          className="grid size-9 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground"
-          aria-hidden
-        >
-          <VIcon name="buddy" size={16} />
-        </span>
+        <BuddyCharacter
+          form={buddy.form}
+          state={step === 4 ? "celebrate" : step === 3 ? "enter" : "explain"}
+          motion={buddy.motion}
+          palette={buddy.palette}
+          expression={buddy.expression}
+          size={52}
+          name={buddy.name}
+        />
         <div>
-          <p className="text-sm font-semibold">Buddy · {guide.title}</p>
+          <p className="text-sm font-semibold">
+            {buddy.name || "Buddy"} · {guide.title}
+          </p>
           <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{guide.body}</p>
         </div>
       </aside>
@@ -597,6 +613,13 @@ function OnboardingPage() {
       )}
 
       {step === 3 && (
+        <div className="grid gap-6">
+          <ColourWorldPicker />
+          <BuddySetup progressive value={buddy} onChange={setBuddy} />
+        </div>
+      )}
+
+      {step === 4 && (
         <div className="grid gap-3 rounded-2xl border border-line bg-surface-2/50 p-4 text-sm">
           <p>
             <strong>Areas:</strong>{" "}
@@ -644,9 +667,9 @@ function OnboardingPage() {
           size="lg"
           busy={busy}
           disabled={!valid}
-          onClick={() => (step < 3 ? setStep(step + 1) : void finish())}
+          onClick={() => (step < titles.length - 1 ? setStep(step + 1) : void finish())}
         >
-          {step < 3 ? (
+          {step < titles.length - 1 ? (
             <>
               Continue <VIcon name="next" size={16} />
             </>

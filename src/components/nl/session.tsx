@@ -47,6 +47,8 @@ import { coverFrame, describeMedia } from "@/domain/exercise-media";
 import { suggestAdaptation, type AdaptationSuggestion } from "@/domain/adaptation";
 import { VIcon } from "./icon";
 import { BuddyGuide } from "./buddy-guide";
+import { BuddyStrip } from "@/components/buddy/BuddyStrip";
+import { MirrorExercise, MirrorSummaryCard } from "@/components/buddy/MirrorCard";
 import { livePersonalRecord, plateBreakdown, warmupRamp } from "@/domain/training-tools";
 
 const fmtClock = (ms: number) => {
@@ -290,6 +292,7 @@ export function GymMode({
           )}
         </div>
         <div className="mx-auto mt-6 max-w-md text-left">
+          <BuddyStrip />
           <BuddyGuide
             compact
             event={{
@@ -343,6 +346,7 @@ export function GymMode({
           presence is configured—no people or numbers are invented.
         </div>
       )}
+      <BuddyStrip />
       <BuddyGuide compact event={{ kind: "gym_start", exercise: exercise.name }} />
       <div className="mt-5 grid grid-cols-[1fr_auto_1fr] items-center border-y border-line py-3 text-sm">
         <button
@@ -390,6 +394,11 @@ export function GymMode({
             ? `Last: ${previous.sets.map((entry) => formatSet(entry, exercise.tracking)).join(" · ")}`
             : exercise.prescription.schemeText}
         </p>
+        <MirrorExercise
+          session={session}
+          exercise={exercise}
+          className="mx-auto mt-3 max-w-xl text-left"
+        />
         {showMedia && (
           <div className="mx-auto mt-5 max-w-xl text-left">
             <ExerciseVisual
@@ -890,6 +899,7 @@ export function ExerciseCard({
             ) : (
               <p className="text-muted-foreground">No earlier session for this exercise.</p>
             )}
+            <MirrorExercise session={session} exercise={ex} className="mt-2" />
             <AdaptationBox
               exercise={ex.name}
               suggestion={adaptation}
@@ -1422,6 +1432,7 @@ export function FinishSheet({
             : `${sum.planned - sum.completed} planned working sets aren't logged. You can still complete the workout, or end early to record it as partial.`}{" "}
           Volume counts only sets with both weight and reps.
         </p>
+        <MirrorSummaryCard session={session} />
         <Button
           variant="primary"
           size="lg"

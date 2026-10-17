@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { useProfile } from "@/data/hooks";
 import type { AppModule } from "@/data/types";
 import { VIcon, type VIconName } from "./icon";
+import { BuddyDock } from "@/components/buddy/BuddyDock";
 
 type NavItem = {
   to: string;
@@ -224,6 +225,7 @@ export function Shell({ children }: { children: ReactNode }) {
       {active && !onSession && loc.pathname !== "/" && (
         <Link
           to="/train/session"
+          data-dock-avoid
           className={cn(
             "spatial-glass fixed inset-x-3 z-40 flex min-h-12 items-center justify-between gap-3 border-l-2 border-l-primary px-5 text-foreground lg:inset-x-auto lg:bottom-6 lg:right-8 lg:w-80",
             "bottom-[calc(5.25rem+var(--safe-bottom))]",
@@ -240,9 +242,10 @@ export function Shell({ children }: { children: ReactNode }) {
         </Link>
       )}
 
-      {/* Mobile tabs. Buddy guidance is rendered in context, never as a floating overlay. */}
+      {/* Mobile tabs. The Buddy dock measures [data-dock-avoid] elements and keeps clear of them. */}
       <nav
         aria-label="Primary"
+        data-dock-avoid
         className={cn(
           "spatial-glass fixed inset-x-0 bottom-0 z-40 border-t px-2 pb-[var(--safe-bottom)] lg:hidden",
           (typing || onSession) && "hidden",
@@ -273,6 +276,7 @@ export function Shell({ children }: { children: ReactNode }) {
           ))}
         </ul>
       </nav>
+      <BuddyDock />
     </div>
   );
 }

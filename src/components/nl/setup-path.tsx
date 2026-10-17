@@ -54,7 +54,7 @@ export function SetupPath() {
       title: "Choose Buddy",
       value: "Tone, placement and quiet hours",
       time: "2 min",
-      done: !!companion?.enabled,
+      done: !!companion?.setupDone,
       to: "/settings",
       hash: "companion",
       icon: "buddy",
