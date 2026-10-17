@@ -280,7 +280,7 @@ export function GymMode({
           <p className="mt-2 font-display text-4xl font-semibold [overflow-wrap:anywhere]">
             {pendingIndex >= 0 ? exercise.name : (nextExercise?.name ?? "Finish the session")}
           </p>
-          {(pendingIndex >= 0 ? cat : nextCat) && (
+          {(pendingIndex >= 0 || nextExercise) && (
             <div className="mt-4 text-left">
               <ExerciseVisual
                 media={(pendingIndex >= 0 ? cat : nextCat)?.media}

@@ -41,6 +41,7 @@ import {
 } from "@/lib/theme";
 import { setSalahEnabled } from "@/data/routine-actions";
 import { FeedbackSection } from "@/components/nl/feedback-section";
+import { IntegrationsPanel } from "@/components/nl/integrations-panel";
 import { CompanionSettings } from "@/components/nl/companion-settings";
 import { GymSettings } from "@/components/nl/gym-settings";
 import { FaithSettings } from "@/components/nl/faith-settings";
@@ -602,6 +603,12 @@ function SettingsPage() {
             action inside this section.
           </p>
           <GymSettings />
+        </details>
+        <details className="border-t border-line pt-3">
+          <summary className="min-h-11 cursor-pointer py-2 font-semibold">
+            Connections: music, health, location, notifications
+          </summary>
+          <IntegrationsPanel />
         </details>
       </Section>
 

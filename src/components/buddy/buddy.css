@@ -493,11 +493,9 @@
 @keyframes bd-enter {
   0% {
     transform: translateY(14px) scale(0.6) rotate(var(--bd-lean));
-    opacity: 0;
   }
   60% {
     transform: translateY(-3px) scale(1.06) rotate(var(--bd-lean));
-    opacity: 1;
   }
   100% {
     transform: translateY(0) scale(1) rotate(var(--bd-lean));
@@ -631,11 +629,9 @@
 @keyframes bd-rise {
   from {
     transform: translateY(8px) rotate(var(--bd-lean));
-    opacity: 0.4;
   }
   to {
     transform: translateY(0) rotate(var(--bd-lean));
-    opacity: 1;
   }
 }
 @keyframes bd-dawn {

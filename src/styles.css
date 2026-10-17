@@ -91,7 +91,7 @@
 :root,
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --radius: 1.25rem;
+  --radius: 0.4rem;
   --background: #101114;
   --foreground: #f3efe7;
   --surface: #181a1e;
@@ -137,11 +137,18 @@
   --vital: var(--spring);
   --vital-foreground: #08140f;
   --glow:
-    radial-gradient(60rem 30rem at 85% -10%, rgb(38 176 125 / 0.16), transparent 60%),
-    radial-gradient(40rem 24rem at -10% 10%, rgb(243 239 231 / 0.05), transparent 60%);
-  --panel-green: linear-gradient(160deg, #123a2c 0%, #0d2a20 100%);
-  --panel-dusk: linear-gradient(160deg, #272650 0%, #181a30 100%);
-  --panel-warm: linear-gradient(160deg, #3a2b1a 0%, #231a10 100%);
+    radial-gradient(60rem 30rem at 85% -10%, color-mix(in oklab, var(--primary) 14%, transparent), transparent 60%);
+  /* Tinted panels follow the selected colour world; there is no fixed green. */
+  --panel-green: linear-gradient(160deg, color-mix(in oklab, var(--primary) 26%, var(--background)) 0%, color-mix(in oklab, var(--primary) 12%, var(--background)) 100%);
+  --panel-dusk: linear-gradient(160deg, color-mix(in oklab, var(--primary) 16%, var(--surface-2)) 0%, var(--surface) 100%);
+  --panel-warm: linear-gradient(160deg, color-mix(in oklab, var(--primary) 10%, var(--surface-2)) 0%, var(--surface) 100%);
+  /* Colour roles: canvas / ink / surface / rule / accent / action. */
+  --canvas: var(--background);
+  --ink: var(--foreground);
+  --rule: var(--line);
+  --accent-role: var(--primary);
+  --action: var(--primary);
+  --action-ink: var(--primary-foreground);
   /* Paper-on-charcoal hero (inverts in light). Colour is otherwise reserved for state and a few tints. */
   --loud-ink-bg: #f3efe7;
   --loud-ink-fg: #0e1311;
@@ -180,10 +187,10 @@
   --chart-3: #4a4fb0;
   --chart-4: #b3321f;
   --chart-5: #565b56;
-  --glow: radial-gradient(50rem 26rem at 85% -10%, rgb(38 176 125 / 0.12), transparent 60%);
-  --panel-green: linear-gradient(160deg, #d8efe4 0%, #c3e5d4 100%);
-  --panel-dusk: linear-gradient(160deg, #e4e1f6 0%, #d3cff0 100%);
-  --panel-warm: linear-gradient(160deg, #f6e6cf 0%, #efd7b4 100%);
+  --glow: radial-gradient(50rem 26rem at 85% -10%, color-mix(in oklab, var(--primary) 9%, transparent), transparent 60%);
+  --panel-green: linear-gradient(160deg, color-mix(in oklab, var(--primary) 16%, var(--background)) 0%, color-mix(in oklab, var(--primary) 8%, var(--background)) 100%);
+  --panel-dusk: linear-gradient(160deg, color-mix(in oklab, var(--primary) 10%, var(--surface-2)) 0%, var(--surface) 100%);
+  --panel-warm: linear-gradient(160deg, color-mix(in oklab, var(--primary) 6%, var(--surface-2)) 0%, var(--surface) 100%);
   --vital-foreground: #f8f6f1;
   --loud-ink-bg: #0e1311;
   --loud-ink-fg: #f8f6f1;

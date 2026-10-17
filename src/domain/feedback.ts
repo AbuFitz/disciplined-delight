@@ -21,6 +21,8 @@ export type FeedbackPayload = {
   description: string;
   contactEmail?: string;
   screenshot?: { name: string; type: string; size: number };
+  /** Only present when the person ticked the embed consent box. */
+  screenshotData?: string;
   diagnostics?: SafeDiagnostics;
 };
 

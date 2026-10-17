@@ -26,7 +26,8 @@ export function FeedbackSection() {
   const [category, setCategory] = useState<FeedbackCategory>("bug");
   const [description, setDescription] = useState("");
   const [email, setEmail] = useState("");
-  const [diagnostics, setDiagnostics] = useState(true);
+  const [diagnostics, setDiagnostics] = useState(false);
+  const [embedShot, setEmbedShot] = useState(false);
   const [screenshot, setScreenshot] = useState<File | null>(null);
   const [reference, setReference] = useState("");
   const diagnosticPreview = useMemo(
@@ -70,7 +71,14 @@ export function FeedbackSection() {
     return () => clearTimeout(timer);
   }, [category, description, email]);
 
-  const exportReport = () => {
+  const readShot = (file: File) =>
+    new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result));
+      reader.onerror = () => reject(reader.error);
+      reader.readAsDataURL(file);
+    });
+  const exportReport = async () => {
     const base = {
       category,
       description: description.trim(),
@@ -83,8 +91,21 @@ export function FeedbackSection() {
     const errors = validateFeedback(base);
     if (errors.length) return toast.error(errors[0]);
     const ref = feedbackReference();
+    let screenshotData: string | undefined;
+    if (screenshot && embedShot) {
+      if (screenshot.size > 2 * 1024 * 1024)
+        return toast.error(
+          "Embedded screenshots must be under 2 MB. Attach it separately instead.",
+        );
+      try {
+        screenshotData = await readShot(screenshot);
+      } catch {
+        return toast.error("Couldn't read that image. Attach it separately instead.");
+      }
+    }
     const payload: FeedbackPayload = {
       ...base,
+      screenshotData,
       reference: ref,
       createdAt: new Date().toISOString(),
     };
@@ -104,9 +125,10 @@ export function FeedbackSection() {
   return (
     <div id="feedback" className="grid gap-4">
       <p className="text-sm text-muted-foreground">
-        There is no support backend connected in this build. Your draft stays on this device;
-        submitting exports a report you can attach when contacting the product owner. It is not sent
-        automatically.
+        There is no support backend connected in this build. Your draft saves on this device as you
+        type, even offline. Exporting creates a file you can attach when contacting the product
+        owner. Nothing is sent from VAYVOR, and screenshots or diagnostics are only included if you
+        tick them.
       </p>
       <Field label="Category">
         <Select
@@ -149,9 +171,17 @@ export function FeedbackSection() {
           onChange={(event) => setScreenshot(event.target.files?.[0] ?? null)}
         />
       </Field>
+      {screenshot && (
+        <Switch
+          label="Embed this screenshot in the file"
+          hint="Off unless you choose it. Otherwise the file records only its name and you attach the image yourself."
+          checked={embedShot}
+          onChange={setEmbedShot}
+        />
+      )}
       <Switch
-        label="Include privacy-safe diagnostics"
-        hint="App build, route (without query text), platform, online state, sync status and safe error IDs only."
+        label="Include privacy-safe diagnostics in the file"
+        hint="Off unless you choose it. App build, route (without query text), platform, online state, sync status and safe error IDs only. Preview before exporting."
         checked={diagnostics}
         onChange={setDiagnostics}
       />
@@ -163,7 +193,7 @@ export function FeedbackSection() {
           </pre>
         </details>
       )}
-      <Button variant="primary" onClick={exportReport}>
+      <Button variant="primary" onClick={() => void exportReport()}>
         <Download className="size-4" /> Export feedback report
       </Button>
       {reference && (

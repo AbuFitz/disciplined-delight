@@ -137,6 +137,7 @@ export function BuddyDock() {
   // Bubble: speak up when the brief changes, according to frequency, mute and snooze.
   const key = brief.key;
   useEffect(() => {
+    setBubble(null);
     if (!floating || asleep || open) return;
     if (!shouldSpeak(config, brief)) return;
     setBubble(brief.line);
@@ -300,6 +301,9 @@ export function BuddyDock() {
             )}
             <Link to="/settings" hash="companion">
               Buddy settings
+            </Link>
+            <Link to="/settings" hash="feedback">
+              Report a problem
             </Link>
           </div>
         </div>

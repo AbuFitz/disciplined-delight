@@ -32,7 +32,7 @@ export function BuddyStrip({ className }: { className?: string }) {
         motion={motion}
         palette={config.palette}
         expression={config.expression}
-        size={54}
+        size={68}
         name={config.name}
       />
       <p className="buddy-strip-line">
