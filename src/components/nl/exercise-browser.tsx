@@ -481,7 +481,7 @@ function ExerciseDetail({
               </Chip>
             ))}
           </div>
-          <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 border-y border-line py-3 text-sm">
+          <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 [&_dd]:[overflow-wrap:anywhere] gap-y-1 border-y border-line py-3 text-sm">
             <dt className="text-muted-foreground">Difficulty</dt>
             <dd>
               {diff ? DIFFICULTY_LABEL[diff.level] : ""}{" "}

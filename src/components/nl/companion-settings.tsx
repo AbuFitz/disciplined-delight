@@ -46,10 +46,11 @@ export function CompanionSettings() {
               onChange={(enabled) => setValue({ ...value, quiet: { ...value.quiet, enabled } })}
             />
             {value.quiet.enabled && (
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <TextInput
                   aria-label="Buddy quiet hours start"
                   type="time"
+                  className="min-w-0 flex-1"
                   value={value.quiet.start}
                   onChange={(e) =>
                     setValue({ ...value, quiet: { ...value.quiet, start: e.target.value } })
@@ -58,6 +59,7 @@ export function CompanionSettings() {
                 <TextInput
                   aria-label="Buddy quiet hours end"
                   type="time"
+                  className="min-w-0 flex-1"
                   value={value.quiet.end}
                   onChange={(e) =>
                     setValue({ ...value, quiet: { ...value.quiet, end: e.target.value } })

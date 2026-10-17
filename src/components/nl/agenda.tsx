@@ -347,7 +347,7 @@ export function AgendaTimelineWidget({
                   <span className="w-[5.5rem] shrink-0 pt-0.5 text-sm tnum text-muted-foreground">
                     {timeLabel(r)}
                   </span>
-                  <div className="min-w-0 flex-1">
+                  <div className="min-w-[min(100%,9rem)] flex-1">
                     <p className="font-medium [overflow-wrap:anywhere]">
                       {r.label}
                       {r.continued && (

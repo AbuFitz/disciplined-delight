@@ -179,7 +179,11 @@ export function WorkoutLibrary({
               catalogue. Every target remains editable.
             </p>
           </div>
-          <div className="flex border-b border-line" role="tablist" aria-label="Library type">
+          <div
+            className="flex flex-wrap border-b border-line"
+            role="tablist"
+            aria-label="Library type"
+          >
             {(["workouts", "programmes"] as const).map((value) => (
               <button
                 key={value}
@@ -473,7 +477,7 @@ function WorkoutCard({
           {workout.title}
         </h3>
         <p className="text-sm text-muted-foreground">{workout.summary}</p>
-        <dl className="grid grid-cols-[auto_1fr] gap-x-4 border-y border-line py-2 text-sm">
+        <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 [&_dd]:[overflow-wrap:anywhere] border-y border-line py-2 text-sm">
           <dt className="text-muted-foreground">Movements</dt>
           <dd className="num">{workout.exercises.length}</dd>
           <dt className="text-muted-foreground">Works</dt>

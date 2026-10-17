@@ -33,7 +33,7 @@ function LibraryPage() {
             : "Workouts, programmes and every exercise."
         }
       />
-      <div role="tablist" aria-label="Library" className="mb-6 flex border-b border-line">
+      <div role="tablist" aria-label="Library" className="mb-6 flex flex-wrap border-b border-line">
         {TABS.map((t) => (
           <button
             key={t.id}

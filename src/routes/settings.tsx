@@ -80,13 +80,13 @@ function Section({
         className="flex min-h-20 w-full items-center justify-between gap-4 py-5 text-left"
         onClick={() => onToggle(id)}
       >
-        <span>
+        <span className="min-w-0 [overflow-wrap:anywhere]">
           <span className="block font-display text-2xl font-semibold">{title}</span>
           {hint && <span className="mt-1 block text-sm text-muted-foreground">{hint}</span>}
         </span>
         <VIcon
           name={open ? "collapse" : "next"}
-          className={open ? "text-primary" : "text-muted-foreground"}
+          className={`shrink-0 ${open ? "text-primary" : "text-muted-foreground"}`}
         />
       </button>
       {open ? (
