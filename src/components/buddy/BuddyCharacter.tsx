@@ -1,5 +1,5 @@
 import { useId, useRef } from "react";
-import { getArtPack } from "@/domain/buddy/art";
+import { getArtPack, type Layer } from "@/domain/buddy/art";
 import { POSES, STATE_META, type BuddyState } from "@/domain/buddy/state";
 import { VARIANTS, type VariantId } from "@/domain/buddy/variants";
 import type { BuddyPalette, CompanionConfig } from "@/domain/companion";
@@ -19,40 +19,42 @@ function Eye({ kind, x, y }: { kind: string; x: number; y: number }) {
       <g className="bd-eye-in">
         {kind === "open" && (
           <>
-            <ellipse rx="3.6" ry="4.4" className="bd-lens" />
-            <circle cx="0.9" cy="0.3" r="2" className="bd-pupil" />
+            <ellipse rx="5" ry="6" className="bd-lens" />
+            <circle cx="1.2" cy="0.6" r="3" className="bd-pupil" />
+            <circle cx="2.2" cy="-0.8" r="1" className="bd-lens" />
           </>
         )}
         {kind === "wide" && (
           <>
-            <ellipse rx="4.2" ry="5" className="bd-lens" />
-            <circle cx="0.9" cy="0.3" r="2.4" className="bd-pupil" />
+            <ellipse rx="5.6" ry="6.8" className="bd-lens" />
+            <circle cx="1.2" cy="0.6" r="3.5" className="bd-pupil" />
+            <circle cx="2.4" cy="-1" r="1.2" className="bd-lens" />
           </>
         )}
-        {kind === "happy" && <path d="M-4.5 1.6 Q0 -4.6 4.5 1.6" className="bd-stroke" />}
-        {kind === "closed" && <path d="M-4.5 -0.6 Q0 4.2 4.5 -0.6" className="bd-stroke" />}
+        {kind === "happy" && <path d="M-5.5 2.4 Q0 -5.6 5.5 2.4" className="bd-stroke" />}
+        {kind === "closed" && <path d="M-5.5 -0.8 Q0 5.2 5.5 -0.8" className="bd-stroke" />}
         {kind === "half" && (
           <>
-            <path d="M-3.8 0 A3.8 3.8 0 0 0 3.8 0 Z" className="bd-lens" />
-            <path d="M-4.4 0 H4.4" className="bd-stroke bd-thin" />
+            <path d="M-5 0 A5 5 0 0 0 5 0 Z" className="bd-lens" />
+            <path d="M-5.6 0 H5.6" className="bd-stroke bd-thin" />
           </>
         )}
         {kind === "up" && (
           <>
-            <ellipse cy="-0.6" rx="3.6" ry="4.4" className="bd-lens" />
-            <circle cx="1" cy="-2.2" r="2" className="bd-pupil" />
+            <ellipse cy="-0.6" rx="5" ry="6" className="bd-lens" />
+            <circle cx="1.2" cy="-2.6" r="3" className="bd-pupil" />
           </>
         )}
         {kind === "side" && (
           <>
-            <ellipse cx="1" rx="3.6" ry="4.4" className="bd-lens" />
-            <circle cx="2.4" cy="0.2" r="2" className="bd-pupil" />
+            <ellipse cx="1" rx="5" ry="6" className="bd-lens" />
+            <circle cx="3.2" cy="0.4" r="3" className="bd-pupil" />
           </>
         )}
         {kind === "soft" && (
           <>
-            <path d="M-3.9 0.6 A3.9 3.9 0 0 0 3.9 0.6 Q0 -2.4 -3.9 0.6Z" className="bd-lens" />
-            <path d="M-4.6 -3.2 L4.6 -4.6" className="bd-stroke bd-thin" />
+            <path d="M-5.2 0.8 A5.2 5.2 0 0 0 5.2 0.8 Q0 -3.2 -5.2 0.8Z" className="bd-lens" />
+            <path d="M-5.8 -4.4 L5.8 -6" className="bd-stroke bd-thin" />
           </>
         )}
       </g>
@@ -75,6 +77,24 @@ function Mouth({ kind, x, y }: { kind: string; x: number; y: number }) {
         )}
       </g>
     </g>
+  );
+}
+
+function Layers({ layers, clipId }: { layers: Layer[]; clipId: string }) {
+  return (
+    <>
+      {layers.map((l, i) => {
+        const cls = `bd-fill-${l.fill}${l.edge ? " bd-edged" : ""}`;
+        const style = l.opacity === undefined ? undefined : { opacity: l.opacity };
+        return l.clip ? (
+          <g key={i} clipPath={`url(#${clipId}-${i})`}>
+            <path d={l.d} className={cls} style={style} />
+          </g>
+        ) : (
+          <path key={i} d={l.d} className={cls} style={style} />
+        );
+      })}
+    </>
   );
 }
 
@@ -166,8 +186,8 @@ export function BuddyCharacter({
   useBuddyAnimator(svgRef, state, v.profile, motion, live);
   const clip = useId().replace(/:/g, "");
   const f = art.face;
-  const ex = [f.x + f.w * 0.3, f.x + f.w * 0.7] as const;
-  const ey = f.y + f.h * 0.48;
+  const ex = [f.x + f.w * 0.29, f.x + f.w * 0.71] as const;
+  const ey = f.y + f.h * 0.44;
   const mx = f.x + f.w / 2;
   const my = f.y + f.h * 0.8;
   return (
@@ -196,9 +216,13 @@ export function BuddyCharacter({
       focusable="false"
     >
       <defs>
-        <clipPath id={`${clip}-c`}>
-          <path d={art.body} />
-        </clipPath>
+        {art.body.map((l, i) =>
+          l.clip ? (
+            <clipPath key={i} id={`${clip}-${i}`}>
+              <path d={l.clip} />
+            </clipPath>
+          ) : null,
+        )}
       </defs>
       <g className="bd-ground">
         <path d="M6 118.5 H114" />
@@ -208,11 +232,23 @@ export function BuddyCharacter({
       </g>
       <g data-part="root" className="bd-lean">
         <g data-part="body">
-          <path d={art.body} className="bd-body" />
-          <g clipPath={`url(#${clip}-c)`}>
-            <rect x="0" y={art.trim.y} width="120" height={art.trim.h} className="bd-trim" />
-          </g>
-          <path d={art.body} className="bd-edge" />
+          <Layers layers={art.back} clipId={clip} />
+          <Layers layers={art.body} clipId={clip} />
+          {art.limbs && (
+            <>
+              {(["l", "r"] as const).map((side) => (
+                <g
+                  key={side}
+                  data-part={side === "l" ? "armL" : "armR"}
+                  style={{
+                    transformOrigin: `${art.limbs![side].pivot[0]}px ${art.limbs![side].pivot[1]}px`,
+                  }}
+                >
+                  <Layers layers={art.limbs![side].layers} clipId={`${clip}-l${side}`} />
+                </g>
+              ))}
+            </>
+          )}
           <g className="bd-ticks">
             {art.ticks.map((t, i) => (
               <path key={i} d="M0 0 v4.5" transform={`translate(${t.x} ${t.y}) rotate(${t.r})`} />
@@ -242,6 +278,7 @@ export function BuddyCharacter({
               ))}
             </g>
           </g>
+          {art.front && <Layers layers={art.front} clipId={clip} />}
         </g>
       </g>
       <Accessories />

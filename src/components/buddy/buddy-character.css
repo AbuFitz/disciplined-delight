@@ -73,16 +73,29 @@
 .buddy .bd-lean {
   transform: rotate(var(--bd-lean));
 }
-.buddy .bd-body {
+.buddy .bd-fill-cream {
   fill: var(--bd-cream);
 }
-.buddy .bd-edge {
-  fill: none;
-  stroke: var(--bd-edge);
-  stroke-width: 1.4;
-}
-.buddy .bd-trim {
+.buddy .bd-fill-accent {
   fill: var(--bd-accent);
+}
+.buddy .bd-fill-shade {
+  fill: #6b4f2a;
+}
+.buddy .bd-fill-light {
+  fill: #ffffff;
+}
+.buddy .bd-fill-deep {
+  fill: var(--bd-win);
+}
+.buddy .bd-edged {
+  stroke: var(--bd-edge);
+  stroke-width: 1.2;
+  stroke-linejoin: round;
+}
+.buddy [data-part="armL"],
+.buddy [data-part="armR"] {
+  transform-box: view-box;
 }
 .buddy .bd-ticks path {
   stroke: var(--bd-accent);

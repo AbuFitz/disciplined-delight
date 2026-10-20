@@ -19,7 +19,7 @@ export const QUICK_STEPS = [
   "plan",
   "start",
 ] as const;
-export type StepId = (typeof QUICK_STEPS)[number] | "personalise";
+export type StepId = (typeof QUICK_STEPS)[number] | "personalise" | "welcome";
 
 export const STEP_LABEL: Record<StepId, string> = {
   intent: "Outcome",
@@ -31,6 +31,7 @@ export const STEP_LABEL: Record<StepId, string> = {
   plan: "Your plan",
   start: "Start",
   personalise: "Make it yours",
+  welcome: "Welcome",
 };
 
 export type Intent = "strength" | "muscle" | "fitness" | "lose-weight" | "unsure";
@@ -161,6 +162,7 @@ export function stepValid(
     case "start":
       return !ctx.needsHandle || (a.username.trim().length >= 3 && a.name.trim().length > 0);
     case "personalise":
+    case "welcome":
       return true;
   }
 }
@@ -227,7 +229,7 @@ export function toPlanningProfile(a: Answers): PlanningProfile {
 export const DRAFT_KEY = "vayvor:onboarding:v2";
 export type Draft = { v: 2; step: StepId; answers: Answers; savedAt: number };
 
-const STEP_IDS = new Set<string>([...QUICK_STEPS, "personalise"]);
+const STEP_IDS = new Set<string>([...QUICK_STEPS, "personalise", "welcome"]);
 const INTENTS = new Set(INTENT_OPTIONS.map((o) => o.id));
 const LEVELS = new Set(LEVEL_OPTIONS.map((o) => o.id));
 const PLACES = new Set(PLACE_OPTIONS.map((o) => o.id));
@@ -274,6 +276,7 @@ export const serialiseDraft = (step: StepId, answers: Answers, now = Date.now())
 
 /** The furthest step the answers allow, so a resumed draft never lands past an unanswered screen. */
 export function furthestValid(step: StepId, a: Answers, ctx = { needsHandle: false }): StepId {
+  if (step === "welcome") return step;
   const order = QUICK_STEPS as readonly StepId[];
   const target = order.indexOf(step === "personalise" ? "start" : step);
   for (let i = 0; i < target; i++) if (!stepValid(order[i]!, a, ctx)) return order[i]!;

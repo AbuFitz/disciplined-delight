@@ -18,6 +18,7 @@ export const BUDDY_STATES = [
   "error",
   "offline",
   "exit",
+  "poke",
 ] as const;
 export type BuddyState = (typeof BUDDY_STATES)[number];
 
@@ -53,6 +54,7 @@ export const POSES: Record<BuddyState, Pose> = {
   error: { eyes: "wide", mouth: "wavy", accessory: "bang", lean: 0 },
   offline: { eyes: "open", mouth: "flat", accessory: "cloud", lean: 0 },
   exit: { eyes: "happy", mouth: "small", accessory: "none", lean: -4 },
+  poke: { eyes: "wide", mouth: "open", accessory: "pip", lean: 0 },
 };
 
 type Meta = {
@@ -78,6 +80,8 @@ export const STATE_META: Record<BuddyState, Meta> = {
   error: { label: "asking for help", hold: null, priority: 5 },
   offline: { label: "offline, saving on this device", hold: null, priority: 1 },
   exit: { label: "waving goodbye", hold: 600, priority: 1 },
+  // A tap or poke: a quick delighted reaction that settles on its own.
+  poke: { label: "delighted", hold: 1100, priority: 2 },
 };
 
 export type BuddyModel = {

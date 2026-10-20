@@ -3,7 +3,7 @@ import { KEY_POSES, clipFor, idleVariation, type Clip, type Part } from "@/domai
 import type { BuddyState } from "@/domain/buddy/state";
 import type { MotionProfile } from "@/domain/buddy/variants";
 
-const PARTS: Part[] = ["root", "body", "face", "eyes", "mouth", "acc", "shadow"];
+const PARTS: Part[] = ["root", "body", "armL", "armR", "face", "eyes", "mouth", "acc", "shadow"];
 const BLEND_MS = 150;
 
 /** Gentle keeps every clip but with softer squash, anticipation and overshoot. */
@@ -57,10 +57,14 @@ export function useBuddyAnimator(
       stopAll();
       clearInline();
       const pose = KEY_POSES[state];
-      const root = part("root");
-      const body = part("body");
-      if (root) root.style.transform = pose.root;
-      if (body) body.style.transform = pose.body;
+      const set = (n: Part, v?: string) => {
+        const el = part(n);
+        if (el && v) el.style.transform = v;
+      };
+      set("root", pose.root);
+      set("body", pose.body);
+      set("armL", pose.armL);
+      set("armR", pose.armR);
       return () => {
         clearInline();
       };

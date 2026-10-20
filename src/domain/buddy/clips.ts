@@ -7,7 +7,7 @@
 import type { MotionProfile } from "./variants";
 import type { BuddyState } from "./state";
 
-export type Part = "root" | "body" | "face" | "eyes" | "mouth" | "acc" | "shadow";
+export type Part = "root" | "body" | "armL" | "armR" | "face" | "eyes" | "mouth" | "acc" | "shadow";
 export type Track = {
   part: Part;
   keyframes: Keyframe[];
@@ -58,6 +58,153 @@ const clip = (state: Clip["state"], loop: boolean, tracks: Track[]): Clip => ({
 const sq = (p: MotionProfile, a: number) => a * p.squash;
 
 export function clipFor(state: BuddyState, p: MotionProfile): Clip {
+  const base = bodyClip(state, p);
+  const extra = armTracks(state, p);
+  return extra.length
+    ? { ...base, tracks: [...base.tracks, ...extra], length: sum([...base.tracks, ...extra]) }
+    : base;
+}
+
+/** Arm rotation in degrees. Left arm swings outward with positive angles, right with negative. */
+const rot = (r: number, o?: number): Keyframe => ({
+  transform: `rotate(${r}deg)`,
+  ...(o === undefined ? {} : { offset: o }),
+});
+
+function armTracks(state: BuddyState, p: MotionProfile): Track[] {
+  const a = p.anticipation;
+  const o = p.overshoot;
+  const L = (kf: Keyframe[], d: number, extra: Partial<Track> = {}) =>
+    track("armL", kf, d, p, { easing: SPRING, ...extra });
+  const R = (kf: Keyframe[], d: number, extra: Partial<Track> = {}) =>
+    track("armR", kf, d, p, { easing: SPRING, ...extra });
+  switch (state) {
+    case "enter":
+      return [
+        R(
+          [
+            rot(0, 0),
+            rot(-20 * a, 0.2),
+            rot(-150, 0.4),
+            rot(-130, 0.55),
+            rot(-160, 0.7),
+            rot(-132, 0.85),
+            rot(-150, 1),
+          ],
+          1100,
+        ),
+        L([rot(0, 0), rot(10, 0.5), rot(0, 1)], 1100),
+      ];
+    case "idle":
+      return [
+        L([rot(3, 0), rot(9, 0.5), rot(3, 1)], 3400, { iterations: Infinity, easing: SOFT }),
+        R([rot(-3, 0), rot(-9, 0.5), rot(-3, 1)], 3400, {
+          iterations: Infinity,
+          easing: SOFT,
+          delay: 300,
+        }),
+      ];
+    case "breathe":
+      return [
+        L([rot(6, 0), rot(14, 0.5), rot(6, 1)], 5200, { iterations: Infinity, easing: SOFT }),
+        R([rot(-6, 0), rot(-14, 0.5), rot(-6, 1)], 5200, { iterations: Infinity, easing: SOFT }),
+      ];
+    case "listen":
+      return [R([rot(-5, 0), rot(-60, 0.4), rot(-52, 1)], 600), L([rot(4, 0), rot(10, 1)], 600)];
+    case "think":
+      return [
+        R([rot(-5, 0), rot(105, 0.45), rot(100, 0.6), rot(108, 0.8), rot(100, 1)], 1800, {
+          iterations: Infinity,
+          easing: SOFT,
+        }),
+      ];
+    case "explain":
+      return [
+        L([rot(6, 0), rot(38, 0.4), rot(24, 0.7), rot(38, 1)], 1300, {
+          iterations: Infinity,
+          easing: SOFT,
+        }),
+        R([rot(-6, 0), rot(-38, 0.4), rot(-24, 0.7), rot(-38, 1)], 1300, {
+          iterations: Infinity,
+          easing: SOFT,
+        }),
+      ];
+    case "point":
+      return [
+        R([rot(-4, 0), rot(10 * a, 0.2), rot(-104 * 1, 0.5), rot(-98, 0.75), rot(-104, 1)], 1000),
+      ];
+    case "encourage":
+      return [
+        R(
+          [
+            rot(-4, 0),
+            rot(14 * a, 0.15),
+            rot(-146 * Math.min(o, 1.1), 0.4),
+            rot(-126, 0.55),
+            rot(-146, 0.75),
+            rot(-120, 1),
+          ],
+          1100,
+        ),
+        L([rot(4, 0), rot(16, 0.5), rot(4, 1)], 1100),
+      ];
+    case "celebrate":
+      return [
+        L(
+          [
+            rot(4, 0),
+            rot(-10 * a, 0.1),
+            rot(156, 0.26),
+            rot(128, 0.42),
+            rot(158, 0.58),
+            rot(132, 0.72),
+            rot(150, 0.86),
+            rot(150, 1),
+          ],
+          1500,
+        ),
+        R(
+          [
+            rot(-4, 0),
+            rot(10 * a, 0.1),
+            rot(-156, 0.26),
+            rot(-128, 0.42),
+            rot(-158, 0.58),
+            rot(-132, 0.72),
+            rot(-150, 0.86),
+            rot(-150, 1),
+          ],
+          1500,
+        ),
+      ];
+    case "recover":
+      return [
+        L([rot(4, 0), rot(4, 0.3), rot(38, 1)], 1500, { easing: EASE }),
+        R([rot(-4, 0), rot(-4, 0.3), rot(-38, 1)], 1500, { easing: EASE }),
+      ];
+    case "rest":
+      return [
+        L([rot(10, 0), rot(14, 0.5), rot(10, 1)], 5600, { iterations: Infinity, easing: SOFT }),
+        R([rot(-10, 0), rot(-14, 0.5), rot(-10, 1)], 5600, { iterations: Infinity, easing: SOFT }),
+      ];
+    case "error":
+      return [
+        L([rot(5, 0), rot(52, 0.3), rot(46, 1)], 700),
+        R([rot(-5, 0), rot(-52, 0.3), rot(-46, 1)], 700),
+      ];
+    case "poke":
+      return [
+        L([rot(4, 0), rot(60, 0.3), rot(20, 0.6), rot(46, 0.8), rot(8, 1)], 900),
+        R([rot(-4, 0), rot(-60, 0.3), rot(-20, 0.6), rot(-46, 0.8), rot(-8, 1)], 900),
+      ];
+    case "exit":
+      return [R([rot(-4, 0), rot(-150, 0.3), rot(-120, 0.5), rot(-155, 0.7), rot(-150, 1)], 520)];
+    default:
+      return [];
+  }
+}
+
+function bodyClip(state: BuddyState, p: MotionProfile): Clip {
   const a = p.anticipation;
   const o = p.overshoot;
   switch (state) {
@@ -385,6 +532,55 @@ export function clipFor(state: BuddyState, p: MotionProfile): Clip {
           easing: SOFT,
         }),
       ]);
+    case "poke":
+      // Squish down (anticipation), pop up with a stretch, wobble, settle.
+      return clip("poke", false, [
+        track(
+          "body",
+          [
+            tf({}, 0),
+            tf({ y: 3, sx: 1 + sq(p, 0.14) * a, sy: 1 - sq(p, 0.18) * a }, 0.14),
+            tf({ y: -10 * o, sx: 1 - sq(p, 0.09), sy: 1 + sq(p, 0.16) }, 0.4),
+            tf({ y: 0, sx: 1 + sq(p, 0.08), sy: 1 - sq(p, 0.1) }, 0.62),
+            tf({ y: -2, sy: 1 + sq(p, 0.03) }, 0.8),
+            tf({}, 1),
+          ],
+          900,
+          p,
+          { easing: EASE },
+        ),
+        track(
+          "root",
+          [
+            tf({ r: 0 }, 0),
+            tf({ r: -5 * o }, 0.35),
+            tf({ r: 4 * o }, 0.6),
+            tf({ r: -2 }, 0.82),
+            tf({}, 1),
+          ],
+          900,
+          p,
+          { easing: SOFT },
+        ),
+        track(
+          "shadow",
+          [tf({}, 0), tf({ sx: 0.72, o: 0.7 }, 0.4), tf({ sx: 1.05 }, 0.62), tf({}, 1)],
+          900,
+          p,
+        ),
+        track(
+          "acc",
+          [
+            tf({ sx: 0.2, sy: 0.2, o: 0 }, 0),
+            tf({ sx: 1.15, sy: 1.15, o: 1 }, 0.4),
+            tf({ sx: 1, sy: 1, o: 1 }, 0.7),
+            tf({ sx: 0.8, sy: 0.8, o: 0 }, 1),
+          ],
+          1100,
+          p,
+          { easing: SPRING },
+        ),
+      ]);
     case "exit":
       // Small anticipation lift, then shrink away.
       return clip("exit", false, [
@@ -506,19 +702,33 @@ export function idleVariation(p: MotionProfile, pick: number): Clip {
 }
 
 /** Static key poses for reduced motion: the same states, no movement. */
-export const KEY_POSES: Record<BuddyState, { root: string; body: string }> = {
-  enter: { root: "none", body: "none" },
+export const KEY_POSES: Record<
+  BuddyState,
+  { root: string; body: string; armL?: string; armR?: string }
+> = {
+  enter: { root: "none", body: "none", armR: "rotate(-150deg)" },
   idle: { root: "none", body: "none" },
   breathe: { root: "none", body: "none" },
-  listen: { root: "rotate(-5deg)", body: "none" },
-  think: { root: "rotate(3deg)", body: "none" },
-  explain: { root: "none", body: "none" },
-  point: { root: "rotate(6deg) translate(3px, 0)", body: "none" },
-  encourage: { root: "none", body: "translate(0, -3px)" },
-  celebrate: { root: "none", body: "translate(0, -5px) scale(1.04, 1.04)" },
-  recover: { root: "none", body: "none" },
+  listen: { root: "rotate(-5deg)", body: "none", armR: "rotate(-52deg)" },
+  think: { root: "rotate(3deg)", body: "none", armR: "rotate(100deg)" },
+  explain: { root: "none", body: "none", armL: "rotate(34deg)", armR: "rotate(-34deg)" },
+  point: { root: "rotate(6deg) translate(3px, 0)", body: "none", armR: "rotate(-104deg)" },
+  encourage: { root: "none", body: "translate(0, -3px)", armR: "rotate(-140deg)" },
+  celebrate: {
+    root: "none",
+    body: "translate(0, -5px) scale(1.04, 1.04)",
+    armL: "rotate(150deg)",
+    armR: "rotate(-150deg)",
+  },
+  recover: { root: "none", body: "none", armL: "rotate(38deg)", armR: "rotate(-38deg)" },
   rest: { root: "none", body: "translate(0, 2px) scale(1.02, 0.96)" },
-  error: { root: "rotate(-2deg)", body: "none" },
+  error: { root: "rotate(-2deg)", body: "none", armL: "rotate(46deg)", armR: "rotate(-46deg)" },
   offline: { root: "none", body: "none" },
-  exit: { root: "rotate(-4deg)", body: "scale(0.9, 0.9)" },
+  exit: { root: "rotate(-4deg)", body: "scale(0.9, 0.9)", armR: "rotate(-150deg)" },
+  poke: {
+    root: "none",
+    body: "translate(0, -4px) scale(0.98, 1.04)",
+    armL: "rotate(50deg)",
+    armR: "rotate(-50deg)",
+  },
 };

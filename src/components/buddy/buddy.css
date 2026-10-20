@@ -1,56 +1,4 @@
 /* ---- Shell placement: Buddy is in flow (bar, rail, panel). It never floats over content ---- */
-.buddy-bar {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  min-height: 48px;
-  padding: 0 0.75rem;
-  border-bottom: 1px solid var(--line);
-  border-top: 2px solid var(--primary);
-}
-.buddy-bar[data-side="left"] {
-  flex-direction: row;
-}
-.buddy-bar[data-side="right"] {
-  flex-direction: row-reverse;
-}
-.buddy-bar-char {
-  display: grid;
-  flex: none;
-  place-items: end center;
-  min-width: 44px;
-  min-height: 44px;
-  padding: 0;
-  background: none;
-  border: 0;
-  cursor: pointer;
-}
-.buddy-bar-line {
-  min-width: 0;
-  flex: 1;
-  min-height: 44px;
-  padding: 0.2rem 0;
-  text-align: left;
-  font-size: 0.85rem;
-  line-height: 1.25;
-  color: var(--foreground);
-  background: none;
-  border: 0;
-  cursor: pointer;
-}
-.buddy-bar-text {
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-  overflow: hidden;
-}
-.buddy-bar-char:focus-visible,
-.buddy-bar-line:focus-visible,
-.buddy-rail button:focus-visible {
-  outline: 2px solid var(--ring);
-  outline-offset: -2px;
-}
 .buddy-sheet {
   max-height: 50dvh;
   border-bottom: 1px solid var(--line);
@@ -65,53 +13,6 @@
 .buddy-column .buddy-panel {
   min-height: 100%;
   border-top: 0;
-}
-.buddy-rail {
-  display: flex;
-  align-items: flex-end;
-  gap: 0.5rem;
-  border-top: 1px solid var(--line);
-  padding-top: 0.5rem;
-}
-.buddy-rail[data-mode="demand"] {
-  align-items: center;
-}
-.buddy-rail-char {
-  display: grid;
-  flex: none;
-  place-items: end center;
-  min-width: 44px;
-  min-height: 44px;
-  padding: 0;
-  background: none;
-  border: 0;
-  cursor: pointer;
-}
-.buddy-rail-line {
-  min-width: 0;
-  flex: 1;
-  min-height: 44px;
-  padding: 0.1rem 0;
-  text-align: left;
-  font-size: 0.82rem;
-  line-height: 1.3;
-  color: var(--foreground);
-  background: none;
-  border: 0;
-  cursor: pointer;
-}
-.buddy-rail-wake {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  min-height: 44px;
-  width: 100%;
-  font-size: 0.82rem;
-  color: var(--muted-foreground);
-  background: none;
-  border: 0;
-  cursor: pointer;
-  text-align: left;
 }
 .buddy-panel {
   width: 100%;
@@ -388,4 +289,160 @@
   padding-bottom: 0.4rem;
   font-size: 0.9rem;
   line-height: 1.3;
+}
+
+/* ---- Standalone floating companion ---- */
+.buddy-float {
+  position: fixed;
+  z-index: 35;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.35rem;
+  transition:
+    bottom 0.28s cubic-bezier(0.3, 0.8, 0.3, 1),
+    left 0.28s ease,
+    right 0.28s ease,
+    opacity 0.2s ease;
+  pointer-events: none;
+  touch-action: none;
+}
+.buddy-float[data-side="left"] {
+  align-items: flex-start;
+}
+.buddy-float[data-dragging="true"] {
+  transition: none;
+}
+.buddy-float > * {
+  pointer-events: auto;
+}
+.buddy-float[data-scrolling="true"] {
+  opacity: 0.32;
+}
+.buddy-float[data-scrolling="true"] > * {
+  pointer-events: none;
+}
+.buddy-float[data-tucked="true"] .buddy-hit {
+  transform: translateX(84%);
+  opacity: 0.85;
+}
+.buddy-float[data-tucked="true"][data-side="left"] .buddy-hit {
+  transform: translateX(-84%);
+}
+.buddy-hit {
+  display: grid;
+  place-items: end center;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  cursor: grab;
+  border-radius: 16px;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    transform 0.28s ease,
+    opacity 0.2s ease;
+  filter: drop-shadow(0 6px 10px rgb(0 0 0 / 0.22));
+}
+.buddy-float[data-dragging="true"] .buddy-hit {
+  cursor: grabbing;
+}
+.buddy-hit:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 3px;
+}
+.buddy-speech {
+  position: absolute;
+  width: max-content;
+  bottom: 1.2rem;
+  max-width: min(14.5rem, calc(100vw - 6.5rem));
+  padding: 0.55rem 0.8rem;
+  text-align: left;
+  font-size: 0.85rem;
+  line-height: 1.3;
+  color: var(--foreground);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: 0 6px 22px rgb(0 0 0 / 0.18);
+  cursor: pointer;
+  animation: bd-speech 0.3s ease-out both;
+}
+.buddy-speech[data-side="right"] {
+  right: calc(100% + 0.4rem);
+  border-bottom-right-radius: 4px;
+}
+.buddy-speech[data-side="left"] {
+  left: calc(100% + 0.4rem);
+  border-bottom-left-radius: 4px;
+}
+@keyframes bd-speech {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.96);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .buddy-speech {
+    animation: none;
+  }
+  .buddy-float,
+  .buddy-hit {
+    transition: none;
+  }
+}
+.buddy-peek-tab {
+  position: fixed;
+  z-index: 35;
+  right: 0;
+}
+.buddy-peek-tab[data-side="left"] {
+  right: auto;
+  left: 0;
+}
+.buddy-peek-tab button {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  min-height: 52px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-right: 0;
+  border-radius: 14px 0 0 14px;
+  cursor: pointer;
+}
+.buddy-peek-tab[data-side="left"] button {
+  border-left: 0;
+  border-right: 1px solid var(--line);
+  border-radius: 0 14px 14px 0;
+}
+.buddy-ask {
+  margin-top: 0.6rem;
+  padding: 0.55rem 0.7rem;
+  border-radius: 12px;
+  background: color-mix(in oklab, var(--primary) 10%, var(--surface));
+  font-size: 0.85rem;
+}
+.buddy-ask p {
+  margin: 0 0 0.25rem;
+}
+.buddy-ask div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+.buddy-ask button {
+  min-height: 44px;
+  padding: 0 0.9rem;
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--primary-foreground);
+  background: var(--primary);
+  border: 0;
+  border-radius: 10px;
+  cursor: pointer;
+}
+.buddy-ask button:last-child {
+  color: var(--foreground);
+  background: transparent;
+  border: 1px solid var(--line);
 }

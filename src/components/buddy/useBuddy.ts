@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useReducer, useRef } from "react";
+import { useCallback, useEffect, useMemo, useReducer, useRef } from "react";
 import { useCollection, useNow, useProfile } from "@/data/hooks";
 import { useSyncStatus } from "@/data/sync-status";
 import { COL, type MindEntry, type Session, type WorkoutTemplate } from "@/data/types";
@@ -96,7 +96,10 @@ export function useOnline() {
 }
 
 /** Drives the animation state machine from the brief; transient states settle on their own. */
-export function useBuddyState(brief: BuddyBrief, enabled = true): BuddyState {
+export function useBuddyState(
+  brief: BuddyBrief,
+  enabled = true,
+): { state: BuddyState; signal: (state: BuddyState, force?: boolean) => void } {
   const [model, dispatch] = useReducer(reduce, undefined, () => initialModel(Date.now()));
   const lastKey = useRef("");
   useEffect(() => {
@@ -122,7 +125,12 @@ export function useBuddyState(brief: BuddyBrief, enabled = true): BuddyState {
     );
     return () => clearTimeout(id);
   }, [model.until, model.state]);
-  return model.state;
+  const signal = useCallback(
+    (next: BuddyState, force = false) =>
+      dispatch({ type: "signal", state: next, now: Date.now(), force }),
+    [],
+  );
+  return { state: model.state, signal };
 }
 
 export function useBuddyMotion(config: CompanionConfig) {

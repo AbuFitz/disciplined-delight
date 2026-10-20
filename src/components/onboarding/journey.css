@@ -503,3 +503,96 @@
     padding-top: 2rem;
   }
 }
+
+/* Welcome: a real first moment, not a form */
+.jr-welcome {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+.jr-stage {
+  display: grid;
+  place-items: end center;
+  width: 100%;
+  min-height: 11rem;
+  margin: 0.25rem 0 0.5rem;
+  border-radius: 1.5rem;
+  background:
+    radial-gradient(
+      18rem 9rem at 50% 80%,
+      color-mix(in oklab, var(--primary) 26%, transparent),
+      transparent 70%
+    ),
+    color-mix(in oklab, var(--primary) 7%, var(--surface));
+  border: 1px solid color-mix(in oklab, var(--primary) 22%, var(--line));
+}
+.jr-kicker {
+  margin: 1rem 0 0;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+.jr-h1-hero {
+  margin-top: 0.4rem;
+  font-size: clamp(2.4rem, 11vw, 3.6rem);
+}
+.jr-buddies {
+  width: 100%;
+  margin: 1.25rem 0 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+.jr-buddy-row {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+}
+.jr-buddy {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  min-height: 44px;
+  padding: 0.5rem 0.15rem 0.6rem;
+  text-align: center;
+  border: 1px solid var(--line);
+  border-radius: 1rem;
+  background: var(--surface);
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+.jr-buddy[data-on="true"] {
+  border-color: var(--primary);
+  background: color-mix(in oklab, var(--primary) 10%, var(--surface));
+}
+.jr-buddy:active {
+  transform: scale(0.97);
+}
+.jr-buddy:has(input:focus-visible) {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+.jr-buddy-name {
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+.jr-buddy-tag {
+  font-size: 0.68rem;
+  line-height: 1.2;
+  color: var(--muted-foreground);
+}
+.jr-points {
+  margin-top: 1.25rem;
+}
+@media (max-width: 380px) {
+  .jr-buddy-tag {
+    display: none;
+  }
+}

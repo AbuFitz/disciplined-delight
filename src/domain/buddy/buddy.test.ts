@@ -67,9 +67,9 @@ describe("buddy defaults and legacy config", () => {
 });
 
 describe("animation state machine", () => {
-  it("defines a distinct pose for all 14 states", () => {
-    expect(BUDDY_STATES).toHaveLength(14);
-    expect(new Set(BUDDY_STATES.map(poseSignature)).size).toBe(14);
+  it("defines a distinct pose for all 15 states", () => {
+    expect(BUDDY_STATES).toHaveLength(15);
+    expect(new Set(BUDDY_STATES.map(poseSignature)).size).toBe(15);
     for (const s of BUDDY_STATES) expect(POSES[s]).toBeTruthy();
   });
   it("enters, then settles to idle", () => {

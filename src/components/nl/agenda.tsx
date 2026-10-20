@@ -28,6 +28,7 @@ import {
 } from "@/data/routine-actions";
 import { COL, type WorkoutTemplate } from "@/data/types";
 import { addDays, to12h, type ISODate } from "@/domain/dates";
+import { upcomingWorkout } from "@/domain/upcoming";
 import type { PrayerName } from "@/domain/prayer";
 import type { AgendaItem, Status } from "@/domain/routine";
 import { minToHHMM } from "@/domain/schedule";
@@ -195,6 +196,8 @@ export function AgendaNextWidget({ today }: { today: ISODate; now?: number; prof
   const [logOpen, setLogOpen] = useState(false);
   const a = useItemActions(today);
   const n = ag.next;
+  const templates = useCollection<WorkoutTemplate>(COL.templates).items;
+  const upcoming = upcomingWorkout(templates, today);
   const summary = ag.counts.total ? `${ag.counts.done} of ${ag.counts.total} done` : null;
   return (
     <Panel tone="ink" className="md:p-8" aria-label="Next up">
@@ -240,22 +243,39 @@ export function AgendaNextWidget({ today }: { today: ISODate; now?: number; prof
               ? ag.counts.total > 0 && ag.counts.done === ag.counts.total
                 ? "All done"
                 : "Nothing left today"
-              : "Nothing scheduled"}
+              : upcoming
+                ? "Rest day"
+                : "Nothing scheduled"}
           </h2>
           <p className="mt-3 max-w-xl text-lg">
             {ag.items.some((i) => !i.context)
               ? ag.counts.missed
                 ? `${ag.counts.missed} ${ag.counts.missed === 1 ? "thing" : "things"} slipped by today. That's fine: tick them off if you did them, or leave them.`
                 : "Enjoy the rest of your day."
-              : "Build a routine around your day, or log a meal."}
+              : upcoming
+                ? `Next up: ${upcoming.template.title}, ${upcoming.label.toLowerCase() === "today" ? "today" : upcoming.label}.`
+                : "Build a routine around your day, or log a meal."}
           </p>
           <div className="mt-5 flex flex-wrap items-center gap-2">
-            <Link
-              to="/plan"
-              className="inline-flex min-h-14 items-center rounded-full bg-primary px-8 text-base font-semibold text-primary-foreground"
-            >
-              {ag.items.some((i) => !i.context) ? "Open the week" : "Build my routine"}
-            </Link>
+            {upcoming ? (
+              <Link
+                to="/train"
+                className="inline-flex min-h-14 items-center rounded-xl bg-primary px-8 text-base font-semibold text-primary-foreground"
+              >
+                See{" "}
+                {upcoming.label === "Today" || upcoming.label === "Tomorrow"
+                  ? upcoming.label.toLowerCase()
+                  : upcoming.label}
+                's workout
+              </Link>
+            ) : (
+              <Link
+                to="/plan"
+                className="inline-flex min-h-14 items-center rounded-xl bg-primary px-8 text-base font-semibold text-primary-foreground"
+              >
+                {ag.items.some((i) => !i.context) ? "Open the week" : "Build my routine"}
+              </Link>
+            )}
             <Button variant="secondary" onClick={() => setLogOpen(true)}>
               <Utensils className="size-4" />
               Log a meal

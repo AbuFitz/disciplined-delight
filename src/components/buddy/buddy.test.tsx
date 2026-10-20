@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { BuddyCharacter } from "./BuddyCharacter";
 import { BuddySetup } from "./BuddySetup";
 import { BUDDY_STATES, POSES } from "@/domain/buddy/state";
-import { PROVISIONAL_PACK, registerArtPack } from "@/domain/buddy/art";
+import { PLUSH_PACK, PROVISIONAL_PACK, registerArtPack } from "@/domain/buddy/art";
 import { VARIANTS, VARIANT_IDS } from "@/domain/buddy/variants";
 import { DEFAULT_COMPANION } from "@/domain/companion";
 import { readFileSync } from "node:fs";
@@ -28,9 +28,20 @@ describe("Companion renderer", () => {
     for (const part of ["root", "body", "face", "eyes", "mouth", "acc", "shadow"])
       expect(o).toContain(`data-part="${part}"`);
   });
-  it("is labelled provisional while the neutral pack is registered", () => {
+  it("is labelled as an unfinished first authored set, and the neutral pack stays available", () => {
     expect(html()).toContain('data-provisional="true"');
-    expect(html()).toContain('data-art="provisional-v0"');
+    expect(html()).toContain('data-art="plush-v1"');
+    registerArtPack(PROVISIONAL_PACK);
+    try {
+      expect(html()).toContain('data-art="provisional-v0"');
+    } finally {
+      registerArtPack(PLUSH_PACK);
+    }
+  });
+  it("draws limbs as separately animated parts in the plush set", () => {
+    const o = html();
+    expect(o).toContain('data-part="armL"');
+    expect(o).toContain('data-part="armR"');
   });
   it("uses none of the rejected names", () => {
     for (const id of VARIANT_IDS) expect(VARIANTS[id].label).not.toMatch(/bell|cairn|plate|buddy/i);
@@ -59,7 +70,7 @@ describe("Companion renderer", () => {
   });
   it("can be re-skinned by registering another art pack without touching behaviour", () => {
     const custom = {
-      ...PROVISIONAL_PACK,
+      ...PLUSH_PACK,
       id: "test-pack",
       provisional: false,
     };
@@ -68,7 +79,7 @@ describe("Companion renderer", () => {
       expect(html()).toContain('data-art="test-pack"');
       expect(html()).toContain('data-provisional="false"');
     } finally {
-      registerArtPack(PROVISIONAL_PACK);
+      registerArtPack(PLUSH_PACK);
     }
   });
 });
@@ -80,7 +91,7 @@ describe("Buddy styles", () => {
     expect(character).not.toMatch(/@keyframes|animation:/);
   });
   it("never positions Buddy over content: no fixed or absolute placement for its shell parts", () => {
-    for (const cls of ["buddy-bar", "buddy-sheet", "buddy-rail", "buddy-panel", "buddy-column"]) {
+    for (const cls of ["buddy-sheet", "buddy-panel", "buddy-column"]) {
       const rule = css.match(new RegExp(`\\.${cls}\\s*\\{([^}]*)\\}`))?.[1] ?? "";
       expect(rule, cls).not.toMatch(/position:\s*(fixed|absolute)/);
     }

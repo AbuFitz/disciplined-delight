@@ -38,7 +38,7 @@ export const Button = forwardRef<HTMLButtonElement, BtnProps>(function Button(
       ref={ref}
       disabled={disabled || busy}
       className={cn(
-        "inline-flex max-w-full items-center justify-center gap-2 rounded-md text-center font-medium whitespace-normal select-none [overflow-wrap:anywhere]",
+        "inline-flex max-w-full items-center justify-center gap-2 rounded-full text-center font-medium whitespace-normal select-none [overflow-wrap:anywhere]",
         "transition-[transform,background-color,opacity] duration-150 active:scale-[0.97] disabled:opacity-50 disabled:active:scale-100",
         size === "lg" && "min-h-14 px-8 text-base font-semibold",
         size === "md" && "min-h-12 px-6 text-[0.95rem] font-semibold",
@@ -121,9 +121,9 @@ export function Panel({
   return (
     <As
       className={cn(
-        "rounded-md border border-line p-5 md:p-7",
-        tone === "plain" && "bg-surface",
-        tone === "ink" && "loud loud-ink",
+        "rounded-[1.75rem] border border-transparent p-5 md:p-7",
+        tone === "plain" && "bg-surface/80 backdrop-blur-sm",
+        tone === "ink" && "hero-panel",
         tone === "green" && "tint-green bg-surface",
         tone === "dusk" && "tint-dusk bg-surface",
         tone === "warm" && "tint-warm bg-surface",
@@ -153,24 +153,21 @@ export function SignalRail({
   return (
     <ol
       aria-label={label}
-      className={cn(
-        "mb-6 grid grid-cols-2 border-y border-line sm:grid-flow-col sm:auto-cols-fr",
-        className,
-      )}
+      className={cn("mb-6 grid grid-cols-2 gap-2 sm:grid-flow-col sm:auto-cols-fr", className)}
     >
       {items.map((item, index) => (
         <li
           key={`${item.label}-${index}`}
           aria-current={item.state === "current" ? "step" : undefined}
           className={cn(
-            "relative min-h-14 min-w-0 border-b border-line py-2 pl-6 pr-2 odd:border-r max-sm:[&:nth-last-child(-n+2)]:border-b-0 sm:min-h-16 sm:border-b-0 sm:border-r sm:py-3 sm:pl-7 sm:pr-3 sm:last:border-r-0",
-            item.state === "current" && "bg-surface",
+            "relative min-h-14 min-w-0 rounded-2xl bg-surface/60 py-2.5 pl-7 pr-3 sm:min-h-16 sm:py-3 sm:pl-8",
+            item.state === "current" && "bg-surface ring-1 ring-primary/40",
           )}
         >
           <span
             aria-hidden
             className={cn(
-              "absolute left-2 top-[1rem] size-2 border sm:left-2.5 sm:top-[1.15rem] border-muted-foreground bg-background",
+              "absolute left-3 top-[1.05rem] size-2 rounded-full border sm:top-[1.2rem] border-muted-foreground bg-background",
               item.state === "done" && "border-primary bg-primary",
               item.state === "current" && "scale-125 border-primary bg-primary",
             )}
@@ -219,7 +216,7 @@ export function EmptyState({
   action?: ReactNode;
 }) {
   return (
-    <div className="rounded-md border border-dashed border-line px-5 py-8 text-center">
+    <div className="rounded-3xl border border-dashed border-line px-5 py-8 text-center">
       <p className="font-display text-lg font-semibold">{title}</p>
       {body && <p className="mx-auto mt-1 max-w-sm text-sm text-muted-foreground">{body}</p>}
       {action && <div className="mt-4 flex justify-center">{action}</div>}
@@ -243,7 +240,7 @@ export function Chip({
   return (
     <span
       className={cn(
-        "inline-flex max-w-full items-center gap-1.5 rounded-sm border px-2.5 py-1 text-xs font-medium",
+        "inline-flex max-w-full items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium",
         tone === "neutral" && "border-line text-muted-foreground",
         tone === "ok" && "border-ok/40 text-ok",
         tone === "warn" && "border-warn/50 text-warn",
@@ -330,7 +327,7 @@ export function Field({
 }
 
 export const inputCls =
-  "min-h-11 w-full rounded-md border border-input bg-surface-2/50 px-4 text-base text-foreground placeholder:text-muted-foreground/70 focus-visible:border-ring disabled:cursor-not-allowed disabled:opacity-50 aria-[invalid=true]:border-destructive";
+  "min-h-12 w-full rounded-2xl border border-input bg-surface-2/50 px-4 text-base text-foreground placeholder:text-muted-foreground/70 focus-visible:border-ring disabled:cursor-not-allowed disabled:opacity-50 aria-[invalid=true]:border-destructive";
 
 export const TextInput = forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLInputElement>>(
   function TextInput({ className, ...p }, ref) {

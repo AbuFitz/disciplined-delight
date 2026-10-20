@@ -9,6 +9,7 @@ import { shouldSpeak } from "@/domain/buddy/brain";
 import { localDate } from "@/domain/dates";
 import type { BuddyGuidanceRecord } from "@/domain/companion-guidance";
 import { chime, speak } from "@/lib/buddy-audio";
+import { webHaptics } from "@/lib/haptics";
 import { useHaptics } from "./useHaptics";
 import { BuddyDockContext, type BuddyDockValue } from "./buddy-context";
 import {
@@ -33,7 +34,7 @@ export function BuddyProvider({ children }: { children: ReactNode }) {
   const config = useCompanionConfig();
   const ctx = useBuddyContext();
   const brief = useBrief(config, ctx);
-  const state = useBuddyState(brief, config.enabled);
+  const { state, signal } = useBuddyState(brief, config.enabled);
   const motion = useBuddyMotion(config);
   const { profile } = useProfile();
   const now = useNow(60_000);
@@ -52,7 +53,7 @@ export function BuddyProvider({ children }: { children: ReactNode }) {
     !config.enabled || inlineOnly || config.placement === "inline" || config.placement === "setup"
       ? "none"
       : placed
-        ? "bar"
+        ? "float"
         : "demand";
   const haptic = useHaptics();
   const speaks = shouldSpeak(config, brief);
@@ -119,8 +120,17 @@ export function BuddyProvider({ children }: { children: ReactNode }) {
       wake: () =>
         void put(COL.buddyGuidance, DOCK_ID, { id: DOCK_ID } satisfies BuddyGuidanceRecord),
       toggleMute: () => void saveCompanionConfig({ ...config, muted: !config.muted }),
+      poke: () => {
+        signal("poke", true);
+        haptic("acknowledge");
+        if (config.sound === "chime" && !config.muted) chime("soft");
+      },
+      toggleHaptics: (on: boolean) => {
+        void saveCompanionConfig({ ...config, haptics: on, hapticsAsked: true });
+        if (on) webHaptics.play("acknowledge", { enabled: true, muted: false, quietHours: false });
+      },
     }),
-    [config, brief, state, motion, mode, asleep, open, line],
+    [config, brief, state, motion, mode, asleep, open, line, signal, haptic],
   );
   return <BuddyDockContext.Provider value={value}>{children}</BuddyDockContext.Provider>;
 }

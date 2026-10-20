@@ -16,7 +16,7 @@ export function BuddyStrip({ className }: { className?: string }) {
   const config = useCompanionConfig();
   const ctx = useBuddyContext();
   const brief = useBrief(config, ctx);
-  const state = useBuddyState(brief, config.enabled);
+  const { state } = useBuddyState(brief, config.enabled);
   const motion = useBuddyMotion(config);
   if (!config.enabled || config.placement === "on_demand") return null;
   return (

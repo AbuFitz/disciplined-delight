@@ -91,22 +91,22 @@
 :root,
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --radius: 0.4rem;
-  --background: #101114;
+  --radius: 1.25rem;
+  --background: #0c0d12;
   --foreground: #f3efe7;
-  --surface: #181a1e;
-  --surface-2: #21242a;
-  --line: rgb(243 239 231 / 0.11);
+  --surface: #1b1d26;
+  --surface-2: #252835;
+  --line: rgb(236 233 255 / 0.1);
   --card: var(--surface);
   --card-foreground: var(--foreground);
-  --popover: #1c1f24;
+  --popover: #1f212c;
   --popover-foreground: var(--foreground);
   --primary: #4fd9a0;
   --primary-foreground: #08140f;
   --secondary: var(--surface-2);
   --secondary-foreground: var(--foreground);
   --muted: var(--surface-2);
-  --muted-foreground: #a7aaa3;
+  --muted-foreground: #a9acb8;
   --accent: #262b33;
   --accent-foreground: var(--foreground);
   --destructive: #f0806e;
@@ -176,10 +176,10 @@
 
 :root[data-theme="light"] {
   color-scheme: light;
-  --background: #f8f6f1;
-  --foreground: #0e1311;
-  --surface: #fffdf9;
-  --surface-2: #efebe2;
+  --background: #f6f2ea;
+  --foreground: #14130f;
+  --surface: #fffdf8;
+  --surface-2: #eee8da;
   --line: rgb(14 19 17 / 0.12);
   --card: var(--surface);
   --popover: #fffdf9;
@@ -331,13 +331,12 @@
     border-color: var(--line);
   }
   html {
+    background-color: var(--background);
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
   }
   body {
-    background-color: var(--background);
-    background-image: var(--glow);
-    background-attachment: fixed;
+    background: transparent;
     color: var(--foreground);
     font-family: var(--font-body);
     font-size: 1rem;
@@ -429,6 +428,17 @@
   .tint-warm {
     background-image: var(--panel-warm);
   }
+  /* The Today hero and similar lead panels: an accent wash on the surface, not a black block. */
+  .hero-panel {
+    background:
+      radial-gradient(
+        40rem 16rem at 100% 0%,
+        color-mix(in oklab, var(--primary) 20%, transparent),
+        transparent 70%
+      ),
+      color-mix(in oklab, var(--primary) 9%, var(--surface));
+    border-color: color-mix(in oklab, var(--primary) 28%, var(--line));
+  }
   .loud-ink {
     --loud-bg: var(--loud-ink-bg);
     --loud-fg: var(--loud-ink-fg);
@@ -437,9 +447,8 @@
     overflow-wrap: anywhere;
     font-family: var(--font-display);
     font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: -0.035em;
-    line-height: 0.92;
+    letter-spacing: -0.03em;
+    line-height: 1.02;
   }
   .num {
     font-family: var(--font-display);
@@ -483,4 +492,50 @@
     overflow-y: auto;
     overscroll-behavior-y: contain;
   }
+}
+
+/* Living backdrop: two slow colour fields drifting behind a calm canvas. Transform-only, paused for reduced motion. */
+html::before {
+  content: "";
+  position: fixed;
+  inset: -20%;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      38% 34% at 22% 18%,
+      color-mix(in oklab, var(--primary) 24%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      34% 30% at 82% 70%,
+      color-mix(in oklab, var(--primary) 14%, #8b5cf6 12%),
+      transparent 70%
+    );
+  animation: vv-drift 38s ease-in-out infinite alternate;
+  will-change: transform;
+}
+@keyframes vv-drift {
+  from {
+    transform: translate3d(-4%, -3%, 0) rotate(0deg) scale(1);
+  }
+  to {
+    transform: translate3d(5%, 4%, 0) rotate(8deg) scale(1.12);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  html::before {
+    animation: none;
+  }
+}
+@media (forced-colors: active) {
+  html::before {
+    display: none;
+  }
+}
+
+/* Sleek surfaces: softer, rounder, borderless; separation comes from tone. */
+
+.hero-panel {
+  border-color: transparent;
 }

@@ -10,8 +10,9 @@ signals.
 companion is now a family of four non-gendered variants (Tavi quick/curious, Ollo cosy/calm, Zuri
 bold/celebratory, Eira elegant/reflective) that share one face and state set and differ by silhouette
 and motion profile (`src/domain/buddy/variants.ts`). Bodies come from a replaceable art pack
-(`src/domain/buddy/art.ts`); the shipped pack `provisional-v0` is deliberately neutral geometry and is
-labelled provisional wherever it appears. The approved four-variant exploration is reference-only
+(`src/domain/buddy/art.ts`); the shipped pack `plush-v1` is a first authored set (rounded plush bodies, dark face window,
+limbs, per-variant hood/ears/tail) and is labelled provisional, not final production art; `provisional-v0`
+remains as the neutral fallback. The approved four-variant exploration is reference-only
 (`docs/design-reference/`) and was not traced. Names are working names (see variants.ts for the collision note).
 
 Superseded description of the old art, kept only for history: three original SVG characters drawn in this repository
@@ -51,13 +52,13 @@ journal text, health text or faith settings.
 
 ## Surfaces
 
-- **Placement contract: Buddy never floats over content.** On small screens the bottom bars
-  (resume bar, Buddy bar, tabs) are one stack that the shell *reserves* out of the scrolling area
-  (`html[data-shell="bars"]`, `--reserve-bottom`, measured with a ResizeObserver), so the page
-  scrolls in the space above them. The expanded panel is part of that stack, so opening it shrinks
-  the scrollport instead of covering anything. On desktop Buddy lives in the sidebar rail and the
-  expanded panel is a third layout column that content reflows around. Snoozed or on-demand
-  Buddy is a header button on mobile and a rail control on desktop; a snoozed Buddy is never lost.
+- **Placement contract: Buddy is standalone, not part of the navigation** (`BuddyFloat`). It is a
+  free-standing character in a bottom corner. It samples what sits under it (controls, text, media)
+  and moves to a free corner or higher slot; if the screen is too dense it tucks to the edge leaving
+  a sliver inside the page gutter. It fades while scrolling, can be dragged (or moved with arrow
+  keys), and remembers its side (`vayvor:buddy:anchor`). Tap/Enter/Space pokes it (a reaction, and a
+  haptic if the person opted in) and opens the panel (a third column on desktop, a sheet on small screens).
+  A snoozed Buddy leaves a small peek tab to wake it.
   Panel: guidance, Snooze 4h, Hide today, Mute, Read aloud, Buddy settings, Report a problem.
 - **Inline strip** (`BuddyStrip`): inside Gym Mode and rest screens, in the layout flow.
 - **Guidance cards** (`BuddyGuide`): readiness, adaptation, rest, gym start.

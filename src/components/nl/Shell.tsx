@@ -9,7 +9,9 @@ import type { AppModule } from "@/data/types";
 import { VIcon, type VIconName } from "./icon";
 import { Sheet } from "./ui";
 import { BOTTOM_SLOT_ID, SIDE_SLOT_ID } from "./shell-slots";
-import { BuddyBar, BuddyHeaderButton, BuddyPanel, BuddyRail } from "@/components/buddy/BuddyDock";
+import { BuddyPanel } from "@/components/buddy/BuddyDock";
+import { BuddyFloat } from "@/components/buddy/BuddyFloat";
+import { GlobalHaptics } from "@/components/buddy/GlobalHaptics";
 import { BuddyProvider } from "@/components/buddy/BuddyProvider";
 import { useBuddyDock } from "@/components/buddy/buddy-context";
 
@@ -250,7 +252,6 @@ function ShellFrame({ children }: { children: ReactNode }) {
         <div className="grid gap-3">
           {resume && <div className="border-y border-line">{resume("")}</div>}
           <div id={SIDE_SLOT_ID} className="grid gap-3 empty:hidden" />
-          <BuddyRail />
           <Link
             to="/settings"
             aria-current={isActive("/settings") ? "page" : undefined}
@@ -275,7 +276,6 @@ function ShellFrame({ children }: { children: ReactNode }) {
             <Wordmark className="text-[1.05rem]" />
           </Link>
           <div className="flex items-center">
-            <BuddyHeaderButton />
             <Link
               to="/plan"
               aria-label="Plan the week"
@@ -295,7 +295,7 @@ function ShellFrame({ children }: { children: ReactNode }) {
 
         <main
           id="main"
-          className="mx-auto w-full max-w-[88rem] px-4 pb-10 pt-4 md:px-8 md:pt-8 lg:pb-12"
+          className="mx-auto w-full max-w-[88rem] px-4 pb-28 pt-4 md:px-8 md:pt-8 lg:pb-28"
         >
           {children}
         </main>
@@ -310,7 +310,6 @@ function ShellFrame({ children }: { children: ReactNode }) {
         {resume && !typing && <div className="border-b border-line">{resume("")}</div>}
         <div id={BOTTOM_SLOT_ID} className="empty:hidden" />
         {!typing && <BuddyPanel className="buddy-sheet" />}
-        {!typing && <BuddyBar />}
 
         <nav
           aria-label="Primary"
@@ -398,6 +397,8 @@ function ShellFrame({ children }: { children: ReactNode }) {
           ))}
         </nav>
       </Sheet>
+      <BuddyFloat />
+      <GlobalHaptics />
       {panelOpen && (
         <aside className="buddy-column hidden lg:block" aria-label="Buddy">
           <BuddyPanel />

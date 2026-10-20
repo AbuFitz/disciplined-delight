@@ -25,6 +25,8 @@ export type CompanionConfig = {
   motion: "off" | "gentle" | "full";
   /** Off by default. Independent of reduced motion. Only acknowledgements and key moments vibrate. */
   haptics: boolean;
+  /** True once the person has answered the one-time "buzz when things happen?" prompt. */
+  hapticsAsked: boolean;
   /** Off by default. "chime" is a soft tone; "voice" reads lines aloud with the device voice. */
   sound: "off" | "chime" | "voice";
   placement: BuddyPlacement;
@@ -49,6 +51,7 @@ export const DEFAULT_COMPANION: CompanionConfig = {
   celebration: "subtle",
   motion: "gentle",
   haptics: false,
+  hapticsAsked: false,
   sound: "off",
   placement: "dock_right",
   muted: false,

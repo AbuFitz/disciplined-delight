@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { BuddyCharacter } from "@/components/buddy/BuddyCharacter";
 import { BuddySetup } from "@/components/buddy/BuddySetup";
+import { GlobalHaptics } from "@/components/buddy/GlobalHaptics";
 import { ColourWorldPicker } from "@/components/nl/colour-world";
 import { Chip, ProgressMap, Row } from "@/components/onboarding/parts";
 import "@/components/onboarding/journey.css";
@@ -50,6 +51,7 @@ import {
   type StepId,
 } from "@/domain/onboarding";
 import { EQUIPMENT_LABEL } from "@/domain/catalogue";
+import { VARIANTS, VARIANT_IDS, type VariantId } from "@/domain/buddy/variants";
 import { DEFAULT_REMINDER_PREFS } from "@/domain/reminders";
 import { checkUsername } from "@/domain/username";
 import { useAuth } from "@/lib/auth";
@@ -73,6 +75,7 @@ const HINT: Record<StepId, string> = {
   plan: "Here's what I'd start with, and why.",
   start: "Last step. Everything else can wait.",
   personalise: "Make me look and sound like yours.",
+  welcome: "",
 };
 const TITLE: Record<StepId, string> = {
   intent: "What do you want from training?",
@@ -84,6 +87,7 @@ const TITLE: Record<StepId, string> = {
   plan: "Your first week",
   start: "Ready to start",
   personalise: "Make it yours",
+  welcome: "Welcome to VAYVOR",
 };
 const LEAD: Partial<Record<StepId, string>> = {
   intent: "Pick the closest. You can change it later.",
@@ -131,7 +135,7 @@ function OnboardingPage() {
     }
     if (draft) {
       setAnswers(draft.answers);
-      if (!s && draft.step !== "intent") {
+      if (!s && draft.step !== "intent" && draft.step !== "welcome") {
         setResumed(true);
         nav({
           to: "/onboarding",
@@ -143,7 +147,7 @@ function OnboardingPage() {
     setHydrated(true);
   }, [hydrated, s, nav, ctx]);
 
-  const step: StepId = s ?? "intent";
+  const step: StepId = s ?? "welcome";
   const reachable = furthestValid(step, answers, ctx);
   useEffect(() => {
     if (!hydrated) return;
@@ -194,14 +198,22 @@ function OnboardingPage() {
 
   const go = (to: StepId, replace = false) =>
     nav({ to: "/onboarding", search: { s: to }, replace });
-  const idx = QUICK_STEPS.indexOf(step === "personalise" ? "start" : step);
+  const idx = QUICK_STEPS.indexOf(
+    (step === "personalise"
+      ? "start"
+      : step === "welcome"
+        ? "intent"
+        : step) as (typeof QUICK_STEPS)[number],
+  );
   const next = () => {
     if (!stepValid(step, answers, ctx)) return;
+    if (step === "welcome") return go("intent");
     if (step === "personalise") return go("start");
     if (idx < QUICK_STEPS.length - 1) go(QUICK_STEPS[idx + 1]!);
   };
   const back = () => {
     if (step === "personalise") return go("start");
+    if (step === "intent") return go("welcome");
     if (idx > 0) go(QUICK_STEPS[idx - 1]!);
   };
 
@@ -332,6 +344,7 @@ function OnboardingPage() {
 
   return (
     <div className="jr">
+      <GlobalHaptics />
       <header className="jr-head">
         <Link to="/" aria-label="VAYVOR" className="flex min-h-11 items-center">
           <Wordmark className="text-[1rem]" />
@@ -341,7 +354,7 @@ function OnboardingPage() {
         </button>
       </header>
       <div className="jr-body">
-        <ProgressMap steps={QUICK_STEPS} current={step} />
+        {step !== "welcome" && <ProgressMap steps={QUICK_STEPS} current={step} />}
         <form
           className="jr-col flex flex-1 flex-col"
           onSubmit={(e) => {
@@ -359,27 +372,49 @@ function OnboardingPage() {
                 </button>
               </p>
             )}
-            <div className="jr-hint">
-              <BuddyCharacter
-                variant={buddy.variant}
-                state={step === "plan" ? "point" : step === "start" ? "encourage" : "explain"}
-                motion={reduced ? "off" : buddy.motion}
-                palette={buddy.palette}
-                expression={buddy.expression}
-                size={40}
-                name={buddy.name}
+            {step === "welcome" ? (
+              <Welcome
+                buddy={buddy}
+                reduced={reduced}
+                onPick={(variant) => {
+                  setBuddy((b) => ({
+                    ...b,
+                    variant,
+                    name: VARIANT_IDS.some((id) => VARIANTS[id].defaultName === b.name)
+                      ? VARIANTS[variant].defaultName
+                      : b.name,
+                    expression: VARIANTS[variant].defaultExpression,
+                  }));
+                  setBuddyTouched(true);
+                }}
+                hasAccounts={isSupabaseConfigured}
+                headingRef={heading}
               />
-              <span>{HINT[step]}</span>
-            </div>
-            <h1 ref={heading} tabIndex={-1} className="jr-h1">
-              {TITLE[step]}
-            </h1>
-            {LEAD[step] && <p className="jr-lead">{LEAD[step]}</p>}
-            {why && (
-              <details className="jr-why">
-                <summary>Why we ask</summary>
-                <p>{why}</p>
-              </details>
+            ) : (
+              <>
+                <div className="jr-hint">
+                  <BuddyCharacter
+                    variant={buddy.variant}
+                    state={step === "plan" ? "point" : step === "start" ? "encourage" : "explain"}
+                    motion={reduced ? "off" : buddy.motion}
+                    palette={buddy.palette}
+                    expression={buddy.expression}
+                    size={40}
+                    name={buddy.name}
+                  />
+                  <span>{HINT[step]}</span>
+                </div>
+                <h1 ref={heading} tabIndex={-1} className="jr-h1">
+                  {TITLE[step]}
+                </h1>
+                {LEAD[step] && <p className="jr-lead">{LEAD[step]}</p>}
+                {why && (
+                  <details className="jr-why">
+                    <summary>Why we ask</summary>
+                    <p>{why}</p>
+                  </details>
+                )}
+              </>
             )}
 
             {step === "intent" && (
@@ -604,7 +639,7 @@ function OnboardingPage() {
           </main>
           <div className="jr-bar">
             <div className="jr-bar-in">
-              {(idx > 0 || step === "personalise") && (
+              {(step === "personalise" || (step !== "welcome" && idx >= 0)) && (
                 <button
                   type="button"
                   className="jr-btn jr-btn-ghost"
@@ -621,18 +656,103 @@ function OnboardingPage() {
                     ? plan
                       ? "Start my first week"
                       : "Start"
-                    : step === "personalise"
-                      ? "Done"
-                      : step === "plan"
-                        ? "Looks good"
-                        : step === "constraints"
-                          ? "Continue"
-                          : "Continue"}
+                    : step === "welcome"
+                      ? "Let’s set you up"
+                      : step === "personalise"
+                        ? "Done"
+                        : step === "plan"
+                          ? "Looks good"
+                          : step === "constraints"
+                            ? "Continue"
+                            : "Continue"}
               </button>
             </div>
           </div>
         </form>
       </div>
+    </div>
+  );
+}
+
+function Welcome({
+  buddy,
+  reduced,
+  onPick,
+  hasAccounts,
+  headingRef,
+}: {
+  buddy: CompanionConfig;
+  reduced: boolean;
+  onPick: (v: VariantId) => void;
+  hasAccounts: boolean;
+  headingRef: React.RefObject<HTMLHeadingElement | null>;
+}) {
+  const [hello, setHello] = useState<"enter" | "poke">("enter");
+  useEffect(() => {
+    const t = setTimeout(() => setHello("poke"), 1400);
+    return () => clearTimeout(t);
+  }, []);
+  return (
+    <div className="jr-welcome">
+      <div className="jr-stage" aria-hidden>
+        <BuddyCharacter
+          variant={buddy.variant}
+          state={hello === "enter" ? "enter" : "idle"}
+          motion={reduced ? "off" : buddy.motion}
+          palette={buddy.palette}
+          expression={buddy.expression}
+          size={168}
+          decorative
+        />
+      </div>
+      <p className="jr-kicker">VAY-vor · body, mind, soul, together</p>
+      <h1 ref={headingRef} tabIndex={-1} className="jr-h1 jr-h1-hero">
+        Meet VAYVOR.
+      </h1>
+      <p className="jr-lead">
+        One calm plan for training, food and your head, built around your real week. It all stays on
+        this device unless you choose to sign in.
+      </p>
+      <fieldset className="jr-buddies">
+        <legend className="jr-sub">Pick your buddy</legend>
+        <div className="jr-buddy-row">
+          {VARIANT_IDS.map((id) => (
+            <label key={id} className="jr-buddy" data-on={buddy.variant === id}>
+              <input
+                type="radio"
+                name="buddy-variant"
+                className="sr-only"
+                checked={buddy.variant === id}
+                onChange={() => onPick(id)}
+              />
+              <BuddyCharacter
+                variant={id}
+                state={buddy.variant === id ? "poke" : "idle"}
+                motion={reduced ? "off" : "gentle"}
+                palette={buddy.palette}
+                expression={VARIANTS[id].defaultExpression}
+                size={64}
+                decorative
+              />
+              <span className="jr-buddy-name">{VARIANTS[id].label}</span>
+              <span className="jr-buddy-tag">{VARIANTS[id].tagline.split(".")[0]}</span>
+            </label>
+          ))}
+        </div>
+      </fieldset>
+      <ul className="jr-list jr-points">
+        <li>Eight quick questions, about a minute. Skip any of them.</li>
+        <li>Nothing is guessed about your goals, health or beliefs.</li>
+        {hasAccounts && (
+          <li>
+            Already have an account?{" "}
+            <Link to="/welcome" className="underline underline-offset-4">
+              Sign in
+            </Link>
+            .
+          </li>
+        )}
+      </ul>
     </div>
   );
 }

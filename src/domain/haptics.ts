@@ -5,6 +5,7 @@
  * few important moments do.
  */
 export type HapticKind =
+  | "selection"
   | "acknowledge"
   | "set_logged"
   | "rest_finished"
@@ -13,6 +14,7 @@ export type HapticKind =
 
 /** Milliseconds on/off/on... Restrained: short, few pulses. */
 export const HAPTIC_PATTERNS: Record<HapticKind, number[]> = {
+  selection: [6],
   acknowledge: [10],
   set_logged: [18],
   rest_finished: [30, 60, 30],
@@ -52,6 +54,7 @@ export function shouldHaptic(
 
 /** Where each kind is used, so passive coaching can never be wired to a vibration by accident. */
 export const HAPTIC_USES: Record<HapticKind, string> = {
+  selection: "A light tick when the person selects, toggles or taps a control",
   acknowledge: "A tap on a primary control the person pressed",
   set_logged: "Completing a set",
   rest_finished: "A rest timer the person started has ended",

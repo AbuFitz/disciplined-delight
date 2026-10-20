@@ -8,8 +8,8 @@ export type BuddyDockValue = {
   brief: BuddyBrief;
   state: BuddyState;
   motion: "off" | "gentle" | "full";
-  /** How Buddy is presented in the shell: an in-flow bar or rail, header-only on demand, or not at all. */
-  mode: "bar" | "demand" | "none";
+  /** How Buddy is presented in the shell: a standalone floating character, header-only on demand, or not at all. */
+  mode: "float" | "demand" | "none";
   asleep: boolean;
   open: boolean;
   setOpen: (open: boolean) => void;
@@ -19,6 +19,9 @@ export type BuddyDockValue = {
   hideToday: () => void;
   wake: () => void;
   toggleMute: () => void;
+  /** A tap on the companion: delighted reaction, optional haptic and chime. */
+  poke: () => void;
+  toggleHaptics: (on: boolean) => void;
 };
 
 export const BuddyDockContext = createContext<BuddyDockValue | null>(null);
