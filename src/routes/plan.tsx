@@ -2,7 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { BlockSheet, WorkoutSheet } from "@/components/nl/plan";
 import { RoutineBuilder } from "@/components/nl/routine-builder";
-import { Button, Chip, PageHeader, SignalRail, Skeleton } from "@/components/nl/ui";
+import { Button, Chip, EmptyState, Group, PageHeader, Section, Skeleton } from "@/components/nl/ui";
+import { WeekNav, weekRangeLabel } from "@/components/nl/week-nav";
 import { VIcon } from "@/components/nl/icon";
 import { useCollection, useNow } from "@/data/hooks";
 import { usePrayer } from "@/data/prayer-hooks";
@@ -105,89 +106,86 @@ function PlanPage() {
     return out;
   }, [days, blocks.items, ex, tpls.items, sess, meals, prayerLookup]);
 
-  if (!blocks.ready || !tpls.ready) return <Skeleton className="h-72" />;
+  if (!blocks.ready || !tpls.ready) return <Skeleton className="h-72 rounded-3xl" />;
+
+  const activeBlocks = blocks.items.filter((b) => !b.archivedAt).sort((a, b) => a.order - b.order);
+  const placed = tpls.items.filter((t) => !t.archivedAt && t.weekday != null).length;
+  const weekLabel = weekRangeLabel(days[0]!, days[6]!);
 
   return (
     <>
       <PageHeader
-        eyebrow="Week"
-        title="Plan the week"
-        actions={
-          <>
-            <Button variant="secondary" onClick={() => setBuilding(true)}>
-              Build my routine
-            </Button>
-            <Button variant="primary" onClick={() => setEdit({ block: {} })}>
-              <VIcon name="add" size={16} />
-              Add block
-            </Button>
-          </>
+        title="Plan"
+        sub={
+          activeBlocks.length || placed
+            ? `${activeBlocks.length} routine ${activeBlocks.length === 1 ? "block" : "blocks"} · ${placed} ${placed === 1 ? "session" : "sessions"} placed`
+            : undefined
         }
       />
-      <SignalRail
-        label="Weekly plan signal"
-        items={[
-          {
-            label: "Schedule",
-            value: `${blocks.items.filter((item) => !item.archivedAt).length} routine blocks`,
-            state: "done",
-          },
-          {
-            label: "Training",
-            value: `${tpls.items.filter((item) => !item.archivedAt && item.weekday != null).length} sessions placed`,
-            state: "current",
-          },
-          { label: "Conflicts", value: "Resolved per day below", state: "next" },
-          { label: "Next action", value: "Choose a day", state: "next" },
-        ]}
-      />
-      <div className="mb-4 flex items-center gap-1">
-        <button
-          aria-label="Previous week"
-          onClick={() => setAnchor(addDays(base, -7))}
-          className="inline-flex size-11 shrink-0 items-center justify-center rounded-md border border-line"
+      <div className="mb-4 grid grid-cols-2 gap-3 md:max-w-lg">
+        <Button variant="primary" size="lg" className="px-3" onClick={() => setEdit({ block: {} })}>
+          <VIcon name="add" size={18} />
+          Add block
+        </Button>
+        <Button
+          variant="secondary"
+          size="lg"
+          className="bg-surface/80 px-3 !border-transparent"
+          onClick={() => setBuilding(true)}
         >
-          <VIcon name="previous" />
-        </button>
-        <p className="min-w-0 flex-1 px-2 text-center font-medium">
-          {formatDateLong(days[0]!)} – {formatDateLong(days[6]!).split(" ").slice(1).join(" ")}
-        </p>
-        <button
-          aria-label="Next week"
-          onClick={() => setAnchor(addDays(base, 7))}
-          className="inline-flex size-11 shrink-0 items-center justify-center rounded-md border border-line"
-        >
-          <VIcon name="next" />
-        </button>
-        {anchor && (
-          <Button variant="ghost" size="sm" onClick={() => setAnchor(null)}>
-            This week
-          </Button>
-        )}
+          Build my routine
+        </Button>
       </div>
+      <WeekNav
+        className="mb-3"
+        label={weekLabel}
+        onPrev={() => setAnchor(addDays(base, -7))}
+        onNext={() => setAnchor(addDays(base, 7))}
+        trailing={
+          anchor ? (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="bg-surface/80"
+              onClick={() => setAnchor(null)}
+            >
+              This week
+            </Button>
+          ) : undefined
+        }
+      />
 
-      <div
-        role="tablist"
-        aria-label="Day"
-        className="mb-4 flex gap-1 overflow-x-auto pb-1 lg:hidden"
-      >
-        {days.map((d) => (
-          <button
-            key={d}
-            role="tab"
-            aria-selected={d === selected}
-            onClick={() => setSel(d)}
-            className={cn(
-              "min-h-14 min-w-[3.25rem] flex-1 rounded-2xl border px-1 text-center",
-              d === selected ? "border-primary bg-primary text-primary-foreground" : "border-line",
-              d === today && d !== selected && "border-primary/60",
-            )}
-          >
-            <span className="block text-[0.65rem] uppercase">{WEEKDAY_SHORT[weekdayIndex(d)]}</span>
-            <span className="num block text-lg font-semibold">{d.slice(8)}</span>
-            {(byDay.get(d)?.conflicts ?? 0) > 0 && <span className="sr-only">Has conflicts</span>}
-          </button>
-        ))}
+      <div role="tablist" aria-label="Day" className="mb-4 grid grid-cols-7 gap-1.5 lg:hidden">
+        {days.map((d) => {
+          const on = d === selected;
+          const n = byDay.get(d)?.items.filter((i) => i.kind !== "prayer").length ?? 0;
+          return (
+            <button
+              key={d}
+              role="tab"
+              aria-selected={on}
+              onClick={() => setSel(d)}
+              className={cn(
+                "flex min-h-[4.25rem] min-w-0 flex-col items-center justify-center gap-0.5 rounded-full transition active:scale-95",
+                on ? "bg-primary text-primary-foreground" : "bg-surface/80",
+              )}
+            >
+              <span className={cn("text-[0.7rem] font-medium", !on && "text-muted-foreground")}>
+                {WEEKDAY_SHORT[weekdayIndex(d)]}
+              </span>
+              <span className="num text-lg font-semibold leading-none">{Number(d.slice(8))}</span>
+              <span
+                aria-hidden
+                className={cn(
+                  "size-1.5 rounded-full",
+                  n > 0 ? (on ? "bg-primary-foreground" : "bg-primary") : "bg-transparent",
+                  d === today && n === 0 && (on ? "bg-primary-foreground/50" : "bg-foreground/30"),
+                )}
+              />
+              {(byDay.get(d)?.conflicts ?? 0) > 0 && <span className="sr-only">Has conflicts</span>}
+            </button>
+          );
+        })}
       </div>
 
       <div className="grid grid-cols-[minmax(0,1fr)] gap-3 lg:grid-cols-[repeat(7,minmax(0,1fr))]">
@@ -198,29 +196,34 @@ function PlanPage() {
               key={d}
               aria-label={formatDateLong(d)}
               className={cn(
-                "min-w-0 rounded-3xl border bg-surface p-3",
-                d === today ? "border-primary" : "border-line",
+                "min-w-0 rounded-3xl bg-surface/80 p-3 lg:p-2.5",
+                d === today && "ring-2 ring-primary/60",
                 d !== selected && "hidden lg:block",
               )}
             >
-              <div className="mb-1 hidden items-baseline justify-between lg:flex">
-                <p className="eyebrow">{WEEKDAY_SHORT[weekdayIndex(d)]}</p>
-                <p className="num text-lg font-semibold">{d.slice(8)}</p>
+              <div className="mb-2 hidden items-baseline justify-between px-1 lg:flex">
+                <p className="text-sm font-semibold">{WEEKDAY_SHORT[weekdayIndex(d)]}</p>
+                <p className="num text-lg font-semibold">{Number(d.slice(8))}</p>
               </div>
-              <h2 className="mb-1 font-display text-xl font-semibold lg:hidden">
+              <h2 className="mb-2 px-1 text-lg font-bold tracking-tight lg:hidden">
                 {formatDateLong(d)}
+                {d === today && (
+                  <span className="ml-2 text-sm font-medium text-primary">Today</span>
+                )}
               </h2>
               {info.conflicts > 0 && (
                 <p
                   role="status"
-                  className="mb-2 flex items-center gap-1.5 rounded-xl bg-warn/15 px-2.5 py-1.5 text-xs text-warn"
+                  className="mb-2 flex items-center gap-1.5 rounded-2xl bg-warn/15 px-3 py-2 text-xs text-warn"
                 >
                   <VIcon name="alert" size={16} />
                   {info.conflicts} overlap{info.conflicts > 1 ? "s" : ""}. Tap a block to change it.
                 </p>
               )}
               {info.items.length === 0 ? (
-                <p className="py-4 text-sm text-muted-foreground">Nothing planned.</p>
+                <p className="px-1 py-6 text-center text-sm text-muted-foreground">
+                  Nothing planned.
+                </p>
               ) : (
                 <ul className="grid gap-1.5">
                   {info.items.map((it, i) => {
@@ -228,18 +231,23 @@ function PlanPage() {
                       return (
                         <li
                           key={i}
-                          className="flex min-h-9 flex-wrap items-center gap-x-2 px-2 text-sm text-muted-foreground"
+                          className="flex min-h-9 flex-wrap items-center gap-x-2 px-3 text-sm text-muted-foreground"
                         >
-                          <span className="tnum min-w-14 shrink-0 lg:min-w-0">
+                          <span className="tnum min-w-16 shrink-0 lg:min-w-0">
                             {to12h(minToHHMM(it.time))}
                           </span>
                           <span>{it.label}</span>
-                          <span className="eyebrow !text-[0.6rem]">Prayer</span>
+                          <span className="sr-only">Prayer</span>
+                          <VIcon name="spirituality" size={16} className="opacity-70" />
                         </li>
                       );
                     if (it.kind === "meals")
                       return (
-                        <li key={i} className="px-2 py-1 text-sm text-muted-foreground">
+                        <li
+                          key={i}
+                          className="flex min-h-9 items-center gap-2 px-3 text-sm text-muted-foreground"
+                        >
+                          <VIcon name="nutrition" size={16} className="opacity-70" />
                           {it.count} meal{it.count > 1 ? "s" : ""} planned
                         </li>
                       );
@@ -249,14 +257,16 @@ function PlanPage() {
                           <button
                             onClick={() => setWk({ tpl: it.tpl, date: d })}
                             className={cn(
-                              "flex min-h-12 w-full items-center gap-2 rounded-2xl bg-[image:var(--panel-green)] px-3 py-2 text-left text-sm lg:flex-col lg:items-start lg:gap-0.5",
+                              "flex min-h-14 w-full items-center gap-3 rounded-2xl bg-primary/15 px-3 py-2 text-left text-sm transition active:scale-[0.98] lg:flex-col lg:items-start lg:gap-0.5",
                               it.conflict && "ring-2 ring-warn",
                             )}
                           >
-                            <span className="tnum min-w-14 shrink-0 lg:min-w-0">
+                            <span className="tnum min-w-16 shrink-0 lg:min-w-0">
                               {it.tpl.time ? to12h(it.tpl.time) : "Any"}
                             </span>
-                            <span className="font-medium">Workout {it.tpl.letter}</span>
+                            <span className="min-w-0 flex-1 font-semibold lg:flex-none">
+                              Workout {it.tpl.letter}
+                            </span>
                             {it.done && <Chip tone="ok">Done</Chip>}
                           </button>
                         </li>
@@ -266,14 +276,14 @@ function PlanPage() {
                         <button
                           onClick={() => setEdit({ block: it.block, date: d })}
                           className={cn(
-                            "flex min-h-12 w-full flex-wrap items-center gap-2 rounded-2xl border border-line px-3 py-2 text-left text-sm hover:bg-surface-2 lg:flex-col lg:items-start lg:gap-0.5",
-                            it.conflict && "border-warn",
+                            "flex min-h-14 w-full flex-wrap items-center gap-x-3 gap-y-1 rounded-2xl bg-surface-2/70 px-3 py-2 text-left text-sm transition active:scale-[0.98] hover:bg-surface-2 lg:flex-col lg:items-start lg:gap-0.5",
+                            it.conflict && "ring-2 ring-warn",
                           )}
                         >
-                          <span className="tnum min-w-14 shrink-0 lg:min-w-0 text-muted-foreground">
+                          <span className="tnum min-w-16 shrink-0 text-muted-foreground lg:min-w-0">
                             {to12h(minToHHMM(it.occ.startMin))}
                           </span>
-                          <span className="min-w-0 max-w-full flex-1 truncate font-medium lg:flex-none">
+                          <span className="min-w-0 max-w-full flex-1 truncate font-semibold lg:flex-none">
                             {it.occ.label}
                           </span>
                           {it.occ.moved && <Chip>Moved</Chip>}
@@ -296,54 +306,67 @@ function PlanPage() {
           );
         })}
       </div>
-      <section className="mt-8" aria-label="Your repeating activities">
-        <h2 className="eyebrow mb-2">Your repeating activities</h2>
-        {blocks.items.filter((b) => !b.archivedAt).length === 0 ? (
-          <p className="text-sm text-muted-foreground">
-            None yet. Add a block, or build a routine around your day.
-          </p>
+
+      <Section
+        className="mt-8"
+        title="Repeating"
+        action={
+          activeBlocks.length > 0 && (
+            <button
+              onClick={() => setEdit({ block: {} })}
+              className="inline-flex min-h-11 items-center px-2 font-semibold text-primary"
+            >
+              Add
+            </button>
+          )
+        }
+      >
+        {activeBlocks.length === 0 ? (
+          <EmptyState
+            title="No repeating blocks yet"
+            body="Add a block, or build a routine around your day."
+            action={
+              <Button variant="primary" onClick={() => setBuilding(true)}>
+                Build my routine
+              </Button>
+            }
+          />
         ) : (
-          <ul className="grid gap-2 md:grid-cols-2">
-            {blocks.items
-              .filter((b) => !b.archivedAt)
-              .sort((a, b) => a.order - b.order)
-              .map((b) => {
-                const paused =
-                  !!b.pausedFrom &&
-                  b.pausedFrom <= today &&
-                  (b.pausedUntil == null || b.pausedUntil > today);
-                return (
-                  <li
-                    key={b.id}
-                    className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-line p-3"
+          <Group as="ul">
+            {activeBlocks.map((b) => {
+              const paused =
+                !!b.pausedFrom &&
+                b.pausedFrom <= today &&
+                (b.pausedUntil == null || b.pausedUntil > today);
+              return (
+                <li key={b.id} className="flex items-center gap-2 px-4 py-1.5">
+                  <button
+                    className="min-h-14 min-w-0 flex-1 text-left"
+                    onClick={() => setEdit({ block: b })}
                   >
-                    <button
-                      className="min-h-11 min-w-0 flex-1 text-left"
-                      onClick={() => setEdit({ block: b })}
-                    >
-                      <span className="block truncate font-medium">{b.label}</span>
-                      <span className="block text-sm text-muted-foreground tnum">
-                        {b.relativeTo
-                          ? "Prayer-linked"
-                          : `${to12h(b.start)}${b.end ? `–${to12h(b.end)}` : ""}`}{" "}
-                        ·{" "}
-                        {b.weekdays.length === 7
-                          ? "Daily"
-                          : b.weekdays.map((d) => WEEKDAY_SHORT[d]).join(", ")}
-                      </span>
-                    </button>
-                    {paused && <Chip tone="warn">Paused</Chip>}
-                    {paused && (
-                      <Button size="sm" onClick={() => void resumeBlock(b.id, today)}>
-                        Resume
-                      </Button>
-                    )}
-                  </li>
-                );
-              })}
-          </ul>
+                    <span className="block truncate font-semibold">{b.label}</span>
+                    <span className="tnum block text-sm text-muted-foreground">
+                      {b.relativeTo
+                        ? "Prayer-linked"
+                        : `${to12h(b.start)}${b.end ? `–${to12h(b.end)}` : ""}`}{" "}
+                      ·{" "}
+                      {b.weekdays.length === 7
+                        ? "Daily"
+                        : b.weekdays.map((d) => WEEKDAY_SHORT[d]).join(", ")}
+                    </span>
+                  </button>
+                  {paused && <Chip tone="warn">Paused</Chip>}
+                  {paused && (
+                    <Button size="sm" onClick={() => void resumeBlock(b.id, today)}>
+                      Resume
+                    </Button>
+                  )}
+                </li>
+              );
+            })}
+          </Group>
         )}
-      </section>
+      </Section>
       <RoutineBuilder open={building} onOpenChange={setBuilding} />
       <BlockSheet
         block={edit?.block ?? null}

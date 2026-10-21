@@ -129,7 +129,7 @@ export function RestBar({
           {!done ? (
             <button
               type="button"
-              className="min-h-20 border border-line text-xl font-semibold active:bg-surface-2"
+              className="min-h-20 rounded-full bg-foreground/10 text-xl font-semibold active:scale-[0.97]"
               onClick={() =>
                 saveSession({
                   ...session,
@@ -149,7 +149,7 @@ export function RestBar({
           <button
             type="button"
             className={cn(
-              "min-h-20 border border-primary bg-primary text-xl font-semibold text-primary-foreground active:opacity-90",
+              "min-h-20 rounded-full bg-primary text-xl font-semibold text-primary-foreground active:scale-[0.97]",
               done && "col-span-2",
             )}
             onClick={() => saveSession({ ...session, rest: undefined })}
@@ -180,7 +180,11 @@ export function RestBar({
       </div>
     );
   return (
-    <div className="flex items-center gap-2" role="timer" aria-label="Rest timer">
+    <div
+      className="flex flex-wrap items-center gap-2 rounded-full bg-foreground/8 py-1 pl-4 pr-1.5"
+      role="timer"
+      aria-label="Rest timer"
+    >
       <VIcon name="timer" />
       <span className={cn("num min-w-[4.2rem] text-2xl font-semibold tnum", done && "text-spring")}>
         {done ? "Go" : fmtClock(rem ?? 0)}
@@ -337,9 +341,12 @@ export function GymMode({
 
   if (session.rest) {
     return (
-      <div className="gym-mode mx-auto min-h-[calc(100dvh-9rem)] max-w-3xl border-x border-line px-4 py-6 sm:px-8">
-        <div className="flex items-center justify-between border-b border-line pb-4">
-          <button onClick={onExit} className="min-h-11 text-sm font-semibold">
+      <div className="gym-mode mx-auto min-h-[calc(100dvh-9rem)] max-w-3xl px-4 py-6 sm:px-8">
+        <div className="flex items-center justify-between pb-4">
+          <button
+            onClick={onExit}
+            className="min-h-11 rounded-full bg-foreground/8 px-5 text-sm font-semibold active:scale-95"
+          >
             Exit heads-up
           </button>
           {lastCompleted && (
@@ -348,13 +355,13 @@ export function GymMode({
             </Button>
           )}
         </div>
-        <p className="eyebrow mt-12 text-center">Rest interval</p>
+        <p className="mt-10 text-center text-sm font-medium text-muted-foreground">Rest</p>
         <div className="mt-6 flex justify-center">
           <RestBar big session={session} now={now} />
         </div>
-        <div className="mx-auto mt-10 max-w-md border-t border-line pt-5 text-center">
-          <p className="eyebrow">Next</p>
-          <p className="mt-2 font-display text-4xl font-semibold [overflow-wrap:anywhere]">
+        <div className="mx-auto mt-10 max-w-md rounded-3xl bg-surface/80 p-5 text-center">
+          <p className="text-sm font-medium text-muted-foreground">Next</p>
+          <p className="mt-1 font-display text-3xl font-semibold [overflow-wrap:anywhere]">
             {pendingIndex >= 0 ? exercise.name : (nextExercise?.name ?? "Finish the session")}
           </p>
           {(pendingIndex >= 0 || nextExercise) && (
@@ -384,7 +391,7 @@ export function GymMode({
             href={music.url}
             target="_blank"
             rel="noreferrer noopener"
-            className="mx-auto mt-8 flex min-h-12 w-fit items-center gap-2 border-b border-line px-2 text-sm font-semibold"
+            className="mx-auto mt-8 flex min-h-12 w-fit items-center gap-2 rounded-full bg-foreground/8 px-5 text-sm font-semibold"
           >
             <VIcon name={music.provider === "spotify" ? "spotify" : "appleMusic"} />
             Open {music.provider === "spotify" ? "Spotify" : "Apple Music"}
@@ -395,9 +402,12 @@ export function GymMode({
   }
 
   return (
-    <div className="gym-mode mx-auto flex h-[calc(100dvh-var(--reserve-bottom,0px)-3.6rem)] max-w-4xl flex-col border-x border-line px-3 pt-3 sm:px-8 lg:h-dvh">
-      <header className="flex shrink-0 flex-wrap items-center justify-between gap-x-3 gap-y-1 border-b border-line pb-3">
-        <button onClick={onExit} className="min-h-11 text-sm font-semibold">
+    <div className="gym-mode mx-auto flex h-[calc(100dvh-var(--reserve-bottom,0px)-3.6rem)] max-w-4xl flex-col px-3 pt-3 sm:px-8 lg:h-dvh">
+      <header className="flex shrink-0 flex-wrap items-center justify-between gap-x-3 gap-y-1 pb-3">
+        <button
+          onClick={onExit}
+          className="min-h-11 rounded-full bg-foreground/8 px-5 text-sm font-semibold active:scale-95"
+        >
           Exit heads-up
         </button>
         <div className="text-right text-xs text-muted-foreground">
@@ -418,7 +428,7 @@ export function GymMode({
       </header>
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
         {preferences.livePulse && (
-          <div className="border-b border-line py-3 text-sm" role="status">
+          <div className="rounded-2xl bg-foreground/6 px-4 py-3 text-sm" role="status">
             <span className="mr-2 inline-block size-2 bg-primary" aria-hidden />
             You’re training now. Live aggregate counts are unavailable until authenticated realtime
             presence is configured—no people or numbers are invented.
@@ -426,11 +436,11 @@ export function GymMode({
         )}
         <BuddyStrip />
         <BuddyGuide compact event={{ kind: "gym_start", exercise: exercise.name }} />
-        <div className="mt-5 grid grid-cols-[1fr_auto_1fr] items-center border-y border-line py-3 text-sm">
+        <div className="mt-4 grid grid-cols-[1fr_auto_1fr] items-center rounded-full bg-surface/80 px-2 text-sm">
           <button
             disabled={index === 0}
             onClick={() => setExerciseIndex((value) => Math.max(0, value - 1))}
-            className="min-h-14 truncate text-left text-base text-muted-foreground disabled:opacity-30"
+            className="min-h-14 truncate pl-3 text-left text-base text-muted-foreground disabled:opacity-30"
           >
             ← {session.exercises[index - 1]?.name ?? "Start"}
           </button>
@@ -442,17 +452,17 @@ export function GymMode({
             onClick={() =>
               setExerciseIndex((value) => Math.min(session.exercises.length - 1, value + 1))
             }
-            className="min-h-14 truncate text-right text-base text-muted-foreground disabled:opacity-30"
+            className="min-h-14 truncate pr-3 text-right text-base text-muted-foreground disabled:opacity-30"
           >
             {nextExercise?.name ?? "Finish"} →
           </button>
         </div>
         {nextExercise && (
           <div
-            className="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-line py-2 text-left text-sm"
+            className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-2xl bg-surface/60 p-2 text-left text-sm"
             aria-label="Next up"
           >
-            <span className="eyebrow shrink-0">Next</span>
+            <span className="shrink-0 pl-1 text-xs font-medium text-muted-foreground">Next</span>
             <NextThumb cat={nextCat} name={nextExercise.name} />
             <span className="min-w-0 flex-1 basis-32 truncate font-semibold">
               {nextExercise.name}
@@ -462,9 +472,9 @@ export function GymMode({
             </span>
           </div>
         )}
-        <main className="py-7 text-center">
-          <p className="eyebrow">
-            Current movement · set {currentSetIndex + 1} of {exercise.sets.length}
+        <main className="py-6 text-center">
+          <p className="text-sm font-medium text-primary">
+            Set {currentSetIndex + 1} of {exercise.sets.length}
           </p>
           <h1 className="mt-2 font-display text-[clamp(2.8rem,11vw,6rem)] font-semibold leading-[0.9] tracking-[-0.055em]">
             {exercise.name}
@@ -522,10 +532,11 @@ export function GymMode({
               />
             </div>
           </div>
-          <div className="mx-auto mt-3 flex max-w-xl flex-wrap justify-center gap-1">
+          <div className="mx-auto mt-3 flex max-w-xl flex-wrap justify-center gap-1.5">
             <Button
               size="sm"
               variant="ghost"
+              className="min-h-11 bg-foreground/8"
               onClick={() => void patch({ skipped: true, completed: false })}
             >
               Skip set
@@ -539,6 +550,7 @@ export function GymMode({
             <Button
               size="sm"
               variant="ghost"
+              className="min-h-11 bg-foreground/8"
               aria-pressed={showMedia}
               onClick={() => setShowMedia((value) => !value)}
             >
@@ -547,6 +559,7 @@ export function GymMode({
             <Button
               size="sm"
               variant="ghost"
+              className="min-h-11 bg-foreground/8"
               aria-pressed={mediaPrefs.dataSaver}
               onClick={() => setMediaPrefs({ dataSaver: !mediaPrefs.dataSaver })}
             >
@@ -555,6 +568,7 @@ export function GymMode({
             <Button
               size="sm"
               variant="ghost"
+              className="min-h-11 bg-foreground/8"
               onClick={() =>
                 session.status === "paused" ? resumeSession(session) : pauseSession(session)
               }
@@ -564,11 +578,11 @@ export function GymMode({
           </div>
         </main>
       </div>
-      <div className="shrink-0 border-t border-line bg-background pb-[calc(0.75rem+var(--safe-bottom))] pt-3">
+      <div className="shrink-0 bg-background/80 pb-[calc(0.75rem+var(--safe-bottom))] pt-3 backdrop-blur">
         <button
           onClick={() => void complete()}
           disabled={session.status === "paused"}
-          className="mx-auto flex min-h-24 w-full max-w-xl items-center justify-center border border-primary bg-primary px-8 font-display text-3xl font-semibold text-primary-foreground active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100"
+          className="mx-auto flex min-h-20 w-full max-w-xl items-center justify-center rounded-full bg-primary px-8 font-display text-2xl font-semibold text-primary-foreground active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100"
         >
           {session.status === "paused" ? "Session paused" : "Complete set"}
         </button>
@@ -661,8 +675,8 @@ function SetRow({
   return (
     <li
       className={cn(
-        "rounded-2xl border p-3",
-        set.completed ? "border-primary/50 bg-primary/5" : "border-line",
+        "rounded-2xl p-3",
+        set.completed ? "bg-primary/12" : "bg-foreground/6",
         set.skipped && "opacity-60",
       )}
     >
@@ -854,7 +868,7 @@ export function ExerciseCard({
   };
 
   return (
-    <section className="min-w-0 rounded-3xl border border-line bg-surface" aria-label={ex.name}>
+    <section className="min-w-0 rounded-3xl bg-surface/80" aria-label={ex.name}>
       <div className="flex items-center gap-1 pr-2">
         <button
           onClick={onToggle}
@@ -863,16 +877,16 @@ export function ExerciseCard({
         >
           <span
             className={cn(
-              "grid size-9 shrink-0 place-items-center rounded-full border text-sm font-semibold tnum",
+              "grid size-10 shrink-0 place-items-center rounded-full text-sm font-semibold tnum",
               doneCount === working.length && working.length > 0
-                ? "border-primary bg-primary text-primary-foreground"
-                : "border-input",
+                ? "bg-primary text-primary-foreground"
+                : "bg-foreground/10",
             )}
           >
             {index + 1}
           </span>
           <span className="min-w-0">
-            <span className="block truncate font-display text-lg font-semibold">{ex.name}</span>
+            <span className="block truncate text-[1.05rem] font-semibold">{ex.name}</span>
             <span className="block text-sm text-muted-foreground tnum">
               {ex.prescription.schemeText} · {doneCount}/{working.length} sets
               {ex.substitutedFrom ? " · substitute" : ""}
@@ -957,7 +971,7 @@ export function ExerciseCard({
               suggestion.
             </p>
           )}
-          <div className="rounded-2xl bg-surface-2/60 px-3 py-2.5 text-sm">
+          <div className="rounded-2xl bg-foreground/6 px-3 py-2.5 text-sm">
             {pr && (
               <p
                 className="mb-2 border-l-2 border-primary pl-3 font-semibold text-primary"
@@ -1429,14 +1443,16 @@ function NoteSheet({
 export function SessionHeader({ session, now }: { session: Session; now: number }) {
   const paused = session.status === "paused";
   return (
-    <Panel tone="green" className="mb-4">
+    <Panel tone="green" className="mb-4 !p-4 md:!p-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="min-w-0">
-          <p className="eyebrow !text-foreground/70">
+          <p className="text-sm font-medium text-foreground/70">
             Workout {session.templateLetter}
             {paused ? " · Paused" : ""}
           </p>
-          <h1 className="display-title text-3xl md:text-4xl">{session.templateName}</h1>
+          <h1 className="text-2xl font-semibold leading-tight tracking-tight [overflow-wrap:anywhere]">
+            {session.templateName}
+          </h1>
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <div className="text-right">
@@ -1454,6 +1470,7 @@ export function SessionHeader({ session, now }: { session: Session; now: number 
           {session.readiness?.decision ? (
             <Button
               variant="secondary"
+              className="border-transparent bg-foreground/10"
               onClick={() => (paused ? resumeSession(session) : pauseSession(session))}
             >
               {paused ? (
@@ -1503,8 +1520,8 @@ export function FinishSheet({
             [`${sum.exercisesTouched}/${sum.exerciseCount}`, "exercises"],
             [`${sum.volume.toLocaleString("en-GB")}`, "kg logged volume"],
           ].map(([v, l]) => (
-            <div key={l} className="rounded-2xl bg-surface-2/60 p-3">
-              <dt className="eyebrow order-2 mt-1">{l}</dt>
+            <div key={l} className="rounded-2xl bg-foreground/6 p-3">
+              <dt className="order-2 mt-1 text-xs text-muted-foreground">{l}</dt>
               <dd className="num text-2xl font-semibold tnum">{v}</dd>
             </div>
           ))}
@@ -1571,12 +1588,12 @@ function NextThumb({ cat, name }: { cat?: CatalogueExercise; name: string }) {
       alt=""
       loading="lazy"
       decoding="async"
-      className="size-12 shrink-0 border border-line bg-white object-contain"
+      className="size-12 shrink-0 rounded-xl bg-white object-contain"
     />
   ) : (
     <span
       aria-hidden
-      className="grid size-12 shrink-0 place-items-center border border-line bg-surface-2 font-display text-lg"
+      className="grid size-12 shrink-0 place-items-center rounded-xl bg-surface-2 font-display text-lg"
     >
       {name.slice(0, 1)}
     </span>

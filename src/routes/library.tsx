@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ExerciseBrowser } from "@/components/nl/exercise-browser";
-import { PageHeader } from "@/components/nl/ui";
+import { Group, PageHeader } from "@/components/nl/ui";
+import { VIcon } from "@/components/nl/icon";
 import { WorkoutLibrary } from "@/components/nl/workout-library";
 import { useCatalogue } from "@/data/catalogue-runtime";
 import { cn } from "@/lib/utils";
@@ -25,15 +26,18 @@ function LibraryPage() {
   return (
     <>
       <PageHeader
-        eyebrow="Library"
-        title="Every move"
+        title="Library"
         sub={
           cat.snapshot
-            ? `${cat.snapshot.counts.published.toLocaleString("en-GB")} exercises, authored workouts and programmes, all with credited demonstrations or a form guide.`
+            ? `${cat.snapshot.counts.published.toLocaleString("en-GB")} exercises with credited demos or a form guide.`
             : "Workouts, programmes and every exercise."
         }
       />
-      <div role="tablist" aria-label="Library" className="mb-6 flex flex-wrap border-b border-line">
+      <div
+        role="tablist"
+        aria-label="Library"
+        className="mb-4 grid grid-cols-3 gap-1 rounded-full bg-surface/80 p-1"
+      >
         {TABS.map((t) => (
           <button
             key={t.id}
@@ -41,10 +45,8 @@ function LibraryPage() {
             aria-selected={tab === t.id}
             onClick={() => nav({ search: t.id === "workouts" ? {} : { tab: t.id } })}
             className={cn(
-              "min-h-11 flex-1 border-b-2 px-3 text-sm font-semibold sm:flex-none sm:px-6",
-              tab === t.id
-                ? "border-primary text-foreground"
-                : "border-transparent text-muted-foreground",
+              "min-h-11 rounded-full px-3 text-sm font-semibold transition",
+              tab === t.id ? "bg-primary text-primary-foreground" : "text-muted-foreground",
             )}
           >
             {t.label}
@@ -60,20 +62,32 @@ function LibraryPage() {
           onTabChange={(next) => nav({ search: next === "workouts" ? {} : { tab: next } })}
         />
       )}
-      <p className="mt-10 flex flex-wrap gap-x-5 border-t border-line pt-4 text-sm">
+      <Group className="mt-6">
         <Link
           to="/train/build"
-          className="inline-flex min-h-11 items-center font-semibold underline underline-offset-4"
+          className="flex min-h-14 items-center gap-3 px-4 font-semibold active:bg-surface-2/60"
         >
-          Build me a plan from my kit
+          <span className="flex size-9 items-center justify-center rounded-full bg-primary/15 text-primary">
+            <VIcon name="adaptation" size={18} />
+          </span>
+          <span className="flex-1">Build me a plan from my kit</span>
+          <span aria-hidden className="text-muted-foreground">
+            →
+          </span>
         </Link>
         <Link
           to="/credits"
-          className="inline-flex min-h-11 items-center font-semibold underline underline-offset-4"
+          className="flex min-h-14 items-center gap-3 px-4 font-semibold active:bg-surface-2/60"
         >
-          Credits and licences
+          <span className="flex size-9 items-center justify-center rounded-full bg-foreground/8">
+            <VIcon name="note" size={18} />
+          </span>
+          <span className="flex-1">Credits and licences</span>
+          <span aria-hidden className="text-muted-foreground">
+            →
+          </span>
         </Link>
-      </p>
+      </Group>
     </>
   );
 }

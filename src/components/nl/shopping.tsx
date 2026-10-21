@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import {
@@ -7,13 +7,16 @@ import {
   Chip,
   EmptyState,
   Field,
+  Group,
   Meter,
   NumberField,
   Panel,
   Row,
+  Section,
   Sheet,
   TextInput,
 } from "./ui";
+import { WeekNav, weekRangeLabel } from "./week-nav";
 import { IngredientEditor } from "./food-manage";
 import { newId, put, remove } from "@/data/db";
 import { useCollection } from "@/data/hooks";
@@ -110,119 +113,20 @@ export function ShoppingTab({
 
   return (
     <div>
-      <div className="mb-4 flex items-center gap-1">
-        <button
-          aria-label="Previous week"
-          onClick={() => setAnchor(addDays(anchor, -7))}
-          className="inline-flex size-11 shrink-0 items-center justify-center rounded-full border border-line"
-        >
-          <ChevronLeft className="size-5" />
-        </button>
-        <p className="min-w-0 flex-1 px-2 text-center font-medium tnum">
-          {formatDateLong(days[0]!)} – {formatDateLong(days[6]!).split(" ").slice(1).join(" ")}
-        </p>
-        <button
-          aria-label="Next week"
-          onClick={() => setAnchor(addDays(anchor, 7))}
-          className="inline-flex size-11 shrink-0 items-center justify-center rounded-full border border-line"
-        >
-          <ChevronRight className="size-5" />
-        </button>
-      </div>
+      <WeekNav
+        className="mb-4"
+        label={weekRangeLabel(days[0]!, days[6]!)}
+        onPrev={() => setAnchor(addDays(anchor, -7))}
+        onNext={() => setAnchor(addDays(anchor, 7))}
+      />
 
-      <div className="grid gap-5 lg:grid-cols-[1.4fr_1fr]">
-        <div>
-          {rows.length === 0 ? (
-            <EmptyState
-              title="Nothing to buy yet"
-              body={
-                noData
-                  ? `${noData} planned meal${noData > 1 ? "s have" : " has"} no ingredient lines, so they can't add to the list. Add ingredients to those meals.`
-                  : "Plan meals for this week in the Week plan tab. Ingredients are added here automatically."
-              }
-            />
-          ) : (
-            groups.map(([shop, list]) => (
-              <section key={shop} aria-label={shop} className="mb-6">
-                <h2 className="eyebrow mb-1">{shop}</h2>
-                <ul>
-                  {list.map((r) => {
-                    const i = ingMap.get(r.ingredientId);
-                    const done = bought(r.ingredientId);
-                    return (
-                      <Row as="li" key={r.ingredientId} className="items-start">
-                        <CheckButton
-                          label={`${i?.name ?? "Item"} bought`}
-                          checked={done}
-                          onChange={(v) =>
-                            put(COL.shopChecks, `${weekStart}:${r.ingredientId}`, {
-                              id: `${weekStart}:${r.ingredientId}`,
-                              weekStart,
-                              ingredientId: r.ingredientId,
-                              bought: v,
-                            } satisfies Check)
-                          }
-                        />
-                        <button className="min-w-0 flex-1 text-left" onClick={() => i && setIng(i)}>
-                          <p
-                            className={done ? "font-medium line-through opacity-60" : "font-medium"}
-                          >
-                            {i?.name ?? r.ingredientId}
-                          </p>
-                          <p className="text-sm text-muted-foreground tnum">
-                            Need {qty(r.needBase, r.family)}
-                            {r.pantryBase > 0 ? ` · pantry ${qty(r.pantryBase, r.family)}` : ""}
-                            {r.toBuyBase > 0
-                              ? ` · buy ${qty(r.toBuyBase, r.family)}`
-                              : " · covered by pantry"}
-                          </p>
-                          {r.packs != null ? (
-                            <p className="text-sm tnum">
-                              {r.packs} × {i!.pack!.amount} {i!.pack!.unit} ·{" "}
-                              {formatGBP(r.packCostPence ?? 0)}
-                            </p>
-                          ) : (
-                            <p className="text-sm text-warn">No price or pack size. Tap to add.</p>
-                          )}
-                        </button>
-                      </Row>
-                    );
-                  })}
-                </ul>
-              </section>
-            ))
-          )}
-          {noData > 0 && rows.length > 0 && (
-            <p className="text-sm text-muted-foreground">
-              {noData} planned meal(s) without ingredient lines aren't included.
-            </p>
-          )}
-          <div className="flex flex-wrap gap-2">
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => setPantryOpen(true)}
-              disabled={rows.length === 0}
-            >
-              Pantry stock
-            </Button>
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={async () => {
-                for (const c of checks.filter((c) => c.weekStart === weekStart))
-                  await remove(COL.shopChecks, c.id);
-                toast("Ticks cleared");
-              }}
-            >
-              Clear ticks
-            </Button>
-          </div>
-        </div>
-
-        <aside className="grid content-start gap-4" aria-label="Budget">
-          <Panel tone="warm">
-            <p className="eyebrow !text-foreground/70">Estimated checkout</p>
+      <div className="grid gap-x-5 lg:grid-cols-[1.4fr_1fr]">
+        <aside
+          className="mb-5 grid content-start gap-3 sm:grid-cols-2 lg:col-start-2 lg:row-start-1 lg:grid-cols-1"
+          aria-label="Budget"
+        >
+          <Panel tone="warm" className="p-5">
+            <p className="text-sm font-semibold text-foreground/80">Estimated checkout</p>
             <p className="num mt-1 text-4xl font-semibold tnum">
               {formatGBP(sum.estimatedCheckoutPence)}
             </p>
@@ -243,49 +147,152 @@ export function ShoppingTab({
               />
             )}
           </Panel>
-          <Panel>
-            <div className="flex items-start justify-between">
-              <p className="eyebrow">Actual spend this week</p>
-              <Button size="sm" variant="secondary" onClick={() => setBuyOpen(true)}>
-                <Plus className="size-4" />
-                Record
-              </Button>
-            </div>
+          <Panel className="p-5">
+            <p className="text-sm font-semibold text-muted-foreground">Actual spend this week</p>
             <p className="num mt-1 text-4xl font-semibold tnum">{formatGBP(spent)}</p>
             <p className="text-sm text-muted-foreground tnum">
               {profile.budgetPencePerWeek != null
                 ? `${formatGBP(profile.budgetPencePerWeek)} budget · ${sum.remainingPence! >= 0 ? `${formatGBP(sum.remainingPence!)} left` : `${formatGBP(-sum.remainingPence!)} over`}`
                 : "Set a weekly budget in Settings."}
             </p>
-            <ul className="mt-2">
-              {weekPurchases.map((p) => (
-                <Row as="li" key={p.id} className="min-h-12 justify-between py-1">
-                  <div>
-                    <p className="font-medium tnum">{formatGBP(p.totalPence)}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {formatDateLong(p.date)}
-                      {p.shop ? ` · ${p.shop}` : ""}
-                    </p>
-                  </div>
-                  <button
-                    aria-label="Delete purchase"
-                    onClick={async () => {
-                      await remove(COL.purchases, p.id);
-                      toast("Purchase removed");
-                    }}
-                    className="inline-flex size-11 items-center justify-center rounded-full hover:bg-surface-2"
-                  >
-                    <Trash2 className="size-4" />
-                  </button>
-                </Row>
-              ))}
-            </ul>
+            <Button
+              size="md"
+              variant="primary"
+              className="mt-3 w-full"
+              onClick={() => setBuyOpen(true)}
+            >
+              <Plus className="size-4" />
+              Record a purchase
+            </Button>
           </Panel>
-          <p className="text-xs text-muted-foreground">
-            Estimated checkout is a plan. Actual spend is only what you record. Cost per portion
-            appears on each meal in the Meals tab. <Chip>No savings are claimed</Chip>
-          </p>
         </aside>
+
+        <div className="lg:col-start-1 lg:row-span-2 lg:row-start-1">
+          {rows.length === 0 ? (
+            <EmptyState
+              title="Nothing to buy yet"
+              body={
+                noData
+                  ? `${noData} planned meal${noData > 1 ? "s have" : " has"} no ingredient lines, so they can't add to the list. Add ingredients to those meals.`
+                  : "Plan meals in the Week plan tab. Their ingredients appear here."
+              }
+            />
+          ) : (
+            groups.map(([shop, list]) => (
+              <Section key={shop} title={shop} className="mb-5">
+                <Group as="ul">
+                  {list.map((r) => {
+                    const i = ingMap.get(r.ingredientId);
+                    const done = bought(r.ingredientId);
+                    return (
+                      <li key={r.ingredientId} className="flex items-start gap-3 px-4 py-3">
+                        <CheckButton
+                          label={`${i?.name ?? "Item"} bought`}
+                          checked={done}
+                          onChange={(v) =>
+                            put(COL.shopChecks, `${weekStart}:${r.ingredientId}`, {
+                              id: `${weekStart}:${r.ingredientId}`,
+                              weekStart,
+                              ingredientId: r.ingredientId,
+                              bought: v,
+                            } satisfies Check)
+                          }
+                        />
+                        <button className="min-w-0 flex-1 text-left" onClick={() => i && setIng(i)}>
+                          <p
+                            className={
+                              done ? "font-semibold line-through opacity-60" : "font-semibold"
+                            }
+                          >
+                            {i?.name ?? r.ingredientId}
+                          </p>
+                          <p className="text-sm text-muted-foreground tnum">
+                            Need {qty(r.needBase, r.family)}
+                            {r.pantryBase > 0 ? ` · pantry ${qty(r.pantryBase, r.family)}` : ""}
+                            {r.toBuyBase > 0
+                              ? ` · buy ${qty(r.toBuyBase, r.family)}`
+                              : " · covered by pantry"}
+                          </p>
+                          {r.packs != null ? (
+                            <p className="text-sm tnum">
+                              {r.packs} × {i!.pack!.amount} {i!.pack!.unit} ·{" "}
+                              {formatGBP(r.packCostPence ?? 0)}
+                            </p>
+                          ) : (
+                            <p className="text-sm text-warn">No price or pack size. Tap to add.</p>
+                          )}
+                        </button>
+                      </li>
+                    );
+                  })}
+                </Group>
+              </Section>
+            ))
+          )}
+          {noData > 0 && rows.length > 0 && (
+            <p className="mb-4 px-1 text-sm text-muted-foreground">
+              {noData} planned meal(s) without ingredient lines aren't included.
+            </p>
+          )}
+          <div className="mb-6 grid grid-cols-2 gap-3 md:max-w-md">
+            <Button
+              variant="ghost"
+              className="bg-surface/80"
+              onClick={() => setPantryOpen(true)}
+              disabled={rows.length === 0}
+            >
+              Pantry stock
+            </Button>
+            <Button
+              variant="ghost"
+              className="bg-surface/80"
+              onClick={async () => {
+                for (const c of checks.filter((c) => c.weekStart === weekStart))
+                  await remove(COL.shopChecks, c.id);
+                toast("Ticks cleared");
+              }}
+            >
+              Clear ticks
+            </Button>
+          </div>
+        </div>
+
+        <div className="lg:col-start-2 lg:row-start-2">
+          {weekPurchases.length > 0 && (
+            <Section title="Purchases">
+              <Group as="ul">
+                {weekPurchases.map((p) => (
+                  <li
+                    key={p.id}
+                    className="flex min-h-14 items-center justify-between gap-2 py-1 pl-4 pr-2"
+                  >
+                    <div>
+                      <p className="font-semibold tnum">{formatGBP(p.totalPence)}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {formatDateLong(p.date)}
+                        {p.shop ? ` · ${p.shop}` : ""}
+                      </p>
+                    </div>
+                    <button
+                      aria-label="Delete purchase"
+                      onClick={async () => {
+                        await remove(COL.purchases, p.id);
+                        toast("Purchase removed");
+                      }}
+                      className="inline-flex size-11 items-center justify-center rounded-full hover:bg-surface-2"
+                    >
+                      <Trash2 className="size-4" />
+                    </button>
+                  </li>
+                ))}
+              </Group>
+            </Section>
+          )}
+          <p className="px-1 text-xs text-muted-foreground">
+            Estimated checkout is a plan. Actual spend is only what you record. Cost per portion is
+            on each meal in the Meals tab. <Chip>No savings are claimed</Chip>
+          </p>
+        </div>
       </div>
 
       <IngredientEditor ingredient={ing} onClose={() => setIng(null)} />

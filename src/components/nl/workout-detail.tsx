@@ -45,10 +45,10 @@ export function MovementCarousel({
       <div className="grid gap-4 md:grid-cols-[minmax(0,1.2fr)_1fr]">
         <ExerciseVisual media={cat?.media} name={exercise.name} pattern={cat?.pattern} eager />
         <div className="grid content-start gap-3">
-          <p className="eyebrow" aria-live="polite">
+          <p className="text-sm font-medium text-primary" aria-live="polite">
             Movement {index + 1} of {total}
           </p>
-          <h3 className="font-display text-3xl font-semibold leading-tight [overflow-wrap:anywhere]">
+          <h3 className="font-display text-2xl font-semibold leading-tight [overflow-wrap:anywhere]">
             {exercise.name}
           </h3>
           <p className="num text-lg">
@@ -75,7 +75,7 @@ export function MovementCarousel({
         ref={strip}
         role="tablist"
         aria-label="Choose movement"
-        className="flex snap-x snap-mandatory gap-px overflow-x-auto border border-line bg-line pb-0"
+        className="flex snap-x snap-mandatory gap-2 overflow-x-auto pb-1"
       >
         {workout.exercises.map((ex, i) => {
           const c = ex.catalogueId ? byId.get(ex.catalogueId) : undefined;
@@ -89,7 +89,7 @@ export function MovementCarousel({
               aria-label={`${i + 1}. ${ex.name}`}
               onClick={() => go(i)}
               className={cn(
-                "relative w-28 shrink-0 snap-center bg-background text-left",
+                "relative w-28 shrink-0 snap-center overflow-hidden rounded-2xl bg-foreground/6 text-left",
                 i === index && "outline outline-2 -outline-offset-2 outline-primary",
               )}
             >
@@ -108,7 +108,7 @@ export function MovementCarousel({
                   </span>
                 )}
               </span>
-              <span className="num absolute left-1 top-1 bg-background/85 px-1.5 text-xs">
+              <span className="num absolute left-1 top-1 bg-background/85 rounded-full px-1.5 text-xs">
                 {String(i + 1).padStart(2, "0")}
               </span>
               <span className="line-clamp-2 block min-h-[2.6rem] px-2 py-1 text-xs font-semibold leading-tight">

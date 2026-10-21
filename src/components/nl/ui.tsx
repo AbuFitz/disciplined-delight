@@ -45,7 +45,7 @@ export const Button = forwardRef<HTMLButtonElement, BtnProps>(function Button(
         size === "sm" && "min-h-10 px-4 text-sm",
         variant === "primary" && "bg-primary text-primary-foreground hover:brightness-110",
         variant === "secondary" &&
-          "border border-input bg-transparent text-foreground hover:bg-surface-2",
+          "border border-transparent bg-surface-2/80 text-foreground hover:bg-surface-2",
         variant === "ghost" && "text-foreground hover:bg-surface-2",
         variant === "danger" &&
           "border border-destructive/50 text-destructive hover:bg-destructive/10",
@@ -95,8 +95,8 @@ export function PageHeader({
   sub?: ReactNode;
 }) {
   return (
-    <header className="mb-5 flex items-start justify-between gap-x-6 gap-y-3 md:mb-7">
-      <div className="min-w-0">
+    <header className="mb-5 flex flex-wrap items-start justify-between gap-x-6 gap-y-3 md:mb-7">
+      <div className="min-w-0 flex-1 basis-[55%]">
         {eyebrow && <Eyebrow className="mb-1.5">{eyebrow}</Eyebrow>}
         <h1 className="display-title text-[clamp(1.85rem,5vw,2.75rem)]">{title}</h1>
         {sub && <p className="mt-2 max-w-xl text-[0.95rem] text-muted-foreground">{sub}</p>}
@@ -173,13 +173,15 @@ export function Group({
   children,
   className,
   as: As = "div",
+  ...rest
 }: {
   children: ReactNode;
   className?: string;
   as?: "div" | "ul" | "nav";
-}) {
+} & React.HTMLAttributes<HTMLElement>) {
   return (
     <As
+      {...(rest as object)}
       className={cn(
         "overflow-hidden rounded-3xl bg-surface/80 [&>*+*]:border-t [&>*+*]:border-line/70",
         className,
@@ -297,7 +299,7 @@ export function EmptyState({
   action?: ReactNode;
 }) {
   return (
-    <div className="rounded-3xl border border-dashed border-line px-5 py-8 text-center">
+    <div className="rounded-3xl bg-surface/80 px-5 py-8 text-center">
       <p className="font-display text-lg font-semibold">{title}</p>
       {body && <p className="mx-auto mt-1 max-w-sm text-sm text-muted-foreground">{body}</p>}
       {action && <div className="mt-4 flex justify-center">{action}</div>}

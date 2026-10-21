@@ -1,6 +1,16 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { Button, Chip, EmptyState, PageHeader, Panel, Row, Skeleton } from "@/components/nl/ui";
+import {
+  Button,
+  Chip,
+  EmptyState,
+  Group,
+  PageHeader,
+  Panel,
+  Section,
+  Skeleton,
+  Tile,
+} from "@/components/nl/ui";
 import { startSession } from "@/data/actions";
 import { restoreTemplate } from "@/data/plan-actions";
 import { toast } from "sonner";
@@ -16,7 +26,7 @@ import {
   type WorkoutTemplate,
 } from "@/data/types";
 import { WEEKDAY_SHORT, formatDateLong, to12h } from "@/domain/dates";
-import { WorkoutMedia, ExerciseVisual } from "@/components/nl/exercise-visual";
+import { ExerciseVisual } from "@/components/nl/exercise-visual";
 import { useCatalogue } from "@/data/catalogue-runtime";
 import { resolveCatalogueExercise } from "@/lib/legacy-catalogue";
 import { useActiveSession } from "@/data/session-hooks";
@@ -54,35 +64,115 @@ function TrainPage() {
     .slice(0, 12);
   const todayIdx = (new Date(today + "T00:00:00Z").getUTCDay() + 6) % 7;
 
-  if (!t.ready) return <Skeleton className="h-72" />;
+  if (!t.ready) return <Skeleton className="h-72 rounded-3xl" />;
+  const goDiscover = (tab: WorkoutLibraryTab) => {
+    setDiscoverTab(tab);
+    requestAnimationFrame(() => {
+      const el = document.getElementById("discover-workouts");
+      el?.scrollIntoView({ block: "start" });
+      el?.focus({ preventScroll: true });
+    });
+  };
+  const todayTpl = templates.find((x) => x.weekday === todayIdx);
+  const quick = [
+    {
+      key: "build",
+      icon: "adaptation" as const,
+      label: "Build a plan",
+      hint: "From your kit",
+      onClick: () => nav({ to: "/train/build" }),
+    },
+    {
+      key: "new",
+      icon: "add" as const,
+      label: "New workout",
+      hint: "Start blank",
+      onClick: () => setEditing(blankTemplate(t.items.length)),
+    },
+    {
+      key: "discover",
+      icon: "training" as const,
+      label: "Discover",
+      hint: "Workouts",
+      onClick: () => goDiscover("workouts"),
+    },
+    {
+      key: "programmes",
+      icon: "calendar" as const,
+      label: "Programmes",
+      hint: "Multi-week",
+      onClick: () => goDiscover("programmes"),
+    },
+  ];
   return (
     <>
       <PageHeader
-        eyebrow="Train"
-        title="Training"
-        sub={`${week.completed} of ${week.planned} planned sessions done this week${week.partial ? `, ${week.partial} partial` : ""}.`}
+        title="Train"
+        sub={`${week.completed} of ${week.planned} sessions done this week${week.partial ? `, ${week.partial} partial` : ""}.`}
         actions={
-          <>
-            <Button variant="primary" onClick={() => nav({ to: "/train/build" })}>
-              Build me a plan
-            </Button>
-            <Button variant="secondary" onClick={() => nav({ to: "/library" })}>
-              Exercise library
-            </Button>
-            <Button variant="secondary" onClick={() => setEditing(blankTemplate(t.items.length))}>
-              New workout
-            </Button>
-            {active ? (
-              <Button variant="primary" onClick={() => nav({ to: "/train/session" })}>
-                <VIcon name="play" size={16} active />
-                Continue session
-              </Button>
-            ) : null}
-          </>
+          <Link
+            to="/library"
+            aria-label="Exercise library"
+            title="Exercise library"
+            className="inline-flex size-11 items-center justify-center rounded-full bg-surface/80 transition active:scale-95"
+          >
+            <VIcon name="library" size={20} />
+          </Link>
         }
       />
 
-      <div className="mb-6 grid grid-cols-7 gap-1.5 md:gap-2" role="list" aria-label="Weekly split">
+      {active ? (
+        <button
+          type="button"
+          onClick={() => nav({ to: "/train/session" })}
+          className="mb-4 flex min-h-20 w-full items-center gap-4 rounded-3xl bg-primary px-5 py-4 text-left text-primary-foreground transition active:scale-[0.98]"
+        >
+          <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-primary-foreground/15">
+            <VIcon name="play" size={24} active />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block text-lg font-semibold leading-tight">Continue session</span>
+            <span className="block truncate text-sm opacity-80">
+              Workout {active.templateLetter}, {active.templateName}
+            </span>
+          </span>
+          <span aria-hidden>→</span>
+        </button>
+      ) : todayTpl ? (
+        <Panel className="mb-4 !p-4">
+          <div className="flex items-center gap-4">
+            <span className="flex size-14 shrink-0 items-center justify-center rounded-full bg-primary/15 font-display text-2xl font-bold text-primary">
+              {todayTpl.letter}
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-medium text-muted-foreground">Today</p>
+              <p className="truncate text-lg font-semibold leading-tight">{todayTpl.title}</p>
+              <p className="truncate text-sm text-muted-foreground">
+                {todayTpl.exercises.length} exercises
+                {todayTpl.time ? ` · ${to12h(todayTpl.time)}` : ""}
+              </p>
+            </div>
+          </div>
+          <Button
+            variant="primary"
+            size="lg"
+            className="mt-4 w-full md:w-auto md:min-w-64"
+            onClick={async () => {
+              await startSession(todayTpl, today);
+              nav({ to: "/train/session" });
+            }}
+          >
+            <VIcon name="training" size={18} />
+            Start workout
+          </Button>
+        </Panel>
+      ) : null}
+
+      <div
+        className="mb-4 grid grid-cols-7 gap-1.5 rounded-3xl bg-surface/80 p-2.5 md:gap-2 md:p-3"
+        role="list"
+        aria-label="Weekly split"
+      >
         {WEEKDAY_SHORT.map((d, i) => {
           const tpl = templates.find((x) => x.weekday === i);
           return (
@@ -90,94 +180,76 @@ function TrainPage() {
               key={d}
               role="listitem"
               className={cn(
-                "rounded-2xl border p-2 text-center md:p-3",
-                i === todayIdx ? "border-primary" : "border-line",
-                tpl ? "bg-surface" : "opacity-70",
+                "flex flex-col items-center gap-1 rounded-2xl py-2 text-center",
+                i === todayIdx && "bg-primary/12",
               )}
             >
-              <p className="eyebrow !text-[0.62rem]">{d}</p>
-              <p className="font-display text-xl font-bold md:text-2xl">{tpl ? tpl.letter : "–"}</p>
+              <p className="text-[0.68rem] font-medium text-muted-foreground">{d}</p>
+              <p
+                className={cn(
+                  "flex size-8 items-center justify-center rounded-full font-display text-base font-bold md:size-9",
+                  tpl
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-foreground/8 text-muted-foreground",
+                )}
+              >
+                {tpl ? tpl.letter : "–"}
+              </p>
               <p className="sr-only">{tpl ? `Workout ${tpl.letter}` : "Rest day"}</p>
             </div>
           );
         })}
       </div>
 
-      <nav
-        className="mb-8 grid gap-px border-y border-line bg-line sm:grid-cols-4"
-        aria-label="Training areas"
-      >
-        <a
-          href="#personal-training"
-          className="flex min-h-14 items-center gap-2 bg-background px-4 font-semibold hover:bg-surface-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
-        >
-          <VIcon name="checklist" size={18} /> Personal
-        </a>
-        {(["workouts", "programmes"] as const).map((tab) => (
-          <button
-            key={tab}
-            type="button"
-            className="flex min-h-14 items-center gap-2 bg-background px-4 text-left font-semibold hover:bg-surface-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
-            onClick={() => {
-              setDiscoverTab(tab);
-              requestAnimationFrame(() => {
-                document.getElementById("discover-workouts")?.focus();
-              });
-            }}
-          >
-            <VIcon name={tab === "workouts" ? "training" : "calendar"} size={18} />
-            {tab === "workouts" ? "Discover workouts" : "Programmes"}
+      <nav aria-label="Training areas" className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        {quick.map((q) => (
+          <button key={q.key} type="button" onClick={q.onClick} className="min-w-0 text-left">
+            <Tile icon={<VIcon name={q.icon} size={20} />} label={q.label} hint={q.hint} />
           </button>
         ))}
-        <Link
-          to="/library"
-          className="flex min-h-14 items-center gap-2 bg-background px-4 font-semibold hover:bg-surface-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
-        >
-          <VIcon name="library" size={18} /> Exercise library
-        </Link>
       </nav>
 
-      <section id="personal-training" className="scroll-mt-24" aria-labelledby="personal-title">
-        <p className="eyebrow">Personal</p>
-        <h2 id="personal-title" className="mb-4 mt-1 font-display text-3xl font-semibold">
-          Your current workouts
-        </h2>
-
-        <div className="grid gap-3 lg:grid-cols-2 lg:gap-4">
+      <Section title="Your workouts" className="scroll-mt-24">
+        <div id="personal-training" className="grid gap-3 lg:grid-cols-2">
+          {templates.length === 0 && (
+            <div className="lg:col-span-2">
+              <EmptyState
+                title="No workouts yet"
+                body="Build a plan, or start with a blank workout."
+                action={
+                  <Button variant="primary" onClick={() => nav({ to: "/train/build" })}>
+                    Build me a plan
+                  </Button>
+                }
+              />
+            </div>
+          )}
           {templates.map((tpl) => {
             const isOpen = open === tpl.id;
-            const moves = tpl.exercises.map((e) => ({
-              name: e.name,
-              media: resolveCatalogueExercise(e, cat.exercises, cat.byId)?.media,
-            }));
             return (
               <Panel key={tpl.id} className="overflow-hidden !p-0">
-                <div className="flex gap-4 p-4 md:p-5">
-                  {moves.some((m) => m.media?.length) && (
-                    <div className="hidden w-36 shrink-0 sm:block">
-                      <WorkoutMedia
-                        title={tpl.title}
-                        exercises={moves}
-                        className="!aspect-square border border-line"
-                      />
-                    </div>
-                  )}
+                <div className="flex gap-3 p-4">
+                  <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-primary/15 font-display text-xl font-bold text-primary">
+                    {tpl.letter}
+                  </span>
                   <div className="min-w-0 flex-1">
-                    <p className="eyebrow">
-                      Workout {tpl.letter} ·{" "}
-                      {tpl.weekday != null ? WEEKDAY_SHORT[tpl.weekday] : "Unscheduled"}
-                      {tpl.time ? ` · ${to12h(tpl.time)}` : ""}
-                    </p>
-                    <h2 className="font-display text-2xl font-semibold leading-tight">
+                    <h3 className="text-lg font-semibold leading-tight [overflow-wrap:anywhere]">
                       {tpl.title}
-                    </h2>
-                    <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{tpl.focus}</p>
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      {tpl.weekday != null ? WEEKDAY_SHORT[tpl.weekday] : "Unscheduled"}
+                      {tpl.time ? ` · ${to12h(tpl.time)}` : ""} · {tpl.exercises.length} exercises
+                    </p>
+                    {tpl.focus && (
+                      <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{tpl.focus}</p>
+                    )}
                   </div>
                 </div>
-                <div className="flex flex-wrap items-center gap-2 border-t border-line px-4 py-3 md:px-5">
+                <div className="flex flex-wrap items-center gap-2 px-4 pb-4">
                   <Button
                     variant="primary"
                     size="sm"
+                    className="min-h-11"
                     disabled={!!active}
                     onClick={async () => {
                       await startSession(tpl, today);
@@ -187,13 +259,20 @@ function TrainPage() {
                     <VIcon name="training" size={16} />
                     Start now
                   </Button>
-                  <Button variant="ghost" size="sm" onClick={() => setEditing(tpl)}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="min-h-11 bg-foreground/6"
+                    onClick={() => setEditing(tpl)}
+                  >
                     Edit
                   </Button>
                   <Button
                     variant="ghost"
                     size="sm"
+                    className="ml-auto min-h-11"
                     aria-expanded={isOpen}
+                    aria-label={`${tpl.exercises.length} exercises`}
                     onClick={() => setOpen(isOpen ? null : tpl.id)}
                   >
                     {tpl.exercises.length} exercises
@@ -204,18 +283,18 @@ function TrainPage() {
                     />
                   </Button>
                   {active && (
-                    <span className="text-xs text-muted-foreground">
+                    <p className="w-full text-xs text-muted-foreground">
                       Finish the current session first.
-                    </span>
+                    </p>
                   )}
                 </div>
                 {isOpen && (
-                  <ul className="border-t border-line px-4 pb-3 md:px-5">
+                  <ul className="mx-2 mb-2 rounded-2xl bg-foreground/5 px-3 [&>li+li]:border-t [&>li+li]:border-line/70">
                     {tpl.exercises.map((e) => {
                       const ce = resolveCatalogueExercise(e, cat.exercises, cat.byId);
                       return (
-                        <Row as="li" key={e.id} className="items-start py-3">
-                          <div className="w-24 shrink-0">
+                        <li key={e.id} className="flex items-start gap-3 py-3">
+                          <div className="w-20 shrink-0 overflow-hidden rounded-xl">
                             <ExerciseVisual
                               media={ce?.media}
                               name={e.name}
@@ -240,14 +319,14 @@ function TrainPage() {
                             )}
                             {e.cue && <p className="mt-1 text-sm">{e.cue}</p>}
                           </div>
-                        </Row>
+                        </li>
                       );
                     })}
                     {tpl.cardio && (
-                      <p className="py-3 text-sm text-muted-foreground">
+                      <li className="py-3 text-sm text-muted-foreground">
                         Optional cardio: {tpl.cardio.machine}, {tpl.cardio.text}. Cardio is separate
                         and doesn't count as a lifting session.
-                      </p>
+                      </li>
                     )}
                   </ul>
                 )}
@@ -255,19 +334,15 @@ function TrainPage() {
             );
           })}
         </div>
-      </section>
+      </Section>
 
       {livePlans.length > 0 && (
-        <section className="mt-10" aria-label="Generated plans">
-          <h2 className="eyebrow mb-2">Generated plans</h2>
-          <ul className="grid gap-2">
+        <Section title="Generated plans">
+          <Group as="ul">
             {livePlans.map((p) => (
-              <li
-                key={p.id}
-                className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-line bg-surface p-4"
-              >
+              <li key={p.id} className="flex min-h-16 items-center justify-between gap-3 px-4 py-3">
                 <div className="min-w-0">
-                  <p className="font-display text-lg font-bold">
+                  <p className="font-semibold capitalize [overflow-wrap:anywhere]">
                     {p.programmeId.replace(/-/g, " ")}
                   </p>
                   <p className="text-sm text-muted-foreground">
@@ -278,47 +353,51 @@ function TrainPage() {
                 <Link
                   to="/train/build"
                   search={{ from: p.id }}
-                  className="inline-flex min-h-11 items-center rounded-md border border-input px-5 text-sm font-semibold hover:bg-surface-2"
+                  className="inline-flex min-h-11 shrink-0 items-center rounded-full bg-foreground/8 px-5 text-sm font-semibold active:scale-95"
                 >
                   Regenerate
                 </Link>
               </li>
             ))}
-          </ul>
-        </section>
+          </Group>
+        </Section>
       )}
 
       {archived.length > 0 && (
-        <section className="mt-10" aria-label="Archived workouts">
-          <button
-            className="eyebrow inline-flex min-h-11 items-center gap-2"
-            aria-expanded={showArchived}
-            onClick={() => setShowArchived((v) => !v)}
-          >
-            Archived workouts ({archived.length})
-            <VIcon
-              name="collapse"
-              size={16}
-              className={cn("transition", showArchived && "rotate-180")}
-            />
-          </button>
+        <Section
+          title="Archived"
+          action={
+            <button
+              className="inline-flex min-h-11 items-center gap-1.5 rounded-full px-3 font-medium text-muted-foreground"
+              aria-expanded={showArchived}
+              aria-label={`Archived workouts (${archived.length})`}
+              onClick={() => setShowArchived((v) => !v)}
+            >
+              {archived.length}
+              <VIcon
+                name="collapse"
+                size={16}
+                className={cn("transition", showArchived && "rotate-180")}
+              />
+            </button>
+          }
+        >
           {showArchived && (
-            <ul className="mt-1 grid gap-2">
+            <Group as="ul">
               {archived.map((a) => (
                 <li
                   key={a.id}
-                  className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-line p-4"
+                  className="flex min-h-16 items-center justify-between gap-3 px-4 py-3"
                 >
                   <div className="min-w-0">
-                    <p className="font-display text-lg font-bold [overflow-wrap:anywhere]">
-                      {a.title}
-                    </p>
+                    <p className="font-semibold [overflow-wrap:anywhere]">{a.title}</p>
                     <p className="text-sm text-muted-foreground">
                       {a.exercises.length} exercises · archived {a.archivedAt!.slice(0, 10)}
                     </p>
                   </div>
                   <Button
                     size="sm"
+                    className="min-h-11 shrink-0"
                     busy={restoring === a.id}
                     onClick={async () => {
                       setRestoring(a.id);
@@ -340,34 +419,41 @@ function TrainPage() {
                   </Button>
                 </li>
               ))}
-            </ul>
+            </Group>
           )}
-        </section>
+        </Section>
       )}
 
       <WorkoutLibrary activeTab={discoverTab} onTabChange={setDiscoverTab} />
 
-      <section className="mt-10" aria-label="Session history">
-        <h2 className="eyebrow mb-2">Recent sessions</h2>
+      <Section title="Recent sessions" className="mt-6">
         {history.length === 0 ? (
           <EmptyState
-            title="No sessions recorded yet"
+            title="No sessions yet"
             body={
               legacy.items.length
-                ? `Your ${legacy.items.length} days from the original app are kept in Progress. Sessions recorded here will list sets and reps.`
+                ? `Your ${legacy.items.length} days from the original app are kept in Progress.`
                 : "Start a workout and it will appear here."
             }
           />
         ) : (
-          <ul>
+          <Group as="ul">
             {history.map((h) => {
               const sum = sessionSummary(h);
               return (
-                <Row as="li" key={h.id} className="justify-between">
-                  <div className="min-w-0">
-                    <p className="font-medium">
-                      Workout {h.templateLetter}: {h.templateName}
-                    </p>
+                <li key={h.id} className="flex min-h-16 items-center gap-3 px-4 py-3">
+                  <span
+                    className={cn(
+                      "flex size-10 shrink-0 items-center justify-center rounded-full font-display font-bold",
+                      h.status === "completed"
+                        ? "bg-primary/15 text-primary"
+                        : "bg-foreground/8 text-muted-foreground",
+                    )}
+                  >
+                    {h.templateLetter}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-semibold">{h.templateName}</p>
                     <p className="text-sm text-muted-foreground tnum">
                       {formatDateLong(h.date)} · {sum.completed}/{sum.planned} sets ·{" "}
                       {sum.volume.toLocaleString("en-GB")} kg
@@ -380,12 +466,12 @@ function TrainPage() {
                   ) : (
                     <Chip tone="warn">Partial</Chip>
                   )}
-                </Row>
+                </li>
               );
             })}
-          </ul>
+          </Group>
         )}
-      </section>
+      </Section>
       <TemplateEditor
         template={editing}
         count={t.items.length}

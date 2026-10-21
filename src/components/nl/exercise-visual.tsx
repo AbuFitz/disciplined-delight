@@ -19,8 +19,8 @@ export function MediaBadge({ d, className }: { d: MediaDescription; className?: 
     <span
       title={d.note}
       className={cn(
-        "inline-flex max-w-[calc(100%-1rem)] items-center gap-1.5 border border-line bg-background/80 px-2 py-1 text-[0.68rem] leading-tight font-semibold uppercase tracking-[0.08em] backdrop-blur",
-        d.mode === "motion" && "border-primary/60 text-primary",
+        "inline-flex max-w-[calc(100%-1rem)] items-center gap-1.5 rounded-full bg-background/85 px-2.5 py-1 text-[0.68rem] leading-tight font-semibold uppercase tracking-[0.08em] backdrop-blur",
+        d.mode === "motion" && "text-primary",
         className,
       )}
     >
@@ -176,13 +176,19 @@ export function ExerciseVisual({
         loading="lazy"
         decoding="async"
         onError={() => setFailed(true)}
-        className={cn("aspect-[4/3] w-full border border-line bg-white object-contain", className)}
+        className={cn(
+          "aspect-[4/3] w-full rounded-2xl border border-line bg-white object-contain",
+          className,
+        )}
       />
     ) : (
       <ExerciseArt
         name={name}
         pattern={pattern}
-        className={cn("aspect-[4/3] w-full border border-line", className)}
+        className={cn(
+          "aspect-[4/3] w-full overflow-hidden rounded-2xl border border-line",
+          className,
+        )}
       />
     );
   }
@@ -217,7 +223,7 @@ export function ExerciseVisual({
   const current = frames[Math.min(step, frames.length - 1)]!;
   return (
     <div className={cn("grid gap-2", className)}>
-      <figure className="relative aspect-[4/3] w-full overflow-hidden border border-line bg-white">
+      <figure className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl bg-white">
         <StillImage
           item={current.item}
           alt={`${name}, ${current.label.toLowerCase()}`}
@@ -226,7 +232,7 @@ export function ExerciseVisual({
         />
         <MediaBadge d={d} className="absolute left-2 top-2" />
         {frames.length > 1 && (
-          <figcaption className="absolute bottom-2 left-2 border border-line bg-background/85 px-2 py-1 text-xs font-semibold backdrop-blur">
+          <figcaption className="absolute bottom-2 left-2 rounded-full bg-background/85 px-3 py-1 text-xs font-semibold backdrop-blur">
             {current.label}
           </figcaption>
         )}
@@ -236,7 +242,7 @@ export function ExerciseVisual({
           <div
             role="group"
             aria-label="Illustrated steps"
-            className="inline-flex border border-line"
+            className="inline-flex overflow-hidden rounded-full bg-foreground/8"
           >
             {frames.map((f, i) => (
               <button
@@ -245,7 +251,7 @@ export function ExerciseVisual({
                 aria-pressed={i === step}
                 onClick={() => setStep(i)}
                 className={cn(
-                  "min-h-11 px-4 text-sm font-semibold",
+                  "min-h-11 rounded-full px-4 text-sm font-semibold",
                   i === step ? "bg-foreground text-background" : "hover:bg-surface-2",
                 )}
               >
@@ -259,7 +265,7 @@ export function ExerciseVisual({
               disabled={reduced || prefs.dataSaver}
               aria-pressed={prefs.autoFlip}
               onClick={() => setMediaPrefs({ autoFlip: !prefs.autoFlip })}
-              className="inline-flex min-h-11 items-center gap-2 border border-line px-3 text-sm font-semibold disabled:opacity-50"
+              className="inline-flex min-h-11 items-center gap-2 rounded-full bg-foreground/8 px-4 text-sm font-semibold disabled:opacity-50"
               title={
                 reduced
                   ? "Reduced motion is on, so steps change only when you tap them."
@@ -313,7 +319,7 @@ export function WorkoutMedia({
   return (
     <div
       className={cn(
-        "relative aspect-[16/10] w-full overflow-hidden border-b border-line bg-white",
+        "relative aspect-[16/10] w-full overflow-hidden rounded-2xl bg-white",
         className,
       )}
     >
@@ -335,7 +341,7 @@ export function WorkoutMedia({
           ))}
         </div>
       )}
-      <span className="absolute bottom-2 left-2 inline-flex max-w-[calc(100%-1rem)] flex-wrap items-center gap-x-1.5 border border-line bg-background/85 px-2 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.08em] backdrop-blur">
+      <span className="absolute bottom-2 left-2 inline-flex max-w-[calc(100%-1rem)] flex-wrap items-center gap-x-1.5 rounded-full bg-background/85 px-2.5 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.08em] backdrop-blur">
         {m.badge}
         {m.steps > 0 && <span className="text-muted-foreground">· {m.steps} with steps</span>}
       </span>

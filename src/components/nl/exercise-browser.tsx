@@ -147,25 +147,26 @@ export function ExerciseBrowser() {
     );
 
   return (
-    <section aria-label="Every exercise" className="grid gap-5">
-      <div className="grid gap-3 border-y border-line py-4">
+    <section aria-label="Every exercise" className="grid gap-4">
+      <div className="grid gap-3">
         <label className="relative block">
           <span className="sr-only">Search exercises</span>
           <VIcon
             name="search"
-            className="pointer-events-none absolute left-3 top-3 text-muted-foreground"
+            className="pointer-events-none absolute left-4 top-3.5 text-muted-foreground"
           />
           <TextInput
             type="search"
             value={f.q}
             onChange={(e) => set({ q: e.target.value })}
             placeholder="Search a movement, muscle or kit"
-            className="pl-10"
+            className="rounded-full border-transparent bg-surface/80 pl-11"
           />
         </label>
         <div className="flex flex-wrap items-center gap-2">
           <Button
             size="sm"
+            className="min-h-11 border-transparent bg-surface/80"
             aria-expanded={showFilters}
             aria-controls="library-filters"
             onClick={() => setShowFilters((v) => !v)}
@@ -175,6 +176,7 @@ export function ExerciseBrowser() {
           <Button
             size="sm"
             variant={f.saved ? "primary" : "ghost"}
+            className={cn("min-h-11", !f.saved && "bg-surface/80")}
             aria-pressed={f.saved}
             onClick={() => set({ saved: !f.saved })}
           >
@@ -185,14 +187,19 @@ export function ExerciseBrowser() {
               Clear filters
             </Button>
           )}
-          <Button size="sm" variant="ghost" className="ml-auto" onClick={() => setAdding(true)}>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="ml-auto min-h-11"
+            onClick={() => setAdding(true)}
+          >
             <VIcon name="add" size={16} /> Add your own
           </Button>
         </div>
         {showFilters && (
           <div
             id="library-filters"
-            className="grid gap-3 border-t border-line pt-3 sm:grid-cols-2 lg:grid-cols-3"
+            className="grid gap-3 rounded-3xl bg-surface/80 p-4 sm:grid-cols-2 lg:grid-cols-3"
           >
             <FilterSelect
               label="Movement"
@@ -249,8 +256,8 @@ export function ExerciseBrowser() {
                         set({ access: on ? f.access.filter((x) => x !== a) : [...f.access, a] })
                       }
                       className={cn(
-                        "min-h-11 border px-3 text-sm font-semibold",
-                        on ? "border-primary bg-primary/10 text-primary" : "border-line",
+                        "min-h-11 rounded-full px-4 text-sm font-semibold",
+                        on ? "bg-primary text-primary-foreground" : "bg-foreground/8",
                       )}
                     >
                       {ACCESS_LABEL[a]}
@@ -272,7 +279,7 @@ export function ExerciseBrowser() {
         )}
       </div>
 
-      <p className="text-sm text-muted-foreground" aria-live="polite">
+      <p className="px-1 text-sm text-muted-foreground" aria-live="polite">
         {results.length === 0
           ? "No exercises"
           : `${safePage * PAGE_SIZE + 1}–${safePage * PAGE_SIZE + slice.length} of ${results.length.toLocaleString("en-GB")} exercises`}
@@ -285,7 +292,7 @@ export function ExerciseBrowser() {
           action={<Button onClick={() => setF(EMPTY)}>Clear everything</Button>}
         />
       ) : (
-        <ul className="grid grid-cols-2 gap-x-4 gap-y-7 md:grid-cols-3 xl:grid-cols-4">
+        <ul className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">
           {slice.map((e) => (
             <li key={e.id}>
               <ExerciseTile
@@ -300,10 +307,7 @@ export function ExerciseBrowser() {
       )}
 
       {pages > 1 && (
-        <nav
-          aria-label="Pages"
-          className="flex flex-wrap items-center justify-between gap-3 border-t border-line pt-4"
-        >
+        <nav aria-label="Pages" className="flex flex-wrap items-center justify-between gap-3 pt-2">
           <Button disabled={safePage === 0} onClick={() => setPage(safePage - 1)}>
             <VIcon name="previous" size={16} /> Previous
           </Button>
@@ -367,12 +371,12 @@ function ExerciseTile({
   const cover = coverFrame(d);
   const [broken, setBroken] = useState(false);
   return (
-    <div className="grid content-start gap-2">
+    <div className="grid content-start gap-1 rounded-3xl bg-surface/80 p-2">
       <button
         type="button"
         onClick={onOpen}
         aria-label={`Open ${e.name}`}
-        className="relative block aspect-[4/3] overflow-hidden border border-line bg-white text-left outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="relative block aspect-[4/3] overflow-hidden rounded-2xl bg-white text-left outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         {cover && !broken ? (
           <img
@@ -388,9 +392,9 @@ function ExerciseTile({
         )}
         <MediaBadge d={d} className="absolute bottom-1.5 left-1.5 !px-1.5 !py-0.5 !text-[0.6rem]" />
       </button>
-      <div className="flex items-start justify-between gap-1">
-        <div className="min-w-0">
-          <h3 className="font-display text-base font-semibold leading-tight [overflow-wrap:anywhere]">
+      <div className="flex items-start justify-between gap-1 pl-2">
+        <div className="min-w-0 pt-1">
+          <h3 className="text-[0.95rem] font-semibold leading-tight [overflow-wrap:anywhere]">
             {e.name}
           </h3>
           <p className="text-xs text-muted-foreground">
@@ -402,7 +406,7 @@ function ExerciseTile({
           aria-label={`${saved ? "Remove" : "Save"} ${e.name}`}
           aria-pressed={saved}
           onClick={onSave}
-          className="-mr-2 -mt-1 grid min-h-11 min-w-11 shrink-0 place-items-center"
+          className="grid min-h-11 min-w-11 shrink-0 place-items-center rounded-full active:scale-90"
         >
           <VIcon
             name="favourite"
@@ -481,7 +485,7 @@ function ExerciseDetail({
               </Chip>
             ))}
           </div>
-          <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 [&_dd]:[overflow-wrap:anywhere] gap-y-1 border-y border-line py-3 text-sm">
+          <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 [&_dd]:[overflow-wrap:anywhere] gap-y-1 rounded-2xl bg-foreground/6 px-4 py-3 text-sm">
             <dt className="text-muted-foreground">Difficulty</dt>
             <dd>
               {diff ? DIFFICULTY_LABEL[diff.level] : ""}{" "}
@@ -560,7 +564,11 @@ function AddToWorkout({
   if (!open) return null;
   const value = choice || templates[0]?.id || "new";
   return (
-    <div role="region" aria-label="Add to workout" className="grid gap-3 border border-primary p-4">
+    <div
+      role="region"
+      aria-label="Add to workout"
+      className="grid gap-3 rounded-2xl bg-primary/10 p-4"
+    >
       <p className="font-semibold">Add {exercise.name} to…</p>
       <Select aria-label="Workout" value={value} onChange={(ev) => setChoice(ev.target.value)}>
         {templates.map((t) => (

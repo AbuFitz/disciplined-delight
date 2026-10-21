@@ -2,7 +2,18 @@ import { useNavigate } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Button, Chip, Field, Panel, Select, Sheet, TextInput } from "./ui";
+import {
+  Button,
+  Chip,
+  EmptyState,
+  Field,
+  Group,
+  Panel,
+  Section,
+  Select,
+  Sheet,
+  TextInput,
+} from "./ui";
 import { VIcon } from "./icon";
 import { WorkoutMedia } from "./exercise-visual";
 import { FormGuideSheet, MovementCarousel } from "./workout-detail";
@@ -162,25 +173,18 @@ export function WorkoutLibrary({
       tabIndex={-1}
       className={cn(
         "scroll-mt-24 outline-none focus-visible:ring-2 focus-visible:ring-ring",
-        !embedded && "mt-10 border-t border-line pt-7",
+        !embedded && "mt-2",
       )}
       aria-labelledby={embedded ? undefined : "workout-library-title"}
       aria-label={embedded ? "Authored workouts and programmes" : undefined}
     >
       {!embedded && (
-        <div className="flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <p className="eyebrow">Authored library · v2026.10</p>
-            <h2 id="workout-library-title" className="mt-1 font-display text-3xl font-semibold">
-              Ready-to-run training
-            </h2>
-            <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-              Deliberate sessions and multi-week structures built from the licensed VAYVOR exercise
-              catalogue. Every target remains editable.
-            </p>
-          </div>
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-3 px-1">
+          <h2 id="workout-library-title" className="text-[1.05rem] font-semibold tracking-tight">
+            Discover
+          </h2>
           <div
-            className="flex flex-wrap border-b border-line"
+            className="inline-flex rounded-full bg-foreground/8 p-1"
             role="tablist"
             aria-label="Library type"
           >
@@ -190,7 +194,10 @@ export function WorkoutLibrary({
                 role="tab"
                 aria-selected={tab === value}
                 onClick={() => selectTab(value)}
-                className={`min-h-11 border-b-2 px-4 text-sm font-semibold capitalize ${tab === value ? "border-primary text-foreground" : "border-transparent text-muted-foreground"}`}
+                className={cn(
+                  "min-h-10 rounded-full px-4 text-sm font-semibold capitalize transition",
+                  tab === value ? "bg-primary text-primary-foreground" : "text-muted-foreground",
+                )}
               >
                 {value}
               </button>
@@ -201,19 +208,19 @@ export function WorkoutLibrary({
 
       {tab === "workouts" ? (
         <>
-          <div className="mt-5 border-y border-line py-3">
+          <div className="mb-3">
             <div className="flex items-center gap-2">
               <label className="relative min-w-0 flex-1">
                 <span className="sr-only">Search workouts</span>
                 <VIcon
                   name="search"
-                  className="pointer-events-none absolute left-3 top-3 text-muted-foreground"
+                  className="pointer-events-none absolute left-4 top-3.5 text-muted-foreground"
                 />
                 <TextInput
                   value={query.text}
                   onChange={(event) => setQuery((old) => ({ ...old, text: event.target.value }))}
                   placeholder="Search goal, workout or muscle"
-                  className="pl-10"
+                  className="rounded-full border-transparent bg-surface/80 pl-11"
                 />
               </label>
               <button
@@ -221,7 +228,7 @@ export function WorkoutLibrary({
                 aria-expanded={showFilters}
                 aria-controls="workout-filters"
                 onClick={() => setShowFilters((v) => !v)}
-                className="min-h-11 shrink-0 border-b-2 border-transparent px-3 text-sm font-semibold underline underline-offset-4 aria-expanded:border-primary"
+                className="min-h-12 shrink-0 rounded-full bg-surface/80 px-5 text-sm font-semibold aria-expanded:bg-primary aria-expanded:text-primary-foreground"
               >
                 Filters{activeFilters ? ` (${activeFilters})` : ""}
               </button>
@@ -229,7 +236,7 @@ export function WorkoutLibrary({
             <div
               id="workout-filters"
               hidden={!showFilters}
-              className="mt-3 grid grid-cols-2 gap-3 md:grid-cols-4"
+              className="mt-3 grid grid-cols-1 gap-3 rounded-3xl bg-surface/80 p-3 min-[420px]:grid-cols-2 md:grid-cols-4"
             >
               <Filter
                 label="Goal"
@@ -276,10 +283,10 @@ export function WorkoutLibrary({
               />
             </div>
           </div>
-          <p className="mt-4 text-sm text-muted-foreground" aria-live="polite">
+          <p className="mb-3 px-1 text-sm text-muted-foreground" aria-live="polite">
             {results.length} of {AUTHORED_WORKOUTS.length} workouts
           </p>
-          <div className="mt-3 grid gap-x-6 gap-y-10 md:grid-cols-2 xl:grid-cols-3">
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
             {results.map((workout, index) => (
               <WorkoutCard
                 key={workout.id}
@@ -301,14 +308,35 @@ export function WorkoutLibrary({
             ))}
           </div>
           {results.length === 0 && (
-            <p className="mt-6 border border-dashed border-line p-6 text-center text-sm text-muted-foreground">
-              No authored workout matches those filters. Clear one, or browse every exercise in the
-              Exercises tab.
-            </p>
+            <EmptyState
+              title="No match"
+              body="Clear a filter, or browse every exercise in the Exercises tab."
+              action={
+                activeFilters || query.text ? (
+                  <Button
+                    size="sm"
+                    onClick={() =>
+                      setQuery({
+                        text: "",
+                        goal: "",
+                        level: "",
+                        duration: 0,
+                        equipment: "",
+                        location: "",
+                        muscle: "",
+                        constraint: "",
+                      })
+                    }
+                  >
+                    Clear filters
+                  </Button>
+                ) : undefined
+              }
+            />
           )}
         </>
       ) : (
-        <div className="mt-6 grid gap-x-6 gap-y-10 lg:grid-cols-2">
+        <div className="grid gap-3 lg:grid-cols-2">
           {AUTHORED_PROGRAMMES.map((item) => {
             const active = enrolled.items.some((entry) => entry.programmeId === item.id);
             const moves = item.workoutIds
@@ -318,28 +346,33 @@ export function WorkoutLibrary({
                 media: e.catalogueId ? catalogue.byId.get(e.catalogueId)?.media : undefined,
               }));
             return (
-              <article key={item.id} className="grid gap-4 border-t-2 border-foreground pt-3">
-                <WorkoutMedia title={item.title} exercises={moves} />
-                <div>
-                  <p className="num text-sm text-primary">
-                    {item.weeks} WEEKS · {item.daysPerWeek} DAYS / WEEK
+              <Panel as="article" key={item.id} className="grid gap-3 overflow-hidden !p-3">
+                <WorkoutMedia
+                  title={item.title}
+                  exercises={moves}
+                  className="!rounded-2xl !border-0"
+                />
+                <div className="px-2 pb-2">
+                  <p className="text-sm font-medium text-primary">
+                    {item.weeks} weeks · {item.daysPerWeek} days / week
                   </p>
-                  <h3 className="mt-1 font-display text-3xl font-semibold leading-tight">
+                  <h3 className="mt-0.5 text-xl font-semibold leading-tight [overflow-wrap:anywhere]">
                     {item.title}
                   </h3>
-                  <p className="mt-2 text-sm text-muted-foreground">{item.summary}</p>
-                  <div className="mt-4 flex flex-wrap items-center gap-2">
+                  <p className="mt-1 line-clamp-3 text-sm text-muted-foreground">{item.summary}</p>
+                  <div className="mt-3 flex flex-wrap items-center gap-2">
                     {active && <Chip tone="ok">In your plan</Chip>}
                     <Button
                       size="sm"
-                      variant={active ? "ghost" : "secondary"}
+                      className="min-h-11"
+                      variant={active ? "ghost" : "primary"}
                       onClick={() => setProgramme(item)}
                     >
                       {active ? "View structure" : "Review programme"}
                     </Button>
                   </div>
                 </div>
-              </article>
+              </Panel>
             );
           })}
         </div>
@@ -436,31 +469,36 @@ function WorkoutCard({
     [workout, byId],
   );
   return (
-    <article
+    <Panel
+      as="article"
       className={cn(
-        "grid content-start gap-4 border-t-2 border-foreground pt-3",
-        featured && "lg:col-span-2 lg:grid-cols-[1.1fr_1fr] lg:gap-8",
+        "grid content-start gap-3 overflow-hidden !p-3 md:!p-3",
+        featured && "lg:col-span-2 lg:grid-cols-[1.1fr_1fr] lg:gap-6",
       )}
     >
       <button
         type="button"
         onClick={onOpen}
         aria-label={`Open ${workout.title}`}
-        className="block text-left outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="block overflow-hidden rounded-2xl text-left outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
-        <WorkoutMedia title={workout.title} exercises={moves} />
+        <WorkoutMedia title={workout.title} exercises={moves} className="!border-0" />
       </button>
-      <div className="grid min-w-0 content-start gap-3">
+      <div className="grid min-w-0 content-start gap-2 px-2 pb-2">
         <div className="flex items-start justify-between gap-3">
-          <p className="num min-w-0 text-sm text-primary [overflow-wrap:anywhere]">
-            {workout.duration} MIN · {workout.location.toUpperCase()} ·{" "}
-            {workout.level.join("/").toUpperCase()}
-          </p>
+          <h3
+            className={cn(
+              "min-w-0 font-semibold leading-tight [overflow-wrap:anywhere]",
+              featured ? "text-2xl" : "text-xl",
+            )}
+          >
+            {workout.title}
+          </h3>
           <button
             aria-label={`${favourite ? "Remove" : "Add"} ${workout.title} favourite`}
             aria-pressed={favourite}
             onClick={onFavourite}
-            className="-mr-2 -mt-2 grid min-h-11 min-w-11 shrink-0 place-items-center"
+            className="-mr-2 -mt-1.5 grid min-h-11 min-w-11 shrink-0 place-items-center rounded-full active:scale-90"
           >
             <VIcon
               name="favourite"
@@ -468,26 +506,26 @@ function WorkoutCard({
             />
           </button>
         </div>
-        <h3
-          className={cn(
-            "font-display font-semibold leading-[0.98] tracking-[-0.03em] [overflow-wrap:anywhere]",
-            featured ? "text-4xl" : "text-3xl",
-          )}
-        >
-          {workout.title}
-        </h3>
-        <p className="text-sm text-muted-foreground">{workout.summary}</p>
-        <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 [&_dd]:[overflow-wrap:anywhere] border-y border-line py-2 text-sm">
-          <dt className="text-muted-foreground">Movements</dt>
-          <dd className="num">{workout.exercises.length}</dd>
-          <dt className="text-muted-foreground">Works</dt>
-          <dd>{workout.muscles.join(" / ")}</dd>
-          <dt className="text-muted-foreground">Kit</dt>
-          <dd>{workout.equipment.join(", ") || "None"}</dd>
-        </dl>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-1.5 text-xs font-medium">
+          <span className="rounded-full bg-primary/12 px-2.5 py-1 text-primary tnum">
+            {workout.duration} min
+          </span>
+          <span className="rounded-full bg-foreground/8 px-2.5 py-1 capitalize">
+            {workout.location}
+          </span>
+          <span className="rounded-full bg-foreground/8 px-2.5 py-1 capitalize">
+            {workout.level.join(" / ")}
+          </span>
+        </div>
+        <p className="line-clamp-2 text-sm text-muted-foreground">{workout.summary}</p>
+        <p className="text-xs text-muted-foreground [overflow-wrap:anywhere]">
+          {workout.exercises.length} movements · {workout.muscles.join(" / ")} ·{" "}
+          {workout.equipment.join(", ") || "No kit"}
+        </p>
+        <div className="mt-1 flex flex-wrap gap-2">
           <Button
             size="sm"
+            className="min-h-11"
             variant="primary"
             busy={pending === `start:${workout.id}`}
             busyLabel="Starting…"
@@ -497,12 +535,17 @@ function WorkoutCard({
             <VIcon name="play" size={16} />
             Start
           </Button>
-          <Button size="sm" variant="secondary" onClick={onOpen}>
+          <Button
+            size="sm"
+            className="min-h-11 bg-foreground/6 border-transparent"
+            variant="secondary"
+            onClick={onOpen}
+          >
             Preview movements
           </Button>
         </div>
       </div>
-    </article>
+    </Panel>
   );
 }
 
@@ -535,17 +578,17 @@ function WorkoutDetail({
     >
       {workout && (
         <div className="pb-4">
-          <div className="mb-5 grid grid-cols-3 border-y border-line py-3 text-center">
+          <div className="mb-5 grid grid-cols-3 rounded-2xl bg-foreground/6 py-3 text-center">
             <Metric value={`${workout.duration}`} label="minutes" />
             <Metric value={`${workout.exercises.length}`} label="movements" />
             <Metric value={workout.level.join(" / ")} label="level" />
           </div>
           <MovementCarousel workout={workout} byId={byId} onGuide={(i) => onGuide(workout, i)} />
-          <ol className="mt-6 border-t border-line">
+          <Group as="ul" className="mt-5 !bg-foreground/6">
             {workout.exercises.map((exercise, index) => (
               <li
                 key={exercise.id}
-                className="grid grid-cols-[2rem_1fr_auto] items-baseline gap-3 border-b border-line py-3"
+                className="grid grid-cols-[2rem_1fr_auto] items-baseline gap-3 px-4 py-3"
               >
                 <span className="num text-muted-foreground">
                   {String(index + 1).padStart(2, "0")}
@@ -558,13 +601,14 @@ function WorkoutDetail({
                 </span>
               </li>
             ))}
-          </ol>
-          <div className="mt-5 flex flex-wrap gap-2">
+          </Group>
+          <div className="mt-5 grid gap-2 sm:flex sm:flex-wrap">
             <Button
               busy={pending === `start:${workout.id}`}
               busyLabel="Starting…"
               disabled={!!pending}
               variant="primary"
+              size="lg"
               onClick={() => void onStart(workout)}
             >
               <VIcon name="play" size={16} />
@@ -595,8 +639,8 @@ function WorkoutDetail({
 function Metric({ value, label }: { value: string; label: string }) {
   return (
     <div>
-      <p className="font-display text-xl font-semibold">{value}</p>
-      <p className="eyebrow !text-[0.62rem]">{label}</p>
+      <p className="text-lg font-semibold capitalize leading-tight">{value}</p>
+      <p className="text-xs text-muted-foreground">{label}</p>
     </div>
   );
 }
@@ -662,21 +706,21 @@ function ProgrammeDetail({
     >
       {item && (
         <div className="grid gap-5 pb-4">
-          <div className="grid grid-cols-3 border-y border-line py-3 text-center">
+          <div className="grid grid-cols-3 rounded-2xl bg-foreground/6 py-3 text-center">
             <Metric value={`${item.weeks}`} label="weeks" />
             <Metric value={`${item.daysPerWeek}`} label="days / week" />
             <Metric value={item.goal} label="goal" />
           </div>
           <div>
-            <p className="eyebrow">Weekly sequence</p>
-            <ol className="mt-2">
+            <h3 className="mb-2 px-1 font-semibold">Weekly sequence</h3>
+            <Group as="ul" className="!bg-foreground/6">
               {item.workoutIds.map((id, index) => (
-                <li key={`${id}-${index}`} className="border-b border-line py-3">
+                <li key={`${id}-${index}`} className="px-4 py-3">
                   <span className="num mr-3 text-muted-foreground">D{index + 1}</span>
                   {AUTHORED_WORKOUTS.find((workout) => workout.id === id)?.title}
                 </li>
               ))}
-            </ol>
+            </Group>
           </div>
           <RuleText title="Progression" text={item.progression} />
           <RuleText title="Deload guardrail" text={item.deload} />
@@ -704,7 +748,7 @@ function ProgrammeDetail({
 }
 function RuleText({ title, text }: { title: string; text: string }) {
   return (
-    <div className="border-l-2 border-primary pl-4">
+    <div className="rounded-2xl bg-foreground/6 p-4">
       <p className="font-semibold">{title}</p>
       <p className="text-sm text-muted-foreground">{text}</p>
     </div>

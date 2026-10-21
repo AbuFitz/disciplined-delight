@@ -135,14 +135,12 @@ function Choice({
       aria-checked={selected}
       onClick={onClick}
       className={cn(
-        "min-h-20 rounded-[1.25rem] border p-4 text-left transition active:scale-[0.99]",
-        selected
-          ? "border-primary bg-primary/10 ring-1 ring-primary"
-          : "border-line bg-surface hover:border-foreground/40",
+        "min-h-20 rounded-3xl p-4 text-left transition active:scale-[0.98]",
+        selected ? "bg-primary/12 ring-2 ring-primary" : "bg-surface/80",
       )}
     >
       <span className="flex items-center justify-between gap-3">
-        <span className="min-w-0 font-display text-xl font-bold leading-tight [overflow-wrap:anywhere]">
+        <span className="min-w-0 text-lg font-semibold leading-tight [overflow-wrap:anywhere]">
           {title}
         </span>
         {selected && <Check className="size-[20px] shrink-0 text-primary" aria-hidden />}
@@ -167,10 +165,8 @@ function Pill({
       aria-checked={on}
       onClick={onClick}
       className={cn(
-        "min-h-11 max-w-full rounded-full border px-4 text-sm font-semibold transition",
-        on
-          ? "border-primary bg-primary text-primary-foreground"
-          : "border-line text-foreground hover:border-foreground/40",
+        "min-h-11 max-w-full rounded-full px-4 text-sm font-semibold transition active:scale-95",
+        on ? "bg-primary text-primary-foreground" : "bg-surface/80 text-foreground",
       )}
     >
       {on && <Check className="mr-1 inline size-[1em]" aria-hidden />}
@@ -367,8 +363,8 @@ function Builder() {
   return (
     <>
       <PageHeader
-        eyebrow={prior ? "Regenerate plan" : `Plan builder · step ${step + 1} of ${STEPS.length}`}
         title={step === 5 ? (prior ? "A fresh take" : "Your plan") : "Build my plan"}
+        sub={prior ? "Regenerate plan" : `Step ${step + 1} of ${STEPS.length}: ${STEPS[step]}`}
       />
       {!prior && (
         <ol className="mb-6 flex gap-1.5" aria-label="Progress">
@@ -401,7 +397,7 @@ function Builder() {
 
       {step === 0 && (
         <section aria-label="Goal" className="grid gap-3 md:grid-cols-2" role="radiogroup">
-          <h2 className="eyebrow md:col-span-2">What are you training for?</h2>
+          <h2 className="px-1 text-lg font-semibold md:col-span-2">What are you training for?</h2>
           {GOALS.map((g) => (
             <Choice
               key={g.id}
@@ -415,7 +411,7 @@ function Builder() {
       )}
       {step === 1 && (
         <section aria-label="Level" className="grid gap-3" role="radiogroup">
-          <h2 className="eyebrow">Where are you at?</h2>
+          <h2 className="px-1 text-lg font-semibold">Where are you at?</h2>
           {LEVELS.map((g) => (
             <Choice
               key={g.id}
@@ -434,7 +430,7 @@ function Builder() {
       {step === 2 && (
         <section aria-label="Time" className="grid gap-6">
           <div>
-            <h2 className="eyebrow mb-2">Days a week</h2>
+            <h2 className="mb-2 px-1 text-[1.05rem] font-semibold">Days a week</h2>
             <div className="flex gap-2" role="radiogroup" aria-label="Days per week">
               {[2, 3, 4, 5].map((n) => (
                 <button
@@ -446,10 +442,8 @@ function Builder() {
                     setPicked([]);
                   }}
                   className={cn(
-                    "grid size-16 place-items-center rounded-[1.25rem] border font-display text-3xl font-extrabold",
-                    days === n
-                      ? "border-primary bg-primary/10 text-primary ring-1 ring-primary"
-                      : "border-line bg-surface",
+                    "grid size-16 place-items-center rounded-full font-display text-3xl font-bold transition active:scale-95",
+                    days === n ? "bg-primary text-primary-foreground" : "bg-surface/80",
                   )}
                 >
                   {n}
@@ -463,7 +457,7 @@ function Builder() {
             )}
           </div>
           <div>
-            <h2 className="eyebrow mb-2">Minutes per session</h2>
+            <h2 className="mb-2 px-1 text-[1.05rem] font-semibold">Minutes per session</h2>
             <div
               className="flex flex-wrap gap-2"
               role="radiogroup"
@@ -476,10 +470,8 @@ function Builder() {
                   aria-checked={minutes === n}
                   onClick={() => setMinutes(n)}
                   className={cn(
-                    "min-h-12 rounded-full border px-5 font-semibold",
-                    minutes === n
-                      ? "border-primary bg-primary text-primary-foreground"
-                      : "border-line",
+                    "min-h-12 rounded-full px-5 font-semibold transition active:scale-95",
+                    minutes === n ? "bg-primary text-primary-foreground" : "bg-surface/80",
                   )}
                 >
                   {n}
@@ -491,7 +483,7 @@ function Builder() {
             </p>
           </div>
           <div>
-            <h2 className="eyebrow mb-2">Pick your days (optional)</h2>
+            <h2 className="mb-2 px-1 text-[1.05rem] font-semibold">Pick your days (optional)</h2>
             <div className="flex flex-wrap gap-2">
               {WEEKDAY_SHORT.map((d, i) => {
                 const idx = (i + 1) % 7;
@@ -534,7 +526,7 @@ function Builder() {
             ))}
           </div>
           <div>
-            <h2 className="eyebrow mb-2">
+            <h2 className="mb-2 px-1 text-[1.05rem] font-semibold">
               What you can use (bodyweight and mat are always included)
             </h2>
             <div className="flex flex-wrap gap-2">
@@ -570,7 +562,7 @@ function Builder() {
       {step === 4 && (
         <section aria-label="Extras" className="grid gap-5">
           <div>
-            <h2 className="eyebrow mb-2">Bring up (up to 3)</h2>
+            <h2 className="mb-2 px-1 text-[1.05rem] font-semibold">Bring up (up to 3)</h2>
             <div className="flex flex-wrap gap-2">
               {PRIORITY.map((m) => (
                 <Pill
@@ -588,7 +580,7 @@ function Builder() {
             </div>
           </div>
           <div>
-            <h2 className="eyebrow mb-2">Leave out</h2>
+            <h2 className="mb-2 px-1 text-[1.05rem] font-semibold">Leave out</h2>
             <div className="flex flex-wrap gap-2">
               {AVOIDS.map((a) => (
                 <Pill
@@ -604,7 +596,7 @@ function Builder() {
             </div>
           </div>
           <Panel>
-            <h2 className="eyebrow mb-2">Before we build</h2>
+            <h2 className="mb-2 px-1 text-[1.05rem] font-semibold">Before we build</h2>
             <Switch checked={adult} onChange={setAdult} label="I'm 18 or over" />
             <Switch
               checked={clear}
@@ -645,7 +637,7 @@ function Builder() {
           {plan && assessment && (
             <>
               <Panel aria-label="Summary" className="tint-green">
-                <h2 className="display-title text-[clamp(1.9rem,8vw,3rem)]">
+                <h2 className="text-2xl font-semibold leading-tight tracking-tight">
                   {plan.programmeName}
                 </h2>
                 <ul className="mt-3 grid gap-1">
@@ -666,7 +658,7 @@ function Builder() {
 
               {assessment.blockers.length > 0 && (
                 <Panel aria-label="To fix before saving" className="border-warn/60">
-                  <h3 className="flex items-center gap-2 font-display text-2xl font-bold">
+                  <h3 className="flex items-center gap-2 text-xl font-semibold">
                     <AlertTriangle className="size-5 text-warn" aria-hidden />
                     To fix before saving
                   </h3>
@@ -700,7 +692,9 @@ function Builder() {
                       s.kind === "add_equipment" && s.equipment && !equipment.includes(s.equipment),
                   ).length > 0 && (
                     <div className="mt-4 border-t border-line pt-3">
-                      <p className="eyebrow mb-2">Kit that would open up more options</p>
+                      <p className="mb-2 text-sm font-semibold">
+                        Kit that would open up more options
+                      </p>
                       <div className="flex flex-wrap gap-2">
                         {plan.suggestions
                           .filter(
@@ -726,7 +720,7 @@ function Builder() {
 
               {diff && (
                 <Panel aria-label="What changes">
-                  <h3 className="font-display text-2xl font-bold">What changes</h3>
+                  <h3 className="text-xl font-semibold">What changes</h3>
                   {edited && (
                     <p className="mt-1 text-sm text-warn">
                       You've edited this plan's workouts since it was created. Choosing "Replace"
@@ -780,12 +774,10 @@ function Builder() {
               {plan.sessions.map((s, si) => (
                 <Panel key={s.title + si} aria-label={s.title}>
                   <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-                    <h3 className="font-display text-2xl font-extrabold uppercase tracking-tight">
-                      {s.title}
-                    </h3>
+                    <h3 className="text-xl font-semibold leading-tight">{s.title}</h3>
                     <span
                       className={cn(
-                        "eyebrow shrink-0",
+                        "shrink-0 text-sm text-muted-foreground",
                         s.estimatedMinutes > minutes && "!text-destructive",
                       )}
                     >
@@ -828,7 +820,7 @@ function Builder() {
                           className="flex flex-wrap items-center gap-x-3 gap-y-2 border-t border-line py-3 first:border-t-0"
                         >
                           <div className="min-w-[min(10rem,100%)] flex-1">
-                            <p className="font-display text-lg font-bold leading-tight [overflow-wrap:anywhere]">
+                            <p className="font-semibold leading-tight [overflow-wrap:anywhere]">
                               {x.name}
                             </p>
                             <p className="tnum text-sm text-muted-foreground">
@@ -891,7 +883,7 @@ function Builder() {
 
               {assessment.warnings.length > 0 && (
                 <Panel aria-label="Worth knowing">
-                  <h3 className="eyebrow mb-2">Worth knowing</h3>
+                  <h3 className="mb-2 font-semibold">Worth knowing</h3>
                   <ul className="grid gap-1 text-sm text-muted-foreground">
                     {assessment.warnings.map((i, k) => (
                       <li key={k}>
@@ -903,7 +895,7 @@ function Builder() {
                 </Panel>
               )}
               <Panel aria-label="Weekly volume">
-                <h3 className="eyebrow mb-2">Hard sets per muscle per week (estimate)</h3>
+                <h3 className="mb-2 font-semibold">Hard sets per muscle per week (estimate)</h3>
                 <p className="tnum text-sm text-muted-foreground">
                   {[...weeklyCredits(plan.sessions)]
                     .filter(([, n]) => n >= 1)
@@ -916,7 +908,7 @@ function Builder() {
                 </p>
               </Panel>
               <Panel>
-                <h3 className="eyebrow mb-2">Starting weights</h3>
+                <h3 className="mb-2 font-semibold">Starting weights</h3>
                 <p className="text-sm">
                   None are set. Find a weight where the last reps are hard but clean, then log it;
                   VAYVOR suggests when to go up.
@@ -982,7 +974,7 @@ function Builder() {
           ) : (
             <Link
               to="/train"
-              className="inline-flex min-h-11 items-center text-sm font-semibold underline underline-offset-4"
+              className="inline-flex min-h-12 items-center rounded-full px-5 text-sm font-semibold text-muted-foreground active:scale-95"
             >
               Cancel
             </Link>
@@ -1100,9 +1092,7 @@ function PickSheet({
             {opts.map(({ e, why }) => (
               <li key={e.id} className="border-t border-line first:border-t-0">
                 <button className="min-h-14 w-full py-3 text-left" onClick={() => onPick(e)}>
-                  <span className="block font-display text-lg font-bold [overflow-wrap:anywhere]">
-                    {e.name}
-                  </span>
+                  <span className="block font-semibold [overflow-wrap:anywhere]">{e.name}</span>
                   <span className="block text-sm text-muted-foreground">{why}</span>
                 </button>
               </li>

@@ -7,14 +7,17 @@ import {
   ConfirmDialog,
   EmptyState,
   Field,
+  Group,
   NumberField,
   Row,
+  Section,
   Select,
   Sheet,
   Switch,
   TextArea,
   TextInput,
 } from "./ui";
+import { VIcon } from "./icon";
 import { newId, put } from "@/data/db";
 import { useCollection, useToday } from "@/data/hooks";
 import { COL, type DayTemplate } from "@/data/types";
@@ -751,59 +754,72 @@ export function MealsTab({
   const [ing, setIng] = useState<Ingredient | null>(null);
   const active = recipes.filter((r) => !r.archivedAt);
   return (
-    <div className="grid gap-10">
-      <section aria-label="Day templates">
-        <div className="mb-2 flex items-center justify-between">
-          <h2 className="eyebrow">Day templates</h2>
+    <div>
+      <Section
+        title="Day templates"
+        action={
           <Button
             size="sm"
-            variant="secondary"
+            variant="primary"
             onClick={() => setDay({ id: newId(), name: "", meals: [] })}
           >
             <Plus className="size-4" />
             New day
           </Button>
-        </div>
-        <ul>
-          {dayTemplates.map((d) => (
-            <Row as="li" key={d.id} onClick={() => setDay(d)} className="justify-between">
-              <div className="min-w-0">
-                <p className="font-medium">{d.name}</p>
-                <p className="text-sm text-muted-foreground">
-                  {d.subtitle ?? `${d.meals.length} meals`}
-                  {d.legacyTotals ? ` · original estimate ${d.legacyTotals.kcal} kcal` : ""}
-                </p>
-              </div>
-              <span aria-hidden className="text-muted-foreground">
-                Edit
-              </span>
-            </Row>
-          ))}
-        </ul>
-      </section>
+        }
+      >
+        {dayTemplates.length === 0 ? (
+          <EmptyState
+            title="No day templates"
+            body="A day template is a set of meals you can drop onto any day."
+          />
+        ) : (
+          <Group as="ul" className="mb-0">
+            {dayTemplates.map((d) => (
+              <Row as="li" key={d.id} onClick={() => setDay(d)} className="justify-between px-4">
+                <div className="min-w-0">
+                  <p className="font-semibold">{d.name}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {d.subtitle ?? `${d.meals.length} meals`}
+                    {d.legacyTotals ? ` · original estimate ${d.legacyTotals.kcal} kcal` : ""}
+                  </p>
+                </div>
+                <VIcon name="next" size={20} className="shrink-0 text-muted-foreground" />
+                <span className="sr-only">Edit</span>
+              </Row>
+            ))}
+          </Group>
+        )}
+      </Section>
 
-      <section aria-label="Meals">
-        <div className="mb-2 flex items-center justify-between">
-          <h2 className="eyebrow">Meals</h2>
-          <Button size="sm" variant="secondary" onClick={() => setRecipe(blankRecipe())}>
+      <Section
+        title="Meals"
+        action={
+          <Button size="sm" variant="primary" onClick={() => setRecipe(blankRecipe())}>
             <Plus className="size-4" />
             New meal
           </Button>
-        </div>
+        }
+      >
         {active.length === 0 ? (
           <EmptyState
             title="No meals yet"
             body="Create a meal with ingredients to get nutrition, cost and a shopping list."
           />
         ) : (
-          <ul>
+          <Group as="ul">
             {active.map((r) => {
               const n = recipeNutrition(r, map);
               const c = recipeCost(r, map);
               return (
-                <Row as="li" key={r.id} onClick={() => setRecipe(r)} className="justify-between">
+                <Row
+                  as="li"
+                  key={r.id}
+                  onClick={() => setRecipe(r)}
+                  className="justify-between px-4"
+                >
                   <div className="min-w-0">
-                    <p className="truncate font-medium">{r.name}</p>
+                    <p className="truncate font-semibold">{r.name}</p>
                     <p className="text-sm text-muted-foreground tnum">
                       {Math.round(n.perServing.kcal)} kcal · {Math.round(n.perServing.protein)} g
                       protein
@@ -817,36 +833,36 @@ export function MealsTab({
                         : ""}
                     </p>
                   </div>
-                  <span aria-hidden className="text-muted-foreground">
-                    Edit
-                  </span>
+                  <VIcon name="next" size={20} className="shrink-0 text-muted-foreground" />
+                  <span className="sr-only">Edit</span>
                 </Row>
               );
             })}
-          </ul>
+          </Group>
         )}
-      </section>
+      </Section>
 
-      <section aria-label="Ingredient library">
-        <div className="mb-2 flex items-center justify-between">
-          <h2 className="eyebrow">Ingredients and prices</h2>
+      <Section
+        title="Ingredients and prices"
+        action={
           <Button
             size="sm"
-            variant="secondary"
+            variant="primary"
             onClick={() => setIng({ id: newId(), name: "", perAmount: 100, perUnit: "g" })}
           >
             <Plus className="size-4" />
             New ingredient
           </Button>
-        </div>
-        <ul>
+        }
+      >
+        <Group as="ul">
           {ingredients
             .filter((i) => !i.archivedAt)
             .sort((a, b) => a.name.localeCompare(b.name))
             .map((i) => (
-              <Row as="li" key={i.id} onClick={() => setIng(i)} className="justify-between">
+              <Row as="li" key={i.id} onClick={() => setIng(i)} className="justify-between px-4">
                 <div className="min-w-0">
-                  <p className="truncate font-medium">{i.name}</p>
+                  <p className="truncate font-semibold">{i.name}</p>
                   <p className="text-sm text-muted-foreground tnum">
                     {i.macros
                       ? `${i.macros.kcal} kcal per ${i.perAmount} ${i.perUnit}`
@@ -857,13 +873,12 @@ export function MealsTab({
                       : "No price"}
                   </p>
                 </div>
-                <span aria-hidden className="text-muted-foreground">
-                  Edit
-                </span>
+                <VIcon name="next" size={20} className="shrink-0 text-muted-foreground" />
+                <span className="sr-only">Edit</span>
               </Row>
             ))}
-        </ul>
-      </section>
+        </Group>
+      </Section>
 
       <RecipeEditor
         recipe={recipe}
