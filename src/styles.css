@@ -448,7 +448,9 @@
     font-family: var(--font-display);
     font-weight: 700;
     letter-spacing: -0.03em;
-    line-height: 1.02;
+    line-height: 1.04;
+    padding-right: 0.06em;
+    padding-bottom: 0.06em;
   }
   .num {
     font-family: var(--font-display);

@@ -1,5 +1,5 @@
 import "./buddy.css";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useLocation } from "@tanstack/react-router";
 import { STATE_META } from "@/domain/buddy/state";
 import { BuddyCharacter } from "./BuddyCharacter";
@@ -59,6 +59,8 @@ export function BuddyFloat() {
   const [scrolling, setScrolling] = useState(false);
   const [drag, setDrag] = useState<{ x: number; y: number } | null>(null);
   const [bubble, setBubble] = useState<string | null>(null);
+  const [bubbleOk, setBubbleOk] = useState(false);
+  const bubbleRef = useRef<HTMLButtonElement | null>(null);
   const el = useRef<HTMLDivElement>(null);
   const moved = useRef(false);
   const size = typeof window !== "undefined" && innerWidth >= 1024 ? 92 : 72;
@@ -145,17 +147,7 @@ export function BuddyFloat() {
     setBubble(null);
     if (!b || !speaks || b.open || b.asleep || tucked) return;
     const t0 = setTimeout(() => {
-      const s = size;
-      const bottom = bottomPx(anchor.lift);
-      const w = Math.min(230, innerWidth - s - 36);
-      const left = anchor.side === "left" ? 12 + s + 6 : innerWidth - s - rightOffset() - 6 - w;
-      const rect = {
-        left,
-        top: innerHeight - bottom - 60,
-        right: left + w,
-        bottom: innerHeight - bottom - 6,
-      };
-      if (!blockedAt(rect)) setBubble(b.line);
+      setBubble(b.line);
     }, 700);
     const t1 = setTimeout(() => setBubble(null), 7500);
     return () => {
@@ -164,6 +156,16 @@ export function BuddyFloat() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key, speaks, b?.open, b?.asleep, tucked]);
+
+  // Measure the real bubble before showing it: it appears only where it covers no control or content.
+  useLayoutEffect(() => {
+    setBubbleOk(false);
+    const el = bubbleRef.current;
+    if (!bubble || !el) return;
+    const r = el.getBoundingClientRect();
+    if (blockedAt(r)) setBubble(null);
+    else setBubbleOk(true);
+  }, [bubble]);
 
   if (!b || b.mode === "none") return null;
   const { config } = b;
@@ -270,7 +272,9 @@ export function BuddyFloat() {
       {bubble && !drag && (
         <button
           type="button"
+          ref={bubbleRef}
           className="buddy-speech"
+          style={bubbleOk ? undefined : { visibility: "hidden" }}
           data-side={anchor.side}
           onClick={() => {
             setBubble(null);

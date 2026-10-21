@@ -202,7 +202,7 @@ function ShellFrame({ children }: { children: ReactNode }) {
         Skip to content
       </a>
       {/* Desktop sidebar */}
-      <aside className="sticky top-0 hidden h-dvh flex-col justify-between overflow-y-auto border-r border-line px-4 py-6 lg:flex">
+      <aside className="sticky top-0 hidden h-dvh flex-col justify-between overflow-y-auto px-4 py-6 lg:flex">
         <div>
           <Link
             to="/"
@@ -218,10 +218,10 @@ function ShellFrame({ children }: { children: ReactNode }) {
                 to={t.to}
                 aria-current={isActive(t.to, t.match) ? "page" : undefined}
                 className={cn(
-                  "flex min-h-11 items-center gap-3 border-l-2 px-3 text-[0.95rem] font-medium transition",
+                  "flex min-h-11 items-center gap-3 rounded-2xl px-3 text-[0.95rem] font-medium transition",
                   isActive(t.to, t.match)
-                    ? "border-primary text-foreground"
-                    : "border-transparent text-muted-foreground hover:text-foreground",
+                    ? "bg-surface text-foreground"
+                    : "text-muted-foreground hover:bg-surface/50 hover:text-foreground",
                 )}
               >
                 <VIcon name={t.icon} active={isActive(t.to, t.match)} />
@@ -239,8 +239,8 @@ function ShellFrame({ children }: { children: ReactNode }) {
                 className={cn(
                   "flex min-h-11 items-center gap-3 rounded-2xl px-3 text-sm font-medium transition",
                   isActive(t.to, t.match)
-                    ? "text-foreground underline underline-offset-4"
-                    : "text-muted-foreground hover:text-foreground",
+                    ? "bg-surface text-foreground"
+                    : "text-muted-foreground hover:bg-surface/50 hover:text-foreground",
                 )}
               >
                 <VIcon name={t.icon} size={18} active={isActive(t.to, t.match)} />
@@ -271,7 +271,7 @@ function ShellFrame({ children }: { children: ReactNode }) {
 
       <div className="min-w-0">
         {/* Mobile header */}
-        <div className="spatial-glass sticky top-0 z-30 flex items-center justify-between border-b px-4 pb-1 pt-[calc(0.5rem+var(--safe-top))] lg:hidden">
+        <div className="sticky top-0 z-30 flex items-center justify-between bg-gradient-to-b from-background via-background/90 to-transparent px-4 pb-2 pt-[calc(0.5rem+var(--safe-top))] lg:hidden">
           <Link to="/" aria-label="VAYVOR, Today" className="flex min-h-11 items-center">
             <Wordmark className="text-[1.05rem]" />
           </Link>
@@ -304,7 +304,7 @@ function ShellFrame({ children }: { children: ReactNode }) {
       {/* Reserved bottom stack (small screens): resume bar, Buddy, then tabs. All in flow, none over content. */}
       <div
         ref={stack}
-        className="spatial-glass fixed inset-x-0 bottom-0 z-40 lg:hidden"
+        className="fixed inset-x-0 bottom-0 z-40 bg-gradient-to-t from-background via-background/90 to-transparent lg:hidden"
         data-testid="bottom-stack"
       >
         {resume && !typing && <div className="border-b border-line">{resume("")}</div>}
@@ -314,7 +314,7 @@ function ShellFrame({ children }: { children: ReactNode }) {
         <nav
           aria-label="Primary"
           className={cn(
-            "spatial-glass border-t px-2 pb-[var(--safe-bottom)]",
+            "mx-2.5 mb-[calc(0.5rem+var(--safe-bottom))] mt-1 rounded-[1.75rem] bg-surface/95 px-1.5 shadow-[0_8px_30px_-8px_rgb(0_0_0/0.55)] backdrop-blur-xl",
             (typing || onSession) && "hidden",
           )}
         >
@@ -325,16 +325,14 @@ function ShellFrame({ children }: { children: ReactNode }) {
                   to={t.to}
                   aria-current={isActive(t.to, t.match) ? "page" : undefined}
                   className={cn(
-                    "flex min-h-[3.75rem] min-w-0 flex-col items-center justify-center gap-0.5 overflow-hidden text-ellipsis whitespace-nowrap px-0.5 text-[0.68rem] font-medium",
+                    "flex min-h-[3.6rem] min-w-0 flex-col items-center justify-center gap-0.5 overflow-hidden text-ellipsis whitespace-nowrap px-0.5 text-[0.68rem] font-medium",
                     isActive(t.to, t.match) ? "text-foreground" : "text-muted-foreground",
                   )}
                 >
                   <span
                     className={cn(
-                      "flex h-7 w-12 max-w-full items-center justify-center border-b-2 transition",
-                      isActive(t.to, t.match)
-                        ? "border-primary text-primary"
-                        : "border-transparent",
+                      "flex h-7 w-12 max-w-full items-center justify-center rounded-full transition",
+                      isActive(t.to, t.match) ? "bg-primary/20 text-primary" : "",
                     )}
                   >
                     <VIcon name={t.icon} size={20} active={isActive(t.to, t.match)} />
@@ -357,8 +355,8 @@ function ShellFrame({ children }: { children: ReactNode }) {
                 >
                   <span
                     className={cn(
-                      "flex h-7 w-12 max-w-full items-center justify-center border-b-2 transition",
-                      moreActive ? "border-primary text-primary" : "border-transparent",
+                      "flex h-7 w-12 max-w-full items-center justify-center rounded-full transition",
+                      moreActive ? "bg-primary/20 text-primary" : "",
                     )}
                   >
                     <VIcon name="more" size={20} />
@@ -387,8 +385,8 @@ function ShellFrame({ children }: { children: ReactNode }) {
               to={t.to}
               aria-current={isActive(t.to, t.match) ? "page" : undefined}
               className={cn(
-                "flex min-h-14 items-center gap-4 border-t border-line px-1 text-base font-medium first:border-t-0",
-                isActive(t.to, t.match) ? "text-foreground" : "text-muted-foreground",
+                "flex min-h-14 items-center gap-4 rounded-2xl px-3 text-base font-medium",
+                isActive(t.to, t.match) ? "bg-surface text-foreground" : "text-muted-foreground",
               )}
             >
               <VIcon name={t.icon} active={isActive(t.to, t.match)} />

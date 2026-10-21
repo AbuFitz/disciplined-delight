@@ -68,7 +68,7 @@ export const IconButton = forwardRef<
       aria-label={label}
       title={label}
       className={cn(
-        "inline-flex size-11 items-center justify-center rounded-md text-foreground transition active:scale-95 hover:bg-surface-2 disabled:opacity-40",
+        "inline-flex size-11 items-center justify-center rounded-full text-foreground transition active:scale-95 hover:bg-surface-2 disabled:opacity-40",
         className,
       )}
       {...p}
@@ -95,13 +95,15 @@ export function PageHeader({
   sub?: ReactNode;
 }) {
   return (
-    <header className="mb-6 flex flex-wrap items-end justify-between gap-x-6 gap-y-3 md:mb-8">
+    <header className="mb-5 flex items-start justify-between gap-x-6 gap-y-3 md:mb-7">
       <div className="min-w-0">
-        {eyebrow && <Eyebrow className="mb-2">{eyebrow}</Eyebrow>}
-        <h1 className="display-title text-[clamp(2.25rem,6vw,3.5rem)]">{title}</h1>
-        {sub && <p className="mt-3 max-w-xl text-muted-foreground">{sub}</p>}
+        {eyebrow && <Eyebrow className="mb-1.5">{eyebrow}</Eyebrow>}
+        <h1 className="display-title text-[clamp(1.85rem,5vw,2.75rem)]">{title}</h1>
+        {sub && <p className="mt-2 max-w-xl text-[0.95rem] text-muted-foreground">{sub}</p>}
       </div>
-      {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
+      {actions && (
+        <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">{actions}</div>
+      )}
     </header>
   );
 }
@@ -141,6 +143,85 @@ export const Rule = ({ className }: { className?: string }) => (
 );
 
 /** Signature daily scoreline: one continuous sequence, not a row of disconnected cards. */
+/** A titled section: a small bold heading with an optional trailing action. */
+export function Section({
+  title,
+  action,
+  children,
+  className,
+}: {
+  title?: ReactNode;
+  action?: ReactNode;
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <section className={cn("mb-6", className)}>
+      {(title || action) && (
+        <div className="mb-2.5 flex items-center justify-between gap-3 px-1">
+          {title && <h2 className="text-[1.05rem] font-semibold tracking-tight">{title}</h2>}
+          {action && <div className="text-sm">{action}</div>}
+        </div>
+      )}
+      {children}
+    </section>
+  );
+}
+
+/** A grouped list: one rounded surface, rows divided by inset hairlines. The default list look. */
+export function Group({
+  children,
+  className,
+  as: As = "div",
+}: {
+  children: ReactNode;
+  className?: string;
+  as?: "div" | "ul" | "nav";
+}) {
+  return (
+    <As
+      className={cn(
+        "overflow-hidden rounded-3xl bg-surface/80 [&>*+*]:border-t [&>*+*]:border-line/70",
+        className,
+      )}
+    >
+      {children}
+    </As>
+  );
+}
+
+/** A big rounded quick-action tile: a circular icon chip over a short label. */
+export function Tile({
+  icon,
+  label,
+  hint,
+  className,
+  ...rest
+}: {
+  icon: ReactNode;
+  label: ReactNode;
+  hint?: ReactNode;
+  className?: string;
+} & React.HTMLAttributes<HTMLElement> & { as?: never }) {
+  return (
+    <span
+      className={cn(
+        "flex min-h-[5.5rem] min-w-0 flex-col items-start justify-between gap-2 rounded-3xl bg-surface/80 p-3.5 text-left transition active:scale-[0.97]",
+        className,
+      )}
+      {...rest}
+    >
+      <span className="flex size-10 items-center justify-center rounded-full bg-primary/15 text-primary">
+        {icon}
+      </span>
+      <span className="min-w-0">
+        <span className="block truncate text-[0.95rem] font-semibold leading-tight">{label}</span>
+        {hint && <span className="block truncate text-xs text-muted-foreground">{hint}</span>}
+      </span>
+    </span>
+  );
+}
+
 export function SignalRail({
   label = "Daily signal",
   items,

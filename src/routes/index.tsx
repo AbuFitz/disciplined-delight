@@ -1,6 +1,6 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState, type ReactElement } from "react";
-import { Button, PageHeader, SignalRail, Skeleton } from "@/components/nl/ui";
+import { Button, PageHeader, Skeleton, Tile } from "@/components/nl/ui";
 import { VIcon } from "@/components/nl/icon";
 import {
   BudgetWidget,
@@ -99,52 +99,63 @@ function TodayPage() {
   const setupPending =
     !profile.setup.skipped &&
     !(profile.setup.goals && (!salah.enabled || prayerCfg.items.length > 0));
-  // Mobile order: the next meaningful action leads, then the signal, setup nudge and the rest.
-  // Wider screens keep the signal rail directly under the header.
+  const quick = [
+    enabled("training") && {
+      to: "/train" as const,
+      icon: "training" as const,
+      label: planned ? "Train" : "Workouts",
+      hint: planned ? `Workout ${planned.letter}` : "Browse",
+    },
+    enabled("nutrition") && {
+      to: "/food" as const,
+      icon: "nutrition" as const,
+      label: "Log a meal",
+      hint: "Food",
+    },
+    enabled("mind") && {
+      to: "/mind" as const,
+      icon: "mind" as const,
+      label: "Check in",
+      hint: "Mind",
+    },
+    enabled("routines") && {
+      to: "/plan" as const,
+      icon: "calendar" as const,
+      label: "Plan",
+      hint: "This week",
+    },
+  ].filter(Boolean) as {
+    to: "/train" | "/food" | "/mind" | "/plan";
+    icon: "training" | "nutrition" | "mind" | "calendar";
+    label: string;
+    hint: string;
+  }[];
   return (
     <div className="flex flex-col">
-      <div className="order-1">
-        <PageHeader
-          eyebrow={<time dateTime={today}>Today · {formatDateLong(today)}</time>}
-          title={
-            <>
-              {greeting(Math.floor(localMinutes(now, tz) / 60))}
-              {profile.name ? `, ${profile.name}` : ""}
-            </>
-          }
-          sub={focus}
-          actions={
-            <Button variant="secondary" onClick={() => setEdit(true)}>
-              <VIcon name="settings" size={16} />
-              Edit Today
-            </Button>
-          }
-        />
-      </div>
-      {nextAction && (
-        <div className="order-2 mb-5 min-w-0 md:order-4 md:mb-4">{render["next-action"]()}</div>
-      )}
-      <SignalRail
-        className="order-3 md:order-2"
-        items={[
-          { label: "Readiness", value: "Self-report when you start", state: "next" },
-          {
-            label: "Plan",
-            value: planned ? planned.title : "Recovery day",
-            state: planned ? "current" : "done",
-          },
-          {
-            label: "Current work",
-            value: planned ? "Training scheduled" : "No forced target",
-            state: planned ? "next" : "done",
-          },
-          { label: "Recovery", value: "Adjust from your records", state: "next" },
-        ]}
+      <PageHeader
+        eyebrow={<time dateTime={today}>{formatDateLong(today)}</time>}
+        title={
+          <>
+            {greeting(Math.floor(localMinutes(now, tz) / 60))}
+            {profile.name ? `, ${profile.name}` : ""}
+          </>
+        }
+        sub={focus}
       />
+      {nextAction && <div className="mb-4 min-w-0">{render["next-action"]()}</div>}
+      {quick.length > 0 && (
+        <nav aria-label="Quick actions" className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {quick.map((q) => (
+            <Link key={q.to} to={q.to} className="min-w-0">
+              <Tile icon={<VIcon name={q.icon} size={20} />} label={q.label} hint={q.hint} />
+            </Link>
+          ))}
+        </nav>
+      )}
       {setupPending && (
         <Link
           to="/settings"
-          className="order-4 mb-5 flex min-h-12 items-center justify-between gap-3 border-y border-line px-1 text-sm md:order-3"
+          className="mb-4 flex min-h-14 items-center justify-between gap-3 rounded-3xl bg-primary/12 px-5 py-3 text-sm"
         >
           <span>
             <strong className="font-semibold">Finish setup.</strong> Confirm your goals
@@ -153,7 +164,7 @@ function TodayPage() {
           <span aria-hidden>→</span>
         </Link>
       )}
-      <div className="order-5 grid gap-4 md:grid-cols-2 md:gap-5 xl:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2 md:gap-5 xl:grid-cols-3">
         {others.map((w) => {
           const el = render[w.id]();
           if (!el) return null;
@@ -166,6 +177,12 @@ function TodayPage() {
             </div>
           );
         })}
+      </div>
+      <div className="mt-6 flex justify-center">
+        <Button variant="secondary" size="sm" onClick={() => setEdit(true)}>
+          <VIcon name="settings" size={16} />
+          Customise Today
+        </Button>
       </div>
       <EditTodaySheet open={edit} onOpenChange={setEdit} widgets={widgets} hidden={hiddenReasons} />
     </div>
