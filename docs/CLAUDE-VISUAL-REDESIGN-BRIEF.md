@@ -97,6 +97,7 @@ The vertical slice establishes the system; it is not permission to leave the res
 ### Setup and personalisation
 
 - Core goals, experience, constraints, schedule, environment, equipment and accessibility needs.
+- Behavioural preferences: motivation style, feedback intensity, reminder tolerance, streak pressure, social-comparison preference and sensory needs. Preserve autonomy, avoid shame/dark patterns and keep every choice editable.
 - Training, recovery, nutrition, vitamins/supplements, mind, meaning/faith, community, Buddy, notifications, location and devices as progressive optional setup.
 - Setup review, edit-before-commit, skip, resume, back, save failure and partial completion.
 - Appearance preview: light/dark/system, accent world, contrast and reduced motion.
@@ -113,6 +114,13 @@ The vertical slice establishes the system; it is not permission to leave the res
 - Gym Mode, rest timer, set editing, supersets/circuits, warm-up, cooldown, pause, resume, abandon, complete and review.
 - Demonstration loading/failure, no equipment, pain/injury constraint, offline media, wake lock and interrupted session.
 - Progression, deload, personal records and the explanation for every adaptation.
+
+### Music and gym context
+
+- Spotify and Apple Music are capability-gated adapters with honest disconnected, OAuth, permission-denied, unavailable and playback-error states.
+- Gym Mode exposes playlist controls only after a service is connected; music must never block a workout.
+- Gym location/radius uses explicit permission and a privacy explanation. Scheduled time/location may suggest Gym Mode, but the product never begins a workout without confirmation.
+- Treat background geofencing as a future native capability where the web/PWA runtime cannot support it reliably.
 
 ### Exercise library
 
@@ -142,6 +150,7 @@ The vertical slice establishes the system; it is not permission to leave the res
 
 - Crews, four-person groups, chat, challenges, invitations, privacy and safety/reporting.
 - Self-comparison is default; leaderboards/competition are opt-in.
+- Live activity/presence is anonymised and opt-in. Never fabricate a “people training now” count when no live backend signal exists.
 - Empty community, muted/blocked/reported users, failed message, deleted content and moderation feedback.
 
 ### Buddy and global action
@@ -155,8 +164,10 @@ The vertical slice establishes the system; it is not permission to leave the res
 
 - Progress summaries, reports, comparison ranges and data-source clarity.
 - Wearable/device connection concepts, disconnected/reconnecting/battery/stale-data states and manual fallback.
+- Model source provenance and device capability for steps, heart rate, sleep, haptics and battery; never substitute generated readings for unavailable hardware data.
 - Account, modules, reminders, theme, units, gym/location, companion, data, credits and install/PWA settings.
 - Feedback and bug reporting with category, severity, reproduction context, privacy-safe diagnostics, success/failure and saved draft.
+- Diagnostics are previewable and redactable before submission; include retry and report-status history when a backend exists.
 
 ### System-wide resilience
 
