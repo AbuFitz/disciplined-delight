@@ -1,39 +1,97 @@
 import type { AppModule } from "@/data/types";
+import type { AccentWorld } from "@/lib/theme";
+import { DEFAULT_VARIANT, VARIANTS, normaliseVariant, type VariantId } from "./buddy/variants";
+
+export type BuddyPalette = "world" | AccentWorld;
+export type BuddyPlacement = "dock_right" | "dock_left" | "inline" | "on_demand" | "setup";
+export type BuddyPersonality = "steady" | "playful" | "dry";
 
 export type CompanionConfig = {
   id: "main";
   enabled: boolean;
+  /** True once the person has been through (or skipped) guided setup. */
+  setupDone: boolean;
   name: string;
-  form: "orb" | "totem" | "spark";
-  palette: "mint" | "amber" | "violet";
+  /** Companion family member. Recolour and rename are independent of this choice. */
+  variant: VariantId;
+  /** "world" follows the selected colour world; otherwise a fixed world. */
+  palette: BuddyPalette;
   expression: "calm" | "bright" | "focused";
+  personality: BuddyPersonality;
   tone: "quiet" | "direct" | "warm";
   energy: "low" | "medium" | "high";
   frequency: "minimal" | "balanced" | "active";
   celebration: "off" | "subtle" | "full";
   motion: "off" | "gentle" | "full";
-  placement: "setup" | "dashboard" | "on_demand";
+  /** Off by default. Independent of reduced motion. Only acknowledgements and key moments vibrate. */
+  haptics: boolean;
+  /** True once the person has answered the one-time "buzz when things happen?" prompt. */
+  hapticsAsked: boolean;
+  /** Off by default. "chime" is a soft tone; "voice" reads lines aloud with the device voice. */
+  sound: "off" | "chime" | "voice";
+  placement: BuddyPlacement;
+  /** Muted: no unprompted speech, sound or celebration. The panel still opens on tap. */
+  muted: boolean;
   quiet: { enabled: boolean; start: string; end: string };
   modules: AppModule[];
   privacy: "status_only";
 };
 export const DEFAULT_COMPANION: CompanionConfig = {
   id: "main",
-  enabled: false,
-  name: "Buddy",
-  form: "orb",
-  palette: "mint",
+  enabled: true,
+  setupDone: false,
+  name: VARIANTS[DEFAULT_VARIANT].defaultName,
+  variant: DEFAULT_VARIANT,
+  palette: "world",
   expression: "calm",
+  personality: "steady",
   tone: "warm",
   energy: "medium",
   frequency: "balanced",
   celebration: "subtle",
   motion: "gentle",
-  placement: "dashboard",
+  haptics: false,
+  hapticsAsked: false,
+  sound: "off",
+  placement: "dock_right",
+  muted: false,
   quiet: { enabled: true, start: "21:30", end: "07:30" },
   modules: ["training", "nutrition", "mind", "routines"],
   privacy: "status_only",
 };
+
+const PLACEMENTS: BuddyPlacement[] = ["dock_right", "dock_left", "inline", "on_demand", "setup"];
+const WORLDS = ["mint", "cobalt", "violet", "coral", "amber", "rose", "slate"];
+/** Merge a stored (possibly old-shape) record over the defaults. */
+export function normaliseCompanion(
+  stored?: (Partial<Record<keyof CompanionConfig, unknown>> & { form?: unknown }) | null,
+) {
+  const base = { ...DEFAULT_COMPANION, ...(stored ?? {}) } as CompanionConfig;
+  // Earlier builds stored `form` (orb/totem/spark, then bell/cairn/plate). Map without losing a choice.
+  const raw = stored as Record<string, unknown> | null | undefined;
+  base.variant = normaliseVariant(raw?.variant ?? raw?.form);
+  delete (base as unknown as Record<string, unknown>).form;
+  // A saved name that was only ever the old default follows the variant's default.
+  if (raw && (raw.name === "Buddy" || raw.name === undefined) && !("variant" in raw))
+    base.name = VARIANTS[base.variant].defaultName;
+  const placement = String(base.placement);
+  base.placement =
+    placement === "dashboard"
+      ? "dock_right"
+      : PLACEMENTS.includes(placement as BuddyPlacement)
+        ? (placement as BuddyPlacement)
+        : "dock_right";
+  // A stored record from before the redesign had no setupDone flag; the choice was already made.
+  if (stored && !("setupDone" in stored)) base.setupDone = true;
+  const palette = String(base.palette);
+  base.palette =
+    palette === "world" || WORLDS.includes(palette) ? (palette as BuddyPalette) : "world";
+  if (stored && !("palette" in stored)) base.palette = "world";
+  // The legacy default palette was "mint"; that was a default, not a choice.
+  if (stored && stored.palette === "mint" && !("setupDone" in stored)) base.palette = "world";
+  return base;
+}
+
 export type CompanionSignals = {
   minute: number;
   activeWorkout?: boolean;

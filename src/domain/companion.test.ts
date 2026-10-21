@@ -3,7 +3,9 @@ import { companionState, DEFAULT_COMPANION } from "./companion";
 
 describe("companion state machine", () => {
   it("is silent when disabled or during quiet hours", () => {
-    expect(companionState(DEFAULT_COMPANION, { minute: 600 }).kind).toBe("hidden");
+    expect(companionState({ ...DEFAULT_COMPANION, enabled: false }, { minute: 600 }).kind).toBe(
+      "hidden",
+    );
     expect(
       companionState({ ...DEFAULT_COMPANION, enabled: true }, { minute: 60, activeWorkout: true })
         .kind,

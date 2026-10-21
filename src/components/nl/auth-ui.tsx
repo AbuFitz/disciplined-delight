@@ -16,12 +16,9 @@ export function AuthLayout({
   footer?: ReactNode;
 }) {
   return (
-    <div className="min-h-dvh bg-background px-4 py-5 sm:px-7 sm:py-8">
-      <div className="mx-auto grid min-h-[calc(100dvh-2.5rem)] w-full max-w-5xl overflow-hidden border border-line bg-surface shadow-2xl sm:min-h-[calc(100dvh-4rem)] lg:grid-cols-[0.9fr_1.1fr]">
-        <aside className="relative hidden overflow-hidden border-r border-line bg-[#111318] p-10 text-[#f3efe7] lg:flex lg:flex-col lg:justify-between">
-          <div className="absolute inset-y-0 left-0 w-1 bg-primary" />
-          <div className="absolute inset-x-10 top-28 border-t border-white/10" />
-          <div className="absolute inset-x-10 bottom-28 border-t border-white/10" />
+    <div className="min-h-dvh px-4 py-5 sm:px-7 sm:py-8">
+      <div className="mx-auto grid min-h-[calc(100dvh-2.5rem)] w-full max-w-5xl overflow-hidden rounded-[2rem] bg-surface/85 shadow-2xl backdrop-blur-sm sm:min-h-[calc(100dvh-4rem)] lg:grid-cols-[0.9fr_1.1fr]">
+        <aside className="relative m-3 hidden overflow-hidden rounded-[1.5rem] bg-[#111318] p-10 text-[#f3efe7] lg:flex lg:flex-col lg:justify-between">
           <Link
             to="/"
             aria-label="VAYVOR, home"
@@ -29,7 +26,7 @@ export function AuthLayout({
           >
             <Wordmark className="text-[1.35rem]" />
           </Link>
-          <div className="relative max-w-sm border-l border-primary/70 pl-6">
+          <div className="relative max-w-sm">
             <p className="font-display text-4xl font-semibold leading-tight">
               Build a routine that fits your actual life.
             </p>
@@ -53,7 +50,7 @@ export function AuthLayout({
           <p className="eyebrow mb-5" aria-label={`Pronounced ${BRAND.pronunciation}`}>
             {BRAND.pronunciation} · {BRAND.tagline}
           </p>
-          <h1 className="display-title text-[2.4rem] sm:text-[3rem]">{title}</h1>
+          <h1 className="display-title text-[2.1rem] sm:text-[2.75rem]">{title}</h1>
           {intro && <p className="mt-3 max-w-xl leading-relaxed text-muted-foreground">{intro}</p>}
           <div className="mt-7 grid gap-4">{children}</div>
           {footer && <div className="mt-8 text-sm text-muted-foreground">{footer}</div>}

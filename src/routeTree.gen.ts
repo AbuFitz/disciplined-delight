@@ -35,6 +35,8 @@ import { Route as CircleChallengesRouteImport } from './routes/circle_.challenge
 import { Route as CircleChatRouteImport } from './routes/circle_.chat'
 import { Route as CircleCrewsRouteImport } from './routes/circle_.crews'
 import { Route as CircleFourRouteImport } from './routes/circle_.four'
+import { Route as DevDesignLabRouteImport } from './routes/dev.design-lab'
+import { Route as DevExperienceLabRouteImport } from './routes/dev.experience-lab'
 import { Route as TrainIndexRouteImport } from './routes/train.index'
 import { Route as TrainBuildRouteImport } from './routes/train.build'
 import { Route as TrainSessionRouteImport } from './routes/train.session'
@@ -169,6 +171,16 @@ const CircleFourRoute = CircleFourRouteImport.update({
   path: '/circle/four',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DevDesignLabRoute = DevDesignLabRouteImport.update({
+  id: '/dev/design-lab',
+  path: '/dev/design-lab',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DevExperienceLabRoute = DevExperienceLabRouteImport.update({
+  id: '/dev/experience-lab',
+  path: '/dev/experience-lab',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TrainIndexRoute = TrainIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -212,6 +224,8 @@ export interface FileRoutesByFullPath {
   '/circle/chat': typeof CircleChatRoute
   '/circle/crews': typeof CircleCrewsRoute
   '/circle/four': typeof CircleFourRoute
+  '/dev/design-lab': typeof DevDesignLabRoute
+  '/dev/experience-lab': typeof DevExperienceLabRoute
   '/train/build': typeof TrainBuildRoute
   '/train/session': typeof TrainSessionRoute
   '/train/': typeof TrainIndexRoute
@@ -242,6 +256,8 @@ export interface FileRoutesByTo {
   '/circle/chat': typeof CircleChatRoute
   '/circle/crews': typeof CircleCrewsRoute
   '/circle/four': typeof CircleFourRoute
+  '/dev/design-lab': typeof DevDesignLabRoute
+  '/dev/experience-lab': typeof DevExperienceLabRoute
   '/train/build': typeof TrainBuildRoute
   '/train/session': typeof TrainSessionRoute
   '/train': typeof TrainIndexRoute
@@ -274,6 +290,8 @@ export interface FileRoutesById {
   '/circle_/chat': typeof CircleChatRoute
   '/circle_/crews': typeof CircleCrewsRoute
   '/circle_/four': typeof CircleFourRoute
+  '/dev/design-lab': typeof DevDesignLabRoute
+  '/dev/experience-lab': typeof DevExperienceLabRoute
   '/train/build': typeof TrainBuildRoute
   '/train/session': typeof TrainSessionRoute
   '/train/': typeof TrainIndexRoute
@@ -307,6 +325,8 @@ export interface FileRouteTypes {
     | '/circle/chat'
     | '/circle/crews'
     | '/circle/four'
+    | '/dev/design-lab'
+    | '/dev/experience-lab'
     | '/train/build'
     | '/train/session'
     | '/train/'
@@ -337,6 +357,8 @@ export interface FileRouteTypes {
     | '/circle/chat'
     | '/circle/crews'
     | '/circle/four'
+    | '/dev/design-lab'
+    | '/dev/experience-lab'
     | '/train/build'
     | '/train/session'
     | '/train'
@@ -368,6 +390,8 @@ export interface FileRouteTypes {
     | '/circle_/chat'
     | '/circle_/crews'
     | '/circle_/four'
+    | '/dev/design-lab'
+    | '/dev/experience-lab'
     | '/train/build'
     | '/train/session'
     | '/train/'
@@ -400,6 +424,8 @@ export interface RootRouteChildren {
   CircleChatRoute: typeof CircleChatRoute
   CircleCrewsRoute: typeof CircleCrewsRoute
   CircleFourRoute: typeof CircleFourRoute
+  DevDesignLabRoute: typeof DevDesignLabRoute
+  DevExperienceLabRoute: typeof DevExperienceLabRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -586,6 +612,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CircleFourRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/dev/design-lab': {
+      id: '/dev/design-lab'
+      path: '/dev/design-lab'
+      fullPath: '/dev/design-lab'
+      preLoaderRoute: typeof DevDesignLabRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dev/experience-lab': {
+      id: '/dev/experience-lab'
+      path: '/dev/experience-lab'
+      fullPath: '/dev/experience-lab'
+      preLoaderRoute: typeof DevExperienceLabRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/train/': {
       id: '/train/'
       path: '/'
@@ -651,6 +691,8 @@ const rootRouteChildren: RootRouteChildren = {
   CircleChatRoute: CircleChatRoute,
   CircleCrewsRoute: CircleCrewsRoute,
   CircleFourRoute: CircleFourRoute,
+  DevDesignLabRoute: DevDesignLabRoute,
+  DevExperienceLabRoute: DevExperienceLabRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

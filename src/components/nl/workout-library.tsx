@@ -1,15 +1,28 @@
 import { useNavigate } from "@tanstack/react-router";
+import { cn } from "@/lib/utils";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Button, Chip, Field, Panel, Select, Sheet, TextInput } from "./ui";
+import {
+  Button,
+  Chip,
+  EmptyState,
+  Field,
+  Group,
+  Panel,
+  Section,
+  Select,
+  Sheet,
+  TextInput,
+} from "./ui";
 import { VIcon } from "./icon";
-import { ExerciseMediaThumb } from "./exercise-media";
+import { WorkoutMedia } from "./exercise-visual";
+import { FormGuideSheet, MovementCarousel } from "./workout-detail";
 import { startSession } from "@/data/actions";
 import { newId, put, remove } from "@/data/db";
 import { useCollection, useProfile, useToday } from "@/data/hooks";
 import { COL, type WorkoutTemplate } from "@/data/types";
 import { useCatalogue } from "@/data/catalogue-runtime";
-import type { MediaItem } from "@/domain/catalogue";
+import type { CatalogueExercise } from "@/domain/catalogue";
 import {
   AUTHORED_PROGRAMMES,
   AUTHORED_WORKOUTS,
@@ -43,9 +56,12 @@ export type WorkoutLibraryTab = "workouts" | "programmes";
 export function WorkoutLibrary({
   activeTab,
   onTabChange,
+  embedded = false,
 }: {
   activeTab?: WorkoutLibraryTab;
   onTabChange?: (tab: WorkoutLibraryTab) => void;
+  /** Inside the Library page, which owns the heading and tabs. */
+  embedded?: boolean;
 } = {}) {
   const nav = useNavigate();
   const today = useToday();
@@ -70,12 +86,23 @@ export function WorkoutLibrary({
     muscle: "",
     constraint: "",
   });
+  const [showFilters, setShowFilters] = useState(false);
+  const activeFilters = [
+    query.goal,
+    query.level,
+    query.equipment,
+    query.location,
+    query.muscle,
+    query.constraint,
+    query.duration,
+  ].filter(Boolean).length;
   const [open, setOpen] = useState<AuthoredWorkout | null>(null);
   const [programme, setProgramme] = useState<AuthoredProgramme | null>(null);
   const [schedule, setSchedule] = useState<AuthoredWorkout | null>(null);
   const [weekday, setWeekday] = useState("0");
   const [pending, setPending] = useState<string | null>(null);
   const results = useMemo(() => filterAuthoredWorkouts(AUTHORED_WORKOUTS, query), [query]);
+  const [guide, setGuide] = useState<{ workout: AuthoredWorkout; index: number } | null>(null);
   const favourites = new Set(prefs.items.filter((item) => item.favourite).map((item) => item.id));
 
   const saveTemplate = async (workout: AuthoredWorkout, day: number | null) => {
@@ -144,174 +171,206 @@ export function WorkoutLibrary({
     <section
       id="discover-workouts"
       tabIndex={-1}
-      className="mt-10 scroll-mt-24 border-t border-line pt-7 outline-none focus-visible:ring-2 focus-visible:ring-ring"
-      aria-labelledby="workout-library-title"
+      className={cn(
+        "scroll-mt-24 outline-none focus-visible:ring-2 focus-visible:ring-ring",
+        !embedded && "mt-2",
+      )}
+      aria-labelledby={embedded ? undefined : "workout-library-title"}
+      aria-label={embedded ? "Authored workouts and programmes" : undefined}
     >
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="eyebrow">Authored library · v2026.10</p>
-          <h2 id="workout-library-title" className="mt-1 font-display text-3xl font-semibold">
-            Ready-to-run training
+      {!embedded && (
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-3 px-1">
+          <h2 id="workout-library-title" className="text-[1.05rem] font-semibold tracking-tight">
+            Discover
           </h2>
-          <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-            Deliberate sessions and multi-week structures built from the licensed VAYVOR exercise
-            catalogue. Every target remains editable.
-          </p>
+          <div
+            className="inline-flex max-w-full overflow-x-auto rounded-full bg-foreground/8 p-1"
+            role="tablist"
+            aria-label="Library type"
+          >
+            {(["workouts", "programmes"] as const).map((value) => (
+              <button
+                key={value}
+                role="tab"
+                aria-selected={tab === value}
+                onClick={() => selectTab(value)}
+                className={cn(
+                  "min-h-10 shrink-0 rounded-full px-4 text-sm font-semibold capitalize transition",
+                  tab === value ? "bg-primary text-primary-foreground" : "text-muted-foreground",
+                )}
+              >
+                {value}
+              </button>
+            ))}
+          </div>
         </div>
-        <div className="flex border-b border-line" role="tablist" aria-label="Library type">
-          {(["workouts", "programmes"] as const).map((value) => (
-            <button
-              key={value}
-              role="tab"
-              aria-selected={tab === value}
-              onClick={() => selectTab(value)}
-              className={`min-h-11 border-b-2 px-4 text-sm font-semibold capitalize ${tab === value ? "border-primary text-foreground" : "border-transparent text-muted-foreground"}`}
-            >
-              {value}
-            </button>
-          ))}
-        </div>
-      </div>
+      )}
 
       {tab === "workouts" ? (
         <>
-          <div className="mt-6 grid gap-3 border-y border-line py-4 md:grid-cols-4">
-            <label className="relative md:col-span-2">
-              <span className="sr-only">Search workouts</span>
-              <VIcon
-                name="search"
-                className="pointer-events-none absolute left-3 top-3 text-muted-foreground"
+          <div className="mb-3">
+            <div className="flex items-center gap-2">
+              <label className="relative min-w-0 flex-1">
+                <span className="sr-only">Search workouts</span>
+                <VIcon
+                  name="search"
+                  className="pointer-events-none absolute left-4 top-3.5 text-muted-foreground"
+                />
+                <TextInput
+                  value={query.text}
+                  onChange={(event) => setQuery((old) => ({ ...old, text: event.target.value }))}
+                  placeholder="Search goal, workout or muscle"
+                  className="rounded-full border-transparent bg-surface/80 pl-11"
+                />
+              </label>
+              <button
+                type="button"
+                aria-expanded={showFilters}
+                aria-controls="workout-filters"
+                onClick={() => setShowFilters((v) => !v)}
+                className="min-h-12 shrink-0 rounded-full bg-surface/80 px-5 text-sm font-semibold aria-expanded:bg-primary aria-expanded:text-primary-foreground"
+              >
+                Filters{activeFilters ? ` (${activeFilters})` : ""}
+              </button>
+            </div>
+            <div
+              id="workout-filters"
+              hidden={!showFilters}
+              className="mt-3 grid grid-cols-1 gap-3 rounded-3xl bg-surface/80 p-3 min-[420px]:grid-cols-2 md:grid-cols-4"
+            >
+              <Filter
+                label="Goal"
+                value={query.goal}
+                values={options.goal}
+                onChange={(goal) => setQuery((old) => ({ ...old, goal }))}
               />
-              <TextInput
-                value={query.text}
-                onChange={(event) => setQuery((old) => ({ ...old, text: event.target.value }))}
-                placeholder="Search goal, workout or muscle"
-                className="pl-10"
+              <Filter
+                label="Level"
+                value={query.level}
+                values={options.level}
+                onChange={(level) => setQuery((old) => ({ ...old, level }))}
               />
-            </label>
-            <Filter
-              label="Goal"
-              value={query.goal}
-              values={options.goal}
-              onChange={(goal) => setQuery((old) => ({ ...old, goal }))}
-            />
-            <Filter
-              label="Level"
-              value={query.level}
-              values={options.level}
-              onChange={(level) => setQuery((old) => ({ ...old, level }))}
-            />
-            <Filter
-              label="Equipment"
-              value={query.equipment}
-              values={options.equipment}
-              onChange={(equipment) => setQuery((old) => ({ ...old, equipment }))}
-            />
-            <Filter
-              label="Location"
-              value={query.location}
-              values={options.location}
-              onChange={(location) => setQuery((old) => ({ ...old, location }))}
-            />
-            <Filter
-              label="Muscle"
-              value={query.muscle}
-              values={options.muscle}
-              onChange={(muscle) => setQuery((old) => ({ ...old, muscle }))}
-            />
-            <Filter
-              label="Constraint"
-              value={query.constraint}
-              values={options.constraint}
-              onChange={(constraint) => setQuery((old) => ({ ...old, constraint }))}
-            />
-            <Filter
-              label="Duration"
-              value={query.duration ? String(query.duration) : ""}
-              values={["30", "45", "60"]}
-              onChange={(duration) => setQuery((old) => ({ ...old, duration: Number(duration) }))}
-              suffix=" min max"
-            />
+              <Filter
+                label="Equipment"
+                value={query.equipment}
+                values={options.equipment}
+                onChange={(equipment) => setQuery((old) => ({ ...old, equipment }))}
+              />
+              <Filter
+                label="Location"
+                value={query.location}
+                values={options.location}
+                onChange={(location) => setQuery((old) => ({ ...old, location }))}
+              />
+              <Filter
+                label="Muscle"
+                value={query.muscle}
+                values={options.muscle}
+                onChange={(muscle) => setQuery((old) => ({ ...old, muscle }))}
+              />
+              <Filter
+                label="Constraint"
+                value={query.constraint}
+                values={options.constraint}
+                onChange={(constraint) => setQuery((old) => ({ ...old, constraint }))}
+              />
+              <Filter
+                label="Duration"
+                value={query.duration ? String(query.duration) : ""}
+                values={["30", "45", "60"]}
+                onChange={(duration) => setQuery((old) => ({ ...old, duration: Number(duration) }))}
+                suffix=" min max"
+              />
+            </div>
           </div>
-          <p className="mt-4 text-sm text-muted-foreground" aria-live="polite">
+          <p className="mb-3 px-1 text-sm text-muted-foreground" aria-live="polite">
             {results.length} of {AUTHORED_WORKOUTS.length} workouts
           </p>
-          <div className="mt-3 grid gap-px overflow-hidden border border-line bg-line md:grid-cols-2 xl:grid-cols-3">
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
             {results.map((workout, index) => (
-              <article
+              <WorkoutCard
                 key={workout.id}
-                className={`bg-background p-5 ${index % 3 === 1 ? "md:translate-y-0 xl:py-8" : ""}`}
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <p className="num text-sm text-primary">
-                    {workout.duration} MIN · {workout.location.toUpperCase()}
-                  </p>
-                  <button
-                    aria-label={`${favourites.has(workout.id) ? "Remove" : "Add"} ${workout.title} favourite`}
-                    onClick={() =>
-                      void put(COL.workoutLibraryPrefs, workout.id, {
-                        id: workout.id,
-                        favourite: !favourites.has(workout.id),
-                        savedAt: Date.now(),
-                      } satisfies LibraryPref)
-                    }
-                    className="min-h-11 min-w-11"
-                  >
-                    <VIcon
-                      name="favourite"
-                      className={
-                        favourites.has(workout.id)
-                          ? "fill-current text-primary"
-                          : "text-muted-foreground"
-                      }
-                    />
-                  </button>
-                </div>
-                <h3 className="font-display text-2xl font-semibold">{workout.title}</h3>
-                <p className="mt-2 text-sm text-muted-foreground">{workout.summary}</p>
-                <p className="mt-4 border-t border-line pt-3 text-sm">
-                  {workout.exercises.length} movements · {workout.muscles.join(" / ")}
-                </p>
-                <div className="mt-4 flex gap-2">
-                  <Button
-                    size="sm"
-                    variant="primary"
-                    busy={pending === `start:${workout.id}`}
-                    busyLabel="Starting…"
-                    disabled={!!pending}
-                    onClick={() => void start(workout)}
-                  >
-                    <VIcon name="play" size={16} />
-                    Start
-                  </Button>
-                  <Button size="sm" variant="ghost" onClick={() => setOpen(workout)}>
-                    Details
-                  </Button>
-                </div>
-              </article>
+                workout={workout}
+                featured={index === 0 && results.length > 2}
+                byId={catalogue.byId}
+                favourite={favourites.has(workout.id)}
+                pending={pending}
+                onFavourite={() =>
+                  void put(COL.workoutLibraryPrefs, workout.id, {
+                    id: workout.id,
+                    favourite: !favourites.has(workout.id),
+                    savedAt: Date.now(),
+                  } satisfies LibraryPref)
+                }
+                onStart={() => void start(workout)}
+                onOpen={() => setOpen(workout)}
+              />
             ))}
           </div>
-        </>
-      ) : (
-        <div className="mt-6 grid gap-4 lg:grid-cols-2">
-          {AUTHORED_PROGRAMMES.map((item) => {
-            const active = enrolled.items.some((entry) => entry.programmeId === item.id);
-            return (
-              <Panel key={item.id} className="!rounded-none border-l-4 border-l-primary">
-                <p className="eyebrow">
-                  {item.weeks} weeks · {item.daysPerWeek} days/week
-                </p>
-                <h3 className="mt-1 font-display text-2xl font-semibold">{item.title}</h3>
-                <p className="mt-2 text-sm text-muted-foreground">{item.summary}</p>
-                <div className="mt-4 flex items-center gap-2">
-                  {active && <Chip tone="ok">In your plan</Chip>}
+          {results.length === 0 && (
+            <EmptyState
+              title="No match"
+              body="Clear a filter, or browse every exercise in the Exercises tab."
+              action={
+                activeFilters || query.text ? (
                   <Button
                     size="sm"
-                    variant={active ? "ghost" : "secondary"}
-                    onClick={() => setProgramme(item)}
+                    onClick={() =>
+                      setQuery({
+                        text: "",
+                        goal: "",
+                        level: "",
+                        duration: 0,
+                        equipment: "",
+                        location: "",
+                        muscle: "",
+                        constraint: "",
+                      })
+                    }
                   >
-                    {active ? "View structure" : "Review programme"}
+                    Clear filters
                   </Button>
+                ) : undefined
+              }
+            />
+          )}
+        </>
+      ) : (
+        <div className="grid gap-3 lg:grid-cols-2">
+          {AUTHORED_PROGRAMMES.map((item) => {
+            const active = enrolled.items.some((entry) => entry.programmeId === item.id);
+            const moves = item.workoutIds
+              .flatMap((id) => AUTHORED_WORKOUTS.find((w) => w.id === id)?.exercises ?? [])
+              .map((e) => ({
+                name: e.name,
+                media: e.catalogueId ? catalogue.byId.get(e.catalogueId)?.media : undefined,
+              }));
+            return (
+              <Panel as="article" key={item.id} className="grid gap-3 overflow-hidden !p-3">
+                <WorkoutMedia
+                  title={item.title}
+                  exercises={moves}
+                  className="!rounded-2xl !border-0"
+                />
+                <div className="px-2 pb-2">
+                  <p className="text-sm font-medium text-primary">
+                    {item.weeks} weeks · {item.daysPerWeek} days / week
+                  </p>
+                  <h3 className="mt-0.5 text-xl font-semibold leading-tight [overflow-wrap:anywhere]">
+                    {item.title}
+                  </h3>
+                  <p className="mt-1 line-clamp-3 text-sm text-muted-foreground">{item.summary}</p>
+                  <div className="mt-3 flex flex-wrap items-center gap-2">
+                    {active && <Chip tone="ok">In your plan</Chip>}
+                    <Button
+                      size="sm"
+                      className="min-h-11"
+                      variant={active ? "ghost" : "primary"}
+                      onClick={() => setProgramme(item)}
+                    >
+                      {active ? "View structure" : "Review programme"}
+                    </Button>
+                  </div>
                 </div>
               </Panel>
             );
@@ -321,14 +380,19 @@ export function WorkoutLibrary({
 
       <WorkoutDetail
         workout={open}
-        mediaById={
-          new Map(catalogue.exercises.map((exercise) => [exercise.id, exercise.media[0]] as const))
-        }
+        byId={catalogue.byId}
         onClose={() => setOpen(null)}
         onStart={start}
         onSave={(workout) => saveTemplate(workout, null)}
         onSchedule={setSchedule}
+        onGuide={(workout, index) => setGuide({ workout, index })}
         pending={pending}
+      />
+      <FormGuideSheet
+        workout={guide?.workout ?? null}
+        index={guide?.index ?? null}
+        byId={catalogue.byId}
+        onClose={() => setGuide(null)}
       />
       <ScheduleSheet
         workout={schedule}
@@ -366,7 +430,7 @@ function Filter({
 }) {
   return (
     <Select aria-label={label} value={value} onChange={(event) => onChange(event.target.value)}>
-      <option value="">All {label.toLowerCase()}s</option>
+      <option value="">Any {label.toLowerCase()}</option>
       {values.map((item) => (
         <option key={item} value={item}>
           {item}
@@ -377,21 +441,131 @@ function Filter({
   );
 }
 
+function WorkoutCard({
+  workout,
+  featured,
+  byId,
+  favourite,
+  pending,
+  onFavourite,
+  onStart,
+  onOpen,
+}: {
+  workout: AuthoredWorkout;
+  featured: boolean;
+  byId: Map<string, CatalogueExercise>;
+  favourite: boolean;
+  pending: string | null;
+  onFavourite: () => void;
+  onStart: () => void;
+  onOpen: () => void;
+}) {
+  const moves = useMemo(
+    () =>
+      workout.exercises.map((e) => ({
+        name: e.name,
+        media: e.catalogueId ? byId.get(e.catalogueId)?.media : undefined,
+      })),
+    [workout, byId],
+  );
+  return (
+    <Panel
+      as="article"
+      className={cn(
+        "grid content-start gap-3 overflow-hidden !p-3 md:!p-3",
+        featured && "lg:col-span-2 lg:grid-cols-[1.1fr_1fr] lg:gap-6",
+      )}
+    >
+      <button
+        type="button"
+        onClick={onOpen}
+        aria-label={`Open ${workout.title}`}
+        className="block overflow-hidden rounded-2xl text-left outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      >
+        <WorkoutMedia title={workout.title} exercises={moves} className="!border-0" />
+      </button>
+      <div className="grid min-w-0 content-start gap-2 px-2 pb-2">
+        <div className="flex items-start justify-between gap-3">
+          <h3
+            className={cn(
+              "min-w-0 font-semibold leading-tight [overflow-wrap:anywhere]",
+              featured ? "text-2xl" : "text-xl",
+            )}
+          >
+            {workout.title}
+          </h3>
+          <button
+            aria-label={`${favourite ? "Remove" : "Add"} ${workout.title} favourite`}
+            aria-pressed={favourite}
+            onClick={onFavourite}
+            className="-mr-2 -mt-1.5 grid min-h-11 min-w-11 shrink-0 place-items-center rounded-full active:scale-90"
+          >
+            <VIcon
+              name="favourite"
+              className={favourite ? "fill-current text-primary" : "text-muted-foreground"}
+            />
+          </button>
+        </div>
+        <div className="flex flex-wrap gap-1.5 text-xs font-medium">
+          <span className="rounded-full bg-primary/12 px-2.5 py-1 text-primary tnum">
+            {workout.duration} min
+          </span>
+          <span className="rounded-full bg-foreground/8 px-2.5 py-1 capitalize">
+            {workout.location}
+          </span>
+          <span className="rounded-full bg-foreground/8 px-2.5 py-1 capitalize">
+            {workout.level.join(" / ")}
+          </span>
+        </div>
+        <p className="line-clamp-2 text-sm text-muted-foreground">{workout.summary}</p>
+        <p className="text-xs text-muted-foreground [overflow-wrap:anywhere]">
+          {workout.exercises.length} movements · {workout.muscles.join(" / ")} ·{" "}
+          {workout.equipment.join(", ") || "No kit"}
+        </p>
+        <div className="mt-1 flex flex-wrap gap-2">
+          <Button
+            size="sm"
+            className="min-h-11"
+            variant="primary"
+            busy={pending === `start:${workout.id}`}
+            busyLabel="Starting…"
+            disabled={!!pending}
+            onClick={onStart}
+          >
+            <VIcon name="play" size={16} />
+            Start
+          </Button>
+          <Button
+            size="sm"
+            className="min-h-11 bg-foreground/6 border-transparent"
+            variant="secondary"
+            onClick={onOpen}
+          >
+            Preview movements
+          </Button>
+        </div>
+      </div>
+    </Panel>
+  );
+}
+
 function WorkoutDetail({
   workout,
-  mediaById,
+  byId,
   onClose,
   onStart,
   onSave,
   onSchedule,
+  onGuide,
   pending,
 }: {
   workout: AuthoredWorkout | null;
-  mediaById: Map<string, MediaItem | undefined>;
+  byId: Map<string, CatalogueExercise>;
   onClose: () => void;
   onStart: (workout: AuthoredWorkout) => Promise<void>;
   onSave: (workout: AuthoredWorkout) => Promise<unknown>;
   onSchedule: (workout: AuthoredWorkout) => void;
+  onGuide: (workout: AuthoredWorkout, index: number) => void;
   pending: string | null;
 }) {
   return (
@@ -404,55 +578,37 @@ function WorkoutDetail({
     >
       {workout && (
         <div className="pb-4">
-          <div className="mb-5 grid grid-cols-3 border-y border-line py-3 text-center">
+          <div className="mb-5 grid grid-cols-3 rounded-2xl bg-foreground/6 py-3 text-center">
             <Metric value={`${workout.duration}`} label="minutes" />
             <Metric value={`${workout.exercises.length}`} label="movements" />
             <Metric value={workout.level.join(" / ")} label="level" />
           </div>
-          <ol>
+          <MovementCarousel workout={workout} byId={byId} onGuide={(i) => onGuide(workout, i)} />
+          <Group as="ul" className="mt-5 !bg-foreground/6">
             {workout.exercises.map((exercise, index) => (
               <li
                 key={exercise.id}
-                className="grid grid-cols-[2rem_1fr] gap-3 border-b border-line py-4"
+                className="grid grid-cols-[2rem_1fr_auto] items-baseline gap-3 px-4 py-3"
               >
                 <span className="num text-muted-foreground">
                   {String(index + 1).padStart(2, "0")}
                 </span>
-                <div className="grid min-w-0 gap-3 sm:grid-cols-[5.5rem_1fr]">
-                  {exercise.catalogueId && mediaById.get(exercise.catalogueId) ? (
-                    <ExerciseMediaThumb
-                      item={mediaById.get(exercise.catalogueId)!}
-                      alt={`${exercise.name} form reference`}
-                      className="aspect-square w-full border border-line"
-                    />
-                  ) : (
-                    <div
-                      className="hidden aspect-square border border-dashed border-line bg-surface-2 sm:block"
-                      aria-label="Media unavailable"
-                    />
-                  )}
-                  <div>
-                    <h4 className="font-semibold">{exercise.name}</h4>
-                    <p className="num text-sm">
-                      {exercise.schemeText} · {exercise.restSeconds}s rest
-                    </p>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      {exercise.intent}
-                      {exercise.substitutions[0]
-                        ? ` · substitute: ${exercise.substitutions[0]}`
-                        : ""}
-                    </p>
-                  </div>
-                </div>
+                <span className="min-w-0 font-semibold [overflow-wrap:anywhere]">
+                  {exercise.name}
+                </span>
+                <span className="num text-sm text-muted-foreground">
+                  {exercise.schemeText} · {exercise.restSeconds}s
+                </span>
               </li>
             ))}
-          </ol>
-          <div className="mt-5 flex flex-wrap gap-2">
+          </Group>
+          <div className="mt-5 grid gap-2 sm:flex sm:flex-wrap">
             <Button
               busy={pending === `start:${workout.id}`}
               busyLabel="Starting…"
               disabled={!!pending}
               variant="primary"
+              size="lg"
               onClick={() => void onStart(workout)}
             >
               <VIcon name="play" size={16} />
@@ -472,7 +628,8 @@ function WorkoutDetail({
           </div>
           <p className="mt-5 text-xs text-muted-foreground">
             Targets are authored guidance, not medical advice. Edit or substitute anything that is
-            not comfortable. Programme changes apply only after you confirm them.
+            not comfortable, and stop if you feel pain. Programme changes apply only after you
+            confirm them.
           </p>
         </div>
       )}
@@ -482,8 +639,8 @@ function WorkoutDetail({
 function Metric({ value, label }: { value: string; label: string }) {
   return (
     <div>
-      <p className="font-display text-xl font-semibold">{value}</p>
-      <p className="eyebrow !text-[0.62rem]">{label}</p>
+      <p className="text-lg font-semibold capitalize leading-tight">{value}</p>
+      <p className="text-xs text-muted-foreground">{label}</p>
     </div>
   );
 }
@@ -549,21 +706,21 @@ function ProgrammeDetail({
     >
       {item && (
         <div className="grid gap-5 pb-4">
-          <div className="grid grid-cols-3 border-y border-line py-3 text-center">
+          <div className="grid grid-cols-3 rounded-2xl bg-foreground/6 py-3 text-center">
             <Metric value={`${item.weeks}`} label="weeks" />
             <Metric value={`${item.daysPerWeek}`} label="days / week" />
             <Metric value={item.goal} label="goal" />
           </div>
           <div>
-            <p className="eyebrow">Weekly sequence</p>
-            <ol className="mt-2">
+            <h3 className="mb-2 px-1 font-semibold">Weekly sequence</h3>
+            <Group as="ul" className="!bg-foreground/6">
               {item.workoutIds.map((id, index) => (
-                <li key={`${id}-${index}`} className="border-b border-line py-3">
+                <li key={`${id}-${index}`} className="px-4 py-3">
                   <span className="num mr-3 text-muted-foreground">D{index + 1}</span>
                   {AUTHORED_WORKOUTS.find((workout) => workout.id === id)?.title}
                 </li>
               ))}
-            </ol>
+            </Group>
           </div>
           <RuleText title="Progression" text={item.progression} />
           <RuleText title="Deload guardrail" text={item.deload} />
@@ -591,7 +748,7 @@ function ProgrammeDetail({
 }
 function RuleText({ title, text }: { title: string; text: string }) {
   return (
-    <div className="border-l-2 border-primary pl-4">
+    <div className="rounded-2xl bg-foreground/6 p-4">
       <p className="font-semibold">{title}</p>
       <p className="text-sm text-muted-foreground">{text}</p>
     </div>

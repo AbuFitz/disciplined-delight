@@ -1,6 +1,8 @@
 import { useEffect, useMemo } from "react";
 import { Button } from "./ui";
-import { VIcon } from "./icon";
+import { BuddyCharacter } from "@/components/buddy/BuddyCharacter";
+import { useBuddyMotion } from "@/components/buddy/useBuddy";
+import type { BuddyState } from "@/domain/buddy/state";
 import { put } from "@/data/db";
 import { useCollection, useNow, useProfile } from "@/data/hooks";
 import { COL } from "@/data/types";
@@ -10,9 +12,21 @@ import {
   type BuddyEvent,
   type BuddyGuidanceRecord,
 } from "@/domain/companion-guidance";
-import { DEFAULT_COMPANION, type CompanionConfig } from "@/domain/companion";
+import { normaliseCompanion, type CompanionConfig } from "@/domain/companion";
 import { localMinutes } from "@/domain/dates";
 import { cn } from "@/lib/utils";
+
+const STATE_FOR: Record<BuddyEvent["kind"], BuddyState> = {
+  readiness: "listen",
+  adaptation: "think",
+  gym_start: "point",
+  first_set: "encourage",
+  rest: "breathe",
+  return_after_gap: "recover",
+  library_saved: "point",
+  workout_complete: "celebrate",
+  missed_session: "recover",
+};
 
 export function BuddyGuide({ event, compact = false }: { event: BuddyEvent; compact?: boolean }) {
   const configs = useCollection<CompanionConfig>(COL.companion);
@@ -20,9 +34,10 @@ export function BuddyGuide({ event, compact = false }: { event: BuddyEvent; comp
   const { profile } = useProfile();
   const now = useNow(60_000);
   const config = useMemo(
-    () => ({ ...DEFAULT_COMPANION, ...configs.items.find((item) => item.id === "main") }),
+    () => normaliseCompanion(configs.items.find((item) => item.id === "main")),
     [configs.items],
   );
+  const motion = useBuddyMotion(config);
   const id = eventId(event);
   const record = records.items.find((item) => item.id === id);
   const guidance = buddyGuidance(
@@ -49,24 +64,19 @@ export function BuddyGuide({ event, compact = false }: { event: BuddyEvent; comp
       aria-label={`${config.name} guidance`}
     >
       <div className="flex items-start gap-3">
-        <span
-          aria-hidden
-          className={cn(
-            "mt-0.5 grid size-8 place-items-center bg-primary text-primary-foreground",
-            config.form === "totem" && "rounded-sm",
-            config.form === "spark" && "rotate-45 [&>svg]:-rotate-45",
-            config.palette === "amber" && "bg-amber-300 text-stone-950",
-            config.palette === "violet" && "bg-violet-300 text-violet-950",
-            config.motion !== "off" &&
-              "motion-safe:transition-transform motion-safe:hover:-translate-y-0.5",
-          )}
-        >
-          <VIcon name="buddy" size={18} />
-        </span>
+        <BuddyCharacter
+          variant={config.variant}
+          state={STATE_FOR[event.kind]}
+          motion={motion}
+          palette={config.palette}
+          expression={config.expression}
+          size={compact ? 44 : 56}
+          name={config.name}
+        />
         <div className="min-w-0 flex-1">
           <p className="eyebrow">{config.name} · context guide</p>
           <p className="mt-1 text-sm">{guidance.text}</p>
-          <div className="mt-2 flex gap-1">
+          <div className="mt-2 flex flex-wrap gap-1">
             <Button
               size="sm"
               variant="ghost"

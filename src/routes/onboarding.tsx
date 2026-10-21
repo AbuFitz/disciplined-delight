@@ -1,16 +1,13 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
-import { AuthLayout } from "@/components/nl/auth-ui";
-import {
-  Button,
-  Field,
-  NumberField,
-  Select,
-  Switch,
-  TextArea,
-  TextInput,
-} from "@/components/nl/ui";
+import { BuddyCharacter } from "@/components/buddy/BuddyCharacter";
+import { BuddySetup } from "@/components/buddy/BuddySetup";
+import { GlobalHaptics } from "@/components/buddy/GlobalHaptics";
+import { ColourWorldPicker } from "@/components/nl/colour-world";
+import { Chip, ProgressMap, Row } from "@/components/onboarding/parts";
+import "@/components/onboarding/journey.css";
+import { Wordmark } from "@/components/brand/Wordmark";
 import {
   ProfileApiError,
   profileApi,
@@ -18,646 +15,972 @@ import {
   useAccountProfile,
 } from "@/data/account-profile";
 import { saveProfile } from "@/data/actions";
-import { useEquipmentProfile } from "@/data/catalogue-runtime";
-import { setSalahEnabled } from "@/data/routine-actions";
-import type { AppModule, PlanningProfile, Profile } from "@/data/types";
-import { COL } from "@/data/types";
+import { useCatalogue, useEquipmentProfile } from "@/data/catalogue-runtime";
+import { saveCompanionConfig } from "@/data/companion";
 import { put } from "@/data/db";
+import { NeedsChoice, acceptPlan } from "@/data/plan-actions";
 import { saveReminderPrefs } from "@/data/reminders";
+import type { AppModule, Profile } from "@/data/types";
+import { COL } from "@/data/types";
+import { generatePlan, type Plan } from "@/domain/planner";
+import { schemeText } from "@/domain/plan-templates";
+import { WEEKDAY_LONG, WEEKDAY_SHORT } from "@/domain/dates";
+import { DEFAULT_COMPANION, type CompanionConfig } from "@/domain/companion";
+import {
+  AVOID_OPTIONS,
+  DEFAULT_ANSWERS,
+  DEFERRED,
+  DRAFT_KEY,
+  FIRST_DAY_STEPS,
+  INTENT_OPTIONS,
+  KIT_CHOICES,
+  KIT_DEFAULTS,
+  LEVEL_OPTIONS,
+  MINUTE_OPTIONS,
+  PLACE_OPTIONS,
+  QUICK_STEPS,
+  STEP_LABEL,
+  WHY,
+  furthestValid,
+  parseDraft,
+  serialiseDraft,
+  stepValid,
+  toPlanInput,
+  toPlanningProfile,
+  type Answers,
+  type StepId,
+} from "@/domain/onboarding";
+import { EQUIPMENT_LABEL } from "@/domain/catalogue";
+import { VARIANTS, VARIANT_IDS, type VariantId } from "@/domain/buddy/variants";
 import { DEFAULT_REMINDER_PREFS } from "@/domain/reminders";
 import { checkUsername } from "@/domain/username";
 import { useAuth } from "@/lib/auth";
-import { cn } from "@/lib/utils";
-import { setupGuide } from "@/domain/setup-guide";
-import { useProfile } from "@/data/hooks";
-import { VIcon } from "@/components/nl/icon";
+import { isSupabaseConfigured } from "@/lib/supabase";
+import { useReducedMotionPref } from "@/lib/media-prefs";
 
-export const Route = createFileRoute("/onboarding")({ component: OnboardingPage });
+const STEP_IDS = new Set<string>([...QUICK_STEPS, "personalise"]);
+export const Route = createFileRoute("/onboarding")({
+  validateSearch: (s: Record<string, unknown>): { s?: StepId } =>
+    typeof s.s === "string" && STEP_IDS.has(s.s) ? { s: s.s as StepId } : {},
+  component: OnboardingPage,
+});
 
-const MODULES: { id: AppModule; title: string; text: string }[] = [
-  { id: "training", title: "Training", text: "Workouts, exercise library and progress." },
-  { id: "nutrition", title: "Nutrition", text: "Meals, food targets and shopping." },
-  { id: "mind", title: "Mind", text: "Focus sessions, check-ins and reflection." },
-  { id: "routines", title: "Routines", text: "One plan for your day and week." },
-  { id: "community", title: "Community", text: "Optional crews, challenges and sharing." },
-  {
-    id: "spirituality",
-    title: "Faith & reflection",
-    text: "Private reflection and optional faith tools.",
-  },
-];
-const KIT = ["bodyweight", "dumbbell", "barbell", "cable", "machine", "band"] as const;
-const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-
-const timezones = () => {
-  const supported = (Intl as unknown as { supportedValuesOf?: (key: string) => string[] })
-    .supportedValuesOf;
-  const list = supported ? supported("timeZone") : ["Europe/London", "UTC"];
-  return list.includes("UTC") ? list : ["UTC", ...list];
+const HINT: Record<StepId, string> = {
+  intent: "One decision per screen. Skip anything you like.",
+  experience: "No wrong answer. This just sets a comfortable start.",
+  constraints: "Optional. Only what you want us to know.",
+  days: "Pick days you can really keep.",
+  time: "Shorter and regular beats long and rare.",
+  kit: "Only exercises you can actually do.",
+  plan: "Here's what I'd start with, and why.",
+  start: "Last step. Everything else can wait.",
+  personalise: "Make me look and sound like yours.",
+  welcome: "",
 };
-
-function Choice({
-  on,
-  title,
-  text,
-  onClick,
-}: {
-  on: boolean;
-  title: string;
-  text?: string;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      aria-pressed={on}
-      onClick={onClick}
-      className={cn(
-        "flex min-h-14 items-center justify-between gap-3 rounded-2xl border px-4 py-3 text-left transition",
-        on ? "border-primary bg-primary/10" : "border-input hover:bg-surface-2",
-      )}
-    >
-      <span>
-        <span className="block font-semibold">{title}</span>
-        {text && <span className="block text-sm text-muted-foreground">{text}</span>}
-      </span>
-      <span
-        aria-hidden
-        className={cn(
-          "grid size-7 shrink-0 place-items-center rounded-full border",
-          on ? "border-primary bg-primary text-primary-foreground" : "border-input",
-        )}
-      >
-        {on && <VIcon name="check" size={16} />}
-      </span>
-    </button>
-  );
-}
-
-const defaults: PlanningProfile = {
-  primaryGoal: "strength",
-  secondaryGoals: [],
-  experience: "new",
-  trainingDays: [0, 2, 4],
-  sessionMinutes: 45,
-  environment: "gym",
-  constraints: "",
-  dislikedMovements: "",
-  nutritionApproach: "balanced",
-  dietaryNeeds: "",
-  sleep: { start: "23:00", end: "07:00" },
-  work: { start: "09:00", end: "17:00", weekdays: [0, 1, 2, 3, 4] },
-  quiet: { start: "21:30", end: "07:30" },
-  reminderIntensity: "essential",
-  physiology: {
-    units: "metric",
-    activity: "moderate",
-    recovery: "okay",
-    energy: "okay",
-    limitations: "",
-    medicalSafetyFlag: false,
-  },
+const TITLE: Record<StepId, string> = {
+  intent: "What do you want from training?",
+  experience: "How would you describe your experience?",
+  constraints: "Anything to avoid or keep safe?",
+  days: "Which days can you train?",
+  time: "How long can each session be?",
+  kit: "Where will you train, and with what?",
+  plan: "Your first week",
+  start: "Ready to start",
+  personalise: "Make it yours",
+  welcome: "Welcome to VAYVOR",
 };
+const LEAD: Partial<Record<StepId, string>> = {
+  intent: "Pick the closest. You can change it later.",
+  experience: "This sets how much we start with.",
+  days: "At least two days. Rest days matter too.",
+  time: "Including warm-up. You can shorten any session later.",
+  kit: "Choose where, then tick what you have.",
+};
+const timezone = () => Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
+const MODULES: AppModule[] = ["training", "nutrition", "routines"];
 
 function OnboardingPage() {
   const nav = useNavigate();
+  const { s } = Route.useSearch();
   const { user } = useAuth();
   const account = useAccountProfile();
-  const localProfile = useProfile();
   const equipment = useEquipmentProfile();
-  const zones = useMemo(timezones, []);
-  const [step, setStep] = useState(0);
-  const [username, setUsername] = useState("");
-  const [name, setName] = useState("");
-  const [timezone, setTimezone] = useState(
-    () => Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC",
-  );
-  const [modules, setModules] = useState<AppModule[]>(["training", "nutrition", "routines"]);
-  const [faith, setFaith] = useState(false);
-  const [kit, setKit] = useState<(typeof KIT)[number][]>(["bodyweight"]);
-  const [plan, setPlan] = useState<PlanningProfile>(defaults);
+  const cat = useCatalogue();
+  const reduced = useReducedMotionPref();
+  const [answers, setAnswers] = useState<Answers>(DEFAULT_ANSWERS);
+  const [buddy, setBuddy] = useState<CompanionConfig>(DEFAULT_COMPANION);
+  const [buddyTouched, setBuddyTouched] = useState(false);
+  const [hydrated, setHydrated] = useState(false);
+  const [resumed, setResumed] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [availability, setAvailability] = useState<
     "idle" | "checking" | "free" | "taken" | "error"
   >("idle");
-  const [busy, setBusy] = useState(false);
-  const [hydrated, setHydrated] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const syntax = checkUsername(username);
+  const heading = useRef<HTMLHeadingElement>(null);
+  const needsHandle = !!user && account.state.status !== "ready";
+  const ctx = useMemo(() => ({ needsHandle }), [needsHandle]);
+  const syntax = checkUsername(answers.username);
+  const set = <K extends keyof Answers>(key: K, value: Answers[K]) =>
+    setAnswers((old) => ({ ...old, [key]: value }));
 
+  // Resume: restore the draft once, then land on the furthest screen the answers allow.
   useEffect(() => {
-    if (hydrated || !localProfile.ready) return;
-    const profile = localProfile.profile;
-    const server = account.state.status === "ready" ? account.state.profile : undefined;
-    if (server) {
-      setUsername(server.username);
-      setName(server.display_name);
-      setTimezone(server.timezone);
-      setAvailability("free");
-    } else if (profile) {
-      setName(profile.name);
-      setTimezone(profile.timezone);
+    if (hydrated) return;
+    let draft = null;
+    try {
+      draft = parseDraft(localStorage.getItem(DRAFT_KEY));
+    } catch {
+      /* storage unavailable: start fresh */
     }
-    if (profile?.modules?.length) setModules(profile.modules);
-    if (profile?.planning) setPlan(profile.planning);
-    setFaith(!!profile?.faithRoutines);
-    if (equipment.configured)
-      setKit(
-        equipment.have.filter((item): item is (typeof KIT)[number] =>
-          KIT.includes(item as (typeof KIT)[number]),
-        ),
-      );
+    if (draft) {
+      setAnswers(draft.answers);
+      if (!s && draft.step !== "intent" && draft.step !== "welcome") {
+        setResumed(true);
+        nav({
+          to: "/onboarding",
+          search: { s: furthestValid(draft.step, draft.answers, ctx) },
+          replace: true,
+        });
+      }
+    }
     setHydrated(true);
-  }, [hydrated, localProfile.ready, localProfile.profile, account.state, equipment]);
+  }, [hydrated, s, nav, ctx]);
+
+  const step: StepId = s ?? "welcome";
+  const reachable = furthestValid(step, answers, ctx);
+  useEffect(() => {
+    if (!hydrated) return;
+    if (reachable !== step) nav({ to: "/onboarding", search: { s: reachable }, replace: true });
+  }, [hydrated, reachable, step, nav]);
+
+  // Autosave every change, so leaving or closing the tab never loses an answer.
+  useEffect(() => {
+    if (!hydrated) return;
+    try {
+      localStorage.setItem(DRAFT_KEY, serialiseDraft(step, answers));
+    } catch {
+      /* storage unavailable: the journey still works for this visit */
+    }
+  }, [hydrated, step, answers]);
+
+  // Prefill from an existing account profile.
+  useEffect(() => {
+    if (account.state.status === "ready" && !answers.username)
+      setAnswers((a) => ({
+        ...a,
+        username: account.state.status === "ready" ? account.state.profile.username : "",
+        name:
+          a.name || (account.state.status === "ready" ? account.state.profile.display_name : ""),
+      }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [account.state.status]);
 
   useEffect(() => {
-    if (!user || !username || !syntax.ok) return setAvailability("idle");
-    if (account.state.status === "ready" && username === account.state.profile.username) {
-      setAvailability("free");
-      return;
-    }
+    heading.current?.focus({ preventScroll: false });
+    document.title = `${STEP_LABEL[step]} · Set up VAYVOR`;
+    window.scrollTo({ top: 0 });
+  }, [step]);
+
+  useEffect(() => {
+    if (!needsHandle || !answers.username || !syntax.ok) return setAvailability("idle");
     setAvailability("checking");
-    const timer = setTimeout(
+    const t = setTimeout(
       () =>
-        void profileApi.available(username).then(
+        void profileApi.available(answers.username).then(
           (free) => setAvailability(free ? "free" : "taken"),
           () => setAvailability("error"),
         ),
       350,
     );
-    return () => clearTimeout(timer);
-  }, [user, username, syntax.ok, account.state]);
+    return () => clearTimeout(t);
+  }, [needsHandle, answers.username, syntax.ok]);
 
-  const toggle = <T,>(list: T[], value: T, set: (value: T[]) => void) =>
-    set(list.includes(value) ? list.filter((item) => item !== value) : [...list, value]);
-  const basicsValid = !user || (syntax.ok && availability !== "taken" && name.trim().length > 0);
-  const valid =
-    step === 0
-      ? basicsValid
-      : step === 1
-        ? modules.length > 0
-        : step === 2
-          ? !modules.includes("training") || (plan.trainingDays.length > 0 && kit.length > 0)
-          : true;
+  const go = (to: StepId, replace = false) =>
+    nav({ to: "/onboarding", search: { s: to }, replace });
+  const idx = QUICK_STEPS.indexOf(
+    (step === "personalise"
+      ? "start"
+      : step === "welcome"
+        ? "intent"
+        : step) as (typeof QUICK_STEPS)[number],
+  );
+  const next = () => {
+    if (!stepValid(step, answers, ctx)) return;
+    if (step === "welcome") return go("intent");
+    if (step === "personalise") return go("start");
+    if (idx < QUICK_STEPS.length - 1) go(QUICK_STEPS[idx + 1]!);
+  };
+  const back = () => {
+    if (step === "personalise") return go("start");
+    if (step === "intent") return go("welcome");
+    if (idx > 0) go(QUICK_STEPS[idx - 1]!);
+  };
+
+  // First-week plan, generated from the answers with the same generator as the plan builder.
+  const planKey = JSON.stringify(toPlanInput(answers));
+  const generated = useMemo(
+    () =>
+      step === "plan" || step === "start"
+        ? cat.snapshot
+          ? generatePlan(
+              toPlanInput(answers),
+              cat.exercises.filter((e) => e.source.provider !== "custom"),
+            )
+          : null
+        : null,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [step === "plan" || step === "start", cat.snapshot, planKey],
+  );
+  const plan: Plan | null = generated && generated.ok ? generated.plan : null;
 
   const finish = async (skipped = false) => {
-    if (!basicsValid) return setStep(0);
+    if (needsHandle && !skipped && !stepValid("start", answers, ctx)) return;
     setBusy(true);
     setError(null);
     try {
       let handle: string | undefined;
+      const tz = timezone();
+      const displayName = answers.name.trim();
       if (user) {
-        const savedAccount =
+        const saved =
           account.state.status === "ready"
             ? await profileApi.update({
-                username: username.trim(),
-                displayName: name.trim(),
-                timezone,
+                username: answers.username.trim(),
+                displayName,
+                timezone: tz,
               })
-            : await profileApi.create(username.trim(), name.trim(), timezone);
-        setReadyProfile(user.id, savedAccount);
-        handle = savedAccount.username;
+            : await profileApi.create(answers.username.trim(), displayName, tz);
+        setReadyProfile(user.id, saved);
+        handle = saved.username;
       }
-      const selected: AppModule[] = skipped ? ["training", "routines"] : modules;
-      const prayer = !skipped && selected.includes("spirituality") && faith;
-      const pillars: NonNullable<Profile["pillars"]> = [];
-      if (selected.some((item) => item === "training" || item === "nutrition"))
-        pillars.push("body");
-      if (selected.some((item) => item === "mind" || item === "routines")) pillars.push("mind");
-      if (selected.includes("spirituality")) pillars.push("soul");
+      const planning = toPlanningProfile(answers);
+      const kit = skipped ? (["bodyweight"] as const) : answers.kit;
       await Promise.all([
         saveProfile({
-          name: name.trim(),
+          name: displayName,
           username: handle,
-          timezone,
-          modules: selected,
-          pillars,
-          faithRoutines: prayer,
-          faith: prayer
-            ? {
-                enabled: true,
-                traditions: ["islam"],
-                practices: ["prayer_remembrance"],
-                private: true,
-              }
-            : localProfile.profile?.faith,
-          goal: { kind: skipped ? "strength" : plan.primaryGoal },
-          planning: skipped ? defaults : plan,
-          returnToTraining: !skipped && plan.experience === "returning",
+          timezone: tz,
+          modules: skipped ? ["training", "routines"] : MODULES,
+          pillars: ["body", "mind"] as NonNullable<Profile["pillars"]>,
+          goal: { kind: skipped ? "strength" : planning.primaryGoal },
+          planning,
+          returnToTraining: !skipped && answers.level === "returning",
           setup: {
             goals: !skipped,
-            routine: selected.includes("routines"),
-            prayer: !prayer,
-            food: !selected.includes("nutrition"),
+            routine: true,
+            prayer: true,
+            food: false,
             completed: true,
             skipped,
           },
         }),
-        equipment.save(skipped ? ["bodyweight"] : kit),
-        setSalahEnabled(prayer),
-        skipped
-          ? Promise.resolve()
-          : put(COL.routine, "setup-sleep", {
-              id: "setup-sleep",
-              label: "Sleep",
-              start: plan.sleep.start,
-              end: plan.sleep.end,
-              weekdays: [0, 1, 2, 3, 4, 5, 6],
-              kind: "sleep",
-              order: -20,
-            }),
-        skipped
-          ? Promise.resolve()
-          : put(COL.routine, "setup-work", {
-              id: "setup-work",
-              label: "Work / fixed hours",
-              start: plan.work.start,
-              end: plan.work.end,
-              weekdays: plan.work.weekdays,
-              kind: "work",
-              order: -10,
-            }),
+        equipment.save([...kit]),
+        buddyTouched
+          ? saveCompanionConfig({ ...buddy, name: buddy.name.trim() || buddy.name })
+          : Promise.resolve(),
         saveReminderPrefs({
           ...DEFAULT_REMINDER_PREFS,
-          training: {
-            enabled: !skipped && plan.reminderIntensity !== "off",
-            leadMinutes: plan.reminderIntensity === "active" ? 90 : 60,
-          },
-          food: {
-            enabled:
-              !skipped &&
-              modules.includes("nutrition") &&
-              ["supportive", "active"].includes(plan.reminderIntensity),
-            time: "20:00",
-          },
-          prayer: { ...DEFAULT_REMINDER_PREFS.prayer, enabled: prayer },
+          training: { enabled: !skipped, leadMinutes: 60 },
+          food: { enabled: false, time: "20:00" },
+          prayer: { ...DEFAULT_REMINDER_PREFS.prayer, enabled: false },
           quiet: {
-            enabled: !skipped && plan.reminderIntensity !== "off",
-            start: plan.quiet.start,
-            end: plan.quiet.end,
+            enabled: true,
+            start: planning.quiet.start,
+            end: planning.quiet.end,
             allowFajr: false,
           },
         }),
       ]);
-      toast.success(skipped ? "Start simple—personalise any time" : "Your space is ready");
-      // Reload once at the setup boundary so the app shell reads the saved profile
-      // from IndexedDB before its new-guest redirect guard runs. A client-side
-      // navigation can otherwise race the collection cache and reopen onboarding.
+      if (!skipped && plan) {
+        const args = { plan, byId: cat.byId, equipment: answers.kit };
+        try {
+          await acceptPlan(args);
+        } catch (e) {
+          if (e instanceof NeedsChoice) await acceptPlan({ ...args, handle: "add" });
+          else throw e;
+        }
+      }
+      try {
+        localStorage.removeItem(DRAFT_KEY);
+      } catch {
+        /* ignore */
+      }
+      toast.success(skipped ? "Start simple. Personalise any time." : "Your first week is ready");
+      // Reload once at the setup boundary so the shell reads the saved profile before its redirect guard runs.
       window.location.replace("/");
     } catch (caught) {
       if (caught instanceof ProfileApiError && caught.code === "username_taken") {
         setAvailability("taken");
-        setStep(0);
         setError("Someone just took that handle. Try another.");
       } else if (caught instanceof ProfileApiError && caught.code === "profile_exists")
         nav({ to: "/", replace: true });
-      else setError(caught instanceof Error ? caught.message : "Couldn't save your setup.");
+      else
+        setError(
+          caught instanceof Error
+            ? caught.message
+            : "Couldn't save your setup. Your answers are kept.",
+        );
     } finally {
       setBusy(false);
     }
   };
 
-  const titles = [
-    "Start with you",
-    "Choose your areas",
-    "Build your training fit",
-    "Check your setup",
-  ];
-  const guide = setupGuide(step === 2 ? 3 : step === 3 ? 5 : step, {
-    modules,
-    safetyGate:
-      !!plan.physiology?.medicalSafetyFlag ||
-      plan.physiology?.ageBand === "under-18" ||
-      /pain|injur|surgery|medical/i.test(
-        `${plan.constraints} ${plan.physiology?.limitations ?? ""}`,
-      ),
-    days: plan.trainingDays.length,
-    minutes: plan.sessionMinutes,
-  });
-  const intros = [
-    user
-      ? "Create the profile attached to your account. Your email stays private."
-      : "A name is optional. Your timezone keeps the daily plan accurate.",
-    "These areas feed the same Today view, weekly plan and progress story. Change them later.",
-    "These choices change exercise selection, weekly volume and session length.",
-    "Your setup becomes a useful starting plan. Advanced preferences stay in the setup path.",
-  ];
+  const toggle = <T,>(list: T[], v: T) =>
+    list.includes(v) ? list.filter((x) => x !== v) : [...list, v];
+  const valid = stepValid(step, answers, ctx);
+  const lastQuick = step === "start";
+  const why = WHY[step];
+  const startOver = () => {
+    try {
+      localStorage.removeItem(DRAFT_KEY);
+    } catch {
+      /* ignore */
+    }
+    setAnswers(DEFAULT_ANSWERS);
+    setResumed(false);
+    go("intent");
+  };
 
   return (
-    <AuthLayout title={titles[step]!} intro={intros[step]!}>
-      <div
-        className="flex items-center gap-1.5"
-        aria-label={`Setup step ${step + 1} of ${titles.length}`}
-      >
-        {titles.map((_, index) => (
-          <span
-            key={index}
-            className={cn("h-1.5 flex-1 rounded-full", index <= step ? "bg-primary" : "bg-line")}
-          />
-        ))}
-      </div>
-      <aside className="flex items-start gap-3 rounded-2xl bg-primary/10 p-4" aria-live="polite">
-        <span
-          className="grid size-9 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground"
-          aria-hidden
+    <div className="jr">
+      <GlobalHaptics />
+      <header className="jr-head">
+        <Link to="/" aria-label="VAYVOR" className="flex min-h-11 items-center">
+          <Wordmark className="text-[1rem]" />
+        </Link>
+        <button type="button" className="jr-skip" disabled={busy} onClick={() => void finish(true)}>
+          Skip setup
+        </button>
+      </header>
+      <div className="jr-body">
+        {step !== "welcome" && <ProgressMap steps={QUICK_STEPS} current={step} />}
+        <form
+          className="jr-col flex flex-1 flex-col"
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (lastQuick) void finish();
+            else next();
+          }}
         >
-          <VIcon name="buddy" size={16} />
-        </span>
-        <div>
-          <p className="text-sm font-semibold">Buddy · {guide.title}</p>
-          <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{guide.body}</p>
-        </div>
-      </aside>
-
-      {step === 0 && (
-        <div className="grid gap-4">
-          {user && (
-            <Field
-              label="Handle"
-              htmlFor="setup-handle"
-              hint="3–20 letters, numbers or underscores."
-              error={
-                username && !syntax.ok
-                  ? syntax.reason
-                  : availability === "taken"
-                    ? "That handle is taken."
-                    : undefined
-              }
-            >
-              <TextInput
-                id="setup-handle"
-                autoComplete="username"
-                autoCapitalize="none"
-                spellCheck={false}
-                value={username}
-                onChange={(event) => setUsername(event.target.value)}
-              />
-            </Field>
-          )}
-          <Field label={user ? "Display name" : "Name (optional)"} htmlFor="setup-name">
-            <TextInput
-              id="setup-name"
-              autoComplete="name"
-              maxLength={40}
-              value={name}
-              onChange={(event) => setName(event.target.value)}
-            />
-          </Field>
-          <Field
-            label="Timezone"
-            htmlFor="setup-timezone"
-            hint="Used for your day, plan and optional reminders."
-          >
-            <Select
-              id="setup-timezone"
-              value={timezone}
-              onChange={(event) => setTimezone(event.target.value)}
-            >
-              {zones.map((zone) => (
-                <option key={zone}>{zone}</option>
-              ))}
-            </Select>
-          </Field>
-        </div>
-      )}
-
-      {step === 1 && (
-        <fieldset className="grid gap-2">
-          <legend className="sr-only">Choose areas</legend>
-          {MODULES.map((module) => (
-            <Choice
-              key={module.id}
-              on={modules.includes(module.id)}
-              title={module.title}
-              text={module.text}
-              onClick={() => toggle(modules, module.id, setModules)}
-            />
-          ))}
-        </fieldset>
-      )}
-
-      {step === 2 && (
-        <div className="grid gap-5">
-          <div className="grid gap-3 sm:grid-cols-2">
-            <Field label="Primary goal">
-              <Select
-                value={plan.primaryGoal}
-                onChange={(event) =>
-                  setPlan({
-                    ...plan,
-                    primaryGoal: event.target.value as PlanningProfile["primaryGoal"],
-                  })
-                }
-              >
-                <option value="strength">Strength</option>
-                <option value="gain-weight">Muscle / gain weight</option>
-                <option value="lose-weight">Fat loss</option>
-                <option value="maintain">General fitness</option>
-                <option value="custom">Custom</option>
-              </Select>
-            </Field>
-            <Field label="Experience">
-              <Select
-                value={plan.experience}
-                onChange={(event) =>
-                  setPlan({
-                    ...plan,
-                    experience: event.target.value as PlanningProfile["experience"],
-                  })
-                }
-              >
-                <option value="new">New</option>
-                <option value="returning">Returning</option>
-                <option value="some">Some experience</option>
-                <option value="experienced">Experienced</option>
-              </Select>
-            </Field>
-          </div>
-          <fieldset>
-            <legend className="mb-2 text-sm font-medium">Secondary goals</legend>
-            <div className="flex flex-wrap gap-2">
-              {(["mobility", "endurance", "energy", "consistency"] as const).map((goal) => (
-                <button
-                  type="button"
-                  key={goal}
-                  aria-pressed={plan.secondaryGoals.includes(goal)}
-                  onClick={() =>
-                    toggle(plan.secondaryGoals, goal, (secondaryGoals) =>
-                      setPlan({ ...plan, secondaryGoals }),
-                    )
-                  }
-                  className={cn(
-                    "min-h-11 rounded-full border px-4 capitalize",
-                    plan.secondaryGoals.includes(goal)
-                      ? "border-primary bg-primary text-primary-foreground"
-                      : "border-input",
-                  )}
-                >
-                  {goal}
+          <main className="jr-main" aria-busy={busy}>
+            {resumed && (
+              <p className="jr-note" role="status">
+                Picking up where you left off.{" "}
+                <button type="button" className="jr-link" onClick={startOver}>
+                  Start over
                 </button>
-              ))}
-            </div>
-          </fieldset>
-          {modules.includes("training") && (
-            <>
-              <fieldset>
-                <legend className="mb-2 text-sm font-medium">Preferred training days</legend>
-                <div className="flex flex-wrap gap-2">
-                  {DAYS.map((day, index) => (
-                    <button
-                      key={day}
-                      type="button"
-                      aria-pressed={plan.trainingDays.includes(index)}
-                      onClick={() =>
-                        toggle(plan.trainingDays, index, (trainingDays) =>
-                          setPlan({ ...plan, trainingDays: trainingDays.sort() }),
-                        )
-                      }
-                      className={cn(
-                        "size-11 rounded-full border text-sm",
-                        plan.trainingDays.includes(index)
-                          ? "border-primary bg-primary text-primary-foreground"
-                          : "border-input",
-                      )}
-                    >
-                      {day.slice(0, 1)}
-                    </button>
-                  ))}
+              </p>
+            )}
+            {step === "welcome" ? (
+              <Welcome
+                buddy={buddy}
+                reduced={reduced}
+                onPick={(variant) => {
+                  setBuddy((b) => ({
+                    ...b,
+                    variant,
+                    name: VARIANT_IDS.some((id) => VARIANTS[id].defaultName === b.name)
+                      ? VARIANTS[variant].defaultName
+                      : b.name,
+                    expression: VARIANTS[variant].defaultExpression,
+                  }));
+                  setBuddyTouched(true);
+                }}
+                hasAccounts={isSupabaseConfigured}
+                headingRef={heading}
+              />
+            ) : (
+              <>
+                <div className="jr-hint">
+                  <BuddyCharacter
+                    variant={buddy.variant}
+                    state={step === "plan" ? "point" : step === "start" ? "encourage" : "explain"}
+                    motion={reduced ? "off" : buddy.motion}
+                    palette={buddy.palette}
+                    expression={buddy.expression}
+                    size={40}
+                    name={buddy.name}
+                  />
+                  <span>{HINT[step]}</span>
                 </div>
+                <h1 ref={heading} tabIndex={-1} className="jr-h1">
+                  {TITLE[step]}
+                </h1>
+                {LEAD[step] && <p className="jr-lead">{LEAD[step]}</p>}
+                {why && (
+                  <details className="jr-why">
+                    <summary>Why we ask</summary>
+                    <p>{why}</p>
+                  </details>
+                )}
+              </>
+            )}
+
+            {step === "intent" && (
+              <fieldset className="jr-rows">
+                <legend className="sr-only">Training outcome</legend>
+                {INTENT_OPTIONS.map((o) => (
+                  <Row
+                    key={o.id}
+                    name="intent"
+                    on={answers.intent === o.id}
+                    onChange={() => set("intent", o.id)}
+                    title={o.title}
+                    text={o.text}
+                  />
+                ))}
               </fieldset>
-              <div className="grid gap-3 sm:grid-cols-2">
-                <Field label="Session length">
-                  <NumberField
-                    label="Minutes"
-                    unit="min"
-                    value={plan.sessionMinutes}
-                    step={5}
-                    decimals={0}
-                    onChange={(sessionMinutes) =>
-                      sessionMinutes && setPlan({ ...plan, sessionMinutes })
+            )}
+
+            {step === "experience" && (
+              <fieldset className="jr-rows">
+                <legend className="sr-only">Experience</legend>
+                {LEVEL_OPTIONS.map((o) => (
+                  <Row
+                    key={o.id}
+                    name="level"
+                    on={answers.level === o.id}
+                    onChange={() => set("level", o.id)}
+                    title={o.title}
+                    text={o.text}
+                  />
+                ))}
+              </fieldset>
+            )}
+
+            {step === "constraints" && (
+              <>
+                <fieldset className="jr-rows">
+                  <legend className="jr-sub">Needed to build a plan</legend>
+                  <Row
+                    type="checkbox"
+                    name="adult"
+                    on={answers.adult}
+                    onChange={() => set("adult", !answers.adult)}
+                    title="I'm 18 or over"
+                    text="VAYVOR plans are for adults."
+                  />
+                </fieldset>
+                <fieldset className="jr-chips">
+                  <legend className="jr-sub w-full">Leave these out (optional)</legend>
+                  {AVOID_OPTIONS.map((o) => (
+                    <Chip
+                      key={o.id}
+                      name="avoid"
+                      on={answers.avoid.includes(o.id)}
+                      onChange={() => set("avoid", toggle(answers.avoid, o.id))}
+                    >
+                      {o.label}
+                    </Chip>
+                  ))}
+                </fieldset>
+                <label className="jr-field">
+                  Anything else we should know? (optional)
+                  <textarea
+                    rows={3}
+                    maxLength={300}
+                    value={answers.note}
+                    onChange={(e) => set("note", e.target.value)}
+                    placeholder="For example: sore left knee"
+                  />
+                </label>
+                <fieldset className="jr-rows">
+                  <Row
+                    type="checkbox"
+                    name="clinician"
+                    on={answers.clinicianRestricted}
+                    onChange={() => set("clinicianRestricted", !answers.clinicianRestricted)}
+                    title="A clinician has limited my exercise"
+                    text="Then VAYVOR won't build a plan. Follow their advice."
+                  />
+                </fieldset>
+                {answers.clinicianRestricted && (
+                  <p className="jr-note" role="status">
+                    Understood. We'll set you up without a plan, so you can log what your clinician
+                    says is safe.
+                  </p>
+                )}
+              </>
+            )}
+
+            {step === "days" && (
+              <>
+                <fieldset className="jr-days">
+                  <legend className="sr-only">Training days</legend>
+                  {WEEKDAY_SHORT.map((d, i) => (
+                    <label key={d} className="jr-day" data-on={answers.days.includes(i)}>
+                      <input
+                        type="checkbox"
+                        className="sr-only"
+                        name="days"
+                        aria-label={WEEKDAY_LONG[i]}
+                        checked={answers.days.includes(i)}
+                        onChange={() =>
+                          set(
+                            "days",
+                            toggle(answers.days, i).sort((a, b) => a - b),
+                          )
+                        }
+                      />
+                      {d}
+                    </label>
+                  ))}
+                </fieldset>
+                <p className="jr-lead" aria-live="polite">
+                  {answers.days.length >= 2
+                    ? `${answers.days.length} days a week`
+                    : "Pick at least 2 days"}
+                </p>
+              </>
+            )}
+
+            {step === "time" && (
+              <fieldset className="jr-rows">
+                <legend className="sr-only">Session length</legend>
+                {MINUTE_OPTIONS.map((m) => (
+                  <Row
+                    key={m}
+                    name="minutes"
+                    on={answers.minutes === m}
+                    onChange={() => set("minutes", m)}
+                    title={`${m} minutes`}
+                    text={
+                      m <= 30
+                        ? "Short and focused"
+                        : m <= 45
+                          ? "A solid standard session"
+                          : m <= 60
+                            ? "Room for accessories"
+                            : "Longer, fuller sessions"
                     }
                   />
-                </Field>
-                <Field label="Environment">
-                  <Select
-                    value={plan.environment}
-                    onChange={(event) =>
-                      setPlan({
-                        ...plan,
-                        environment: event.target.value as PlanningProfile["environment"],
-                      })
-                    }
-                  >
-                    <option value="gym">Gym</option>
-                    <option value="home">Home</option>
-                    <option value="outdoors">Outdoors</option>
-                    <option value="mixed">Mixed</option>
-                  </Select>
-                </Field>
-              </div>
-              <fieldset>
-                <legend className="mb-2 text-sm font-medium">Equipment</legend>
-                <div className="flex flex-wrap gap-2">
-                  {KIT.map((item) => (
-                    <button
-                      key={item}
-                      type="button"
-                      aria-pressed={kit.includes(item)}
-                      onClick={() => toggle(kit, item, setKit)}
-                      className={cn(
-                        "min-h-11 rounded-full border px-4 capitalize",
-                        kit.includes(item)
-                          ? "border-primary bg-primary text-primary-foreground"
-                          : "border-input",
-                      )}
-                    >
-                      {item}
-                    </button>
-                  ))}
-                </div>
+                ))}
               </fieldset>
-              <Field
-                label="Constraints, injuries or movements to avoid"
-                hint="Free text for filtering and substitutions; seek qualified advice for injuries."
-              >
-                <TextArea
-                  value={plan.constraints}
-                  onChange={(event) => setPlan({ ...plan, constraints: event.target.value })}
-                />
-              </Field>
-              <Field label="Disliked movements">
-                <TextInput
-                  placeholder="e.g. burpees, running"
-                  value={plan.dislikedMovements}
-                  onChange={(event) => setPlan({ ...plan, dislikedMovements: event.target.value })}
-                />
-              </Field>
-            </>
-          )}
-        </div>
-      )}
+            )}
 
-      {step === 3 && (
-        <div className="grid gap-3 rounded-2xl border border-line bg-surface-2/50 p-4 text-sm">
-          <p>
-            <strong>Areas:</strong>{" "}
-            {modules.map((item) => MODULES.find((module) => module.id === item)?.title).join(", ")}
-          </p>
-          <p>
-            <strong>Goal:</strong> {plan.primaryGoal.replace("-", " ")} · {plan.experience} ·{" "}
-            {plan.trainingDays.length} training days
-          </p>
-          <p>
-            <strong>Time fit:</strong> {plan.sessionMinutes} minute sessions on your selected days.
-          </p>
-          <p>
-            <strong>Faith:</strong> Configure only after opting in from Faith & reflection.
-          </p>
-          <p className="text-muted-foreground">
-            Why this plan: VAYVOR will cap session volume to your available time, use your chosen
-            days, prefer exercises available in your environment, filter stated avoidances, protect
-            sleep and quiet hours, and scale reminders to your choice.
-          </p>
-        </div>
-      )}
+            {step === "kit" && (
+              <>
+                <fieldset className="jr-rows">
+                  <legend className="sr-only">Where you train</legend>
+                  {PLACE_OPTIONS.map((o) => (
+                    <Row
+                      key={o.id}
+                      name="place"
+                      on={answers.place === o.id}
+                      onChange={() =>
+                        setAnswers((a) => ({ ...a, place: o.id, kit: KIT_DEFAULTS[o.id] }))
+                      }
+                      title={o.title}
+                      text={o.text}
+                    />
+                  ))}
+                </fieldset>
+                {answers.place && (
+                  <fieldset className="jr-chips">
+                    <legend className="jr-sub w-full">What you have</legend>
+                    {KIT_CHOICES.map((k) => (
+                      <Chip
+                        key={k}
+                        name="kit"
+                        on={answers.kit.includes(k)}
+                        onChange={() => set("kit", toggle(answers.kit, k))}
+                      >
+                        {EQUIPMENT_LABEL[k]}
+                      </Chip>
+                    ))}
+                  </fieldset>
+                )}
+              </>
+            )}
 
-      {error && (
-        <p role="alert" className="text-sm text-destructive">
-          {error}
-        </p>
-      )}
-      <div className="flex flex-wrap items-center justify-between gap-2 pt-2">
-        <Button
-          variant="ghost"
-          disabled={busy}
-          onClick={() => (step > 0 ? setStep(step - 1) : void finish(true))}
-        >
-          {step > 0 ? (
-            <>
-              <VIcon name="previous" size={16} /> Back
-            </>
-          ) : (
-            "Skip personalisation"
-          )}
-        </Button>
-        <Button
-          variant="primary"
-          size="lg"
-          busy={busy}
-          disabled={!valid}
-          onClick={() => (step < 3 ? setStep(step + 1) : void finish())}
-        >
-          {step < 3 ? (
-            <>
-              Continue <VIcon name="next" size={16} />
-            </>
-          ) : (
-            "Build my space"
-          )}
-        </Button>
+            {step === "plan" && (
+              <PlanPreview
+                answers={answers}
+                plan={plan}
+                ready={!!cat.snapshot}
+                generated={generated}
+                onChange={() => go("constraints")}
+              />
+            )}
+
+            {step === "start" && (
+              <StartScreen
+                answers={answers}
+                setAnswers={setAnswers}
+                plan={plan}
+                go={go}
+                needsHandle={needsHandle}
+                signedIn={!!user}
+                availability={availability}
+                syntaxError={answers.username ? (syntax.ok ? undefined : syntax.reason) : undefined}
+              />
+            )}
+
+            {step === "personalise" && (
+              <div className="mt-6 grid gap-8">
+                <ColourWorldPicker />
+                <BuddySetup
+                  progressive
+                  value={buddy}
+                  onChange={(b) => {
+                    setBuddy(b);
+                    setBuddyTouched(true);
+                  }}
+                />
+              </div>
+            )}
+
+            {error && (
+              <p role="alert" className="jr-error">
+                {error}
+              </p>
+            )}
+          </main>
+          <div className="jr-bar">
+            <div className="jr-bar-in">
+              {(step === "personalise" || (step !== "welcome" && idx >= 0)) && (
+                <button
+                  type="button"
+                  className="jr-btn jr-btn-ghost"
+                  onClick={back}
+                  disabled={busy}
+                >
+                  Back
+                </button>
+              )}
+              <button type="submit" className="jr-btn jr-btn-primary" disabled={!valid || busy}>
+                {busy
+                  ? "Saving…"
+                  : lastQuick
+                    ? plan
+                      ? "Start my first week"
+                      : "Start"
+                    : step === "welcome"
+                      ? "Let’s set you up"
+                      : step === "personalise"
+                        ? "Done"
+                        : step === "plan"
+                          ? "Looks good"
+                          : step === "constraints"
+                            ? "Continue"
+                            : "Continue"}
+              </button>
+            </div>
+          </div>
+        </form>
       </div>
-      <p className="text-xs text-muted-foreground">
-        Step {step + 1} of {titles.length} · Back, skip or edit later at any time.
+    </div>
+  );
+}
+
+function Welcome({
+  buddy,
+  reduced,
+  onPick,
+  hasAccounts,
+  headingRef,
+}: {
+  buddy: CompanionConfig;
+  reduced: boolean;
+  onPick: (v: VariantId) => void;
+  hasAccounts: boolean;
+  headingRef: React.RefObject<HTMLHeadingElement | null>;
+}) {
+  const [hello, setHello] = useState<"enter" | "poke">("enter");
+  useEffect(() => {
+    const t = setTimeout(() => setHello("poke"), 1400);
+    return () => clearTimeout(t);
+  }, []);
+  return (
+    <div className="jr-welcome">
+      <div className="jr-stage" aria-hidden>
+        <BuddyCharacter
+          variant={buddy.variant}
+          state={hello === "enter" ? "enter" : "idle"}
+          motion={reduced ? "off" : buddy.motion}
+          palette={buddy.palette}
+          expression={buddy.expression}
+          size={168}
+          decorative
+        />
+      </div>
+      <p className="jr-kicker">VAY-vor · body, mind, soul, together</p>
+      <h1 ref={headingRef} tabIndex={-1} className="jr-h1 jr-h1-hero">
+        Meet VAYVOR.
+      </h1>
+      <p className="jr-lead">
+        One calm plan for training, food and your head, built around your real week. It all stays on
+        this device unless you choose to sign in.
       </p>
-    </AuthLayout>
+      <fieldset className="jr-buddies">
+        <legend className="jr-sub">Pick your buddy</legend>
+        <div className="jr-buddy-row">
+          {VARIANT_IDS.map((id) => (
+            <label key={id} className="jr-buddy" data-on={buddy.variant === id}>
+              <input
+                type="radio"
+                name="buddy-variant"
+                className="sr-only"
+                checked={buddy.variant === id}
+                onChange={() => onPick(id)}
+              />
+              <BuddyCharacter
+                variant={id}
+                state={buddy.variant === id ? "poke" : "idle"}
+                motion={reduced ? "off" : "gentle"}
+                palette={buddy.palette}
+                expression={VARIANTS[id].defaultExpression}
+                size={64}
+                decorative
+              />
+              <span className="jr-buddy-name">{VARIANTS[id].label}</span>
+              <span className="jr-buddy-tag">{VARIANTS[id].tagline.split(".")[0]}</span>
+            </label>
+          ))}
+        </div>
+      </fieldset>
+      <ul className="jr-list jr-points">
+        <li>Eight quick questions, about a minute. Skip any of them.</li>
+        <li>Nothing is guessed about your goals, health or beliefs.</li>
+        {hasAccounts && (
+          <li>
+            Already have an account?{" "}
+            <Link to="/welcome" className="underline underline-offset-4">
+              Sign in
+            </Link>
+            .
+          </li>
+        )}
+      </ul>
+    </div>
+  );
+}
+
+function PlanPreview({
+  answers,
+  plan,
+  ready,
+  generated,
+  onChange,
+}: {
+  answers: Answers;
+  plan: Plan | null;
+  ready: boolean;
+  generated: ReturnType<typeof generatePlan> | null;
+  onChange: () => void;
+}) {
+  if (!ready || !generated)
+    return <div className="jr-skel" role="status" aria-label="Building your plan" />;
+  if (!generated.ok)
+    return (
+      <>
+        <p className="jr-note" role="status">
+          {generated.message}
+        </p>
+        <p className="jr-lead">
+          You can still start. Log your own sessions, or build a plan later in Training.
+        </p>
+        <button type="button" className="jr-link" onClick={onChange}>
+          Change my answers
+        </button>
+      </>
+    );
+  const first = plan!.sessions[0];
+  const dayName = (wd: number) => WEEKDAY_SHORT[(wd + 6) % 7];
+  const why = [
+    `You chose ${answers.days.length} days of ${answers.minutes} minutes, so each session is fitted to ${answers.minutes} minutes.`,
+    `Exercises come only from the kit you ticked.`,
+    answers.avoid.length
+      ? `Left out: ${answers.avoid.map((a) => AVOID_OPTIONS.find((o) => o.id === a)?.label.toLowerCase()).join(", ")}.`
+      : "",
+    ...plan!.rationale.slice(0, 2),
+  ].filter(Boolean);
+  return (
+    <>
+      <ol className="jr-plan" aria-label="Weekly sessions">
+        {plan!.sessions.map((s, i) => (
+          <li key={i}>
+            <b>{dayName(s.weekday)}</b>
+            <span>
+              {s.title}
+              <small>
+                {s.focus} · about {s.estimatedMinutes} min
+              </small>
+            </span>
+          </li>
+        ))}
+      </ol>
+      <p className="jr-sub">Why this</p>
+      <ul className="jr-list">
+        {why.map((w) => (
+          <li key={w}>{w}</li>
+        ))}
+      </ul>
+      {first && (
+        <details className="jr-why" open>
+          <summary>First day, step by step</summary>
+          <ol className="jr-plan">
+            {first.exercises.slice(0, 5).map((x) => (
+              <li key={x.slotKey}>
+                <b>{x.sets}×</b>
+                <span>
+                  {x.name}
+                  <small>{schemeText(x)}</small>
+                </span>
+              </li>
+            ))}
+          </ol>
+          <ul className="jr-list">
+            {FIRST_DAY_STEPS.map((f) => (
+              <li key={f.title}>
+                <strong>{f.title}.</strong> {f.text}
+              </li>
+            ))}
+          </ul>
+        </details>
+      )}
+      <p className="jr-lead">
+        Loads start from your own first logged sets. Nothing is guessed from your body weight.
+      </p>
+    </>
+  );
+}
+
+function StartScreen({
+  answers,
+  setAnswers,
+  plan,
+  go,
+  needsHandle,
+  signedIn,
+  availability,
+  syntaxError,
+}: {
+  answers: Answers;
+  setAnswers: React.Dispatch<React.SetStateAction<Answers>>;
+  plan: Plan | null;
+  go: (s: StepId) => void;
+  needsHandle: boolean;
+  signedIn: boolean;
+  availability: "idle" | "checking" | "free" | "taken" | "error";
+  syntaxError?: string;
+}) {
+  const rows: [string, string, StepId][] = [
+    ["Outcome", INTENT_OPTIONS.find((o) => o.id === answers.intent)?.title ?? "", "intent"],
+    ["Experience", LEVEL_OPTIONS.find((o) => o.id === answers.level)?.title ?? "", "experience"],
+    ["Days", answers.days.map((d) => WEEKDAY_SHORT[d]).join(" "), "days"],
+    ["Time", `${answers.minutes} minutes`, "time"],
+    [
+      "Kit",
+      `${PLACE_OPTIONS.find((o) => o.id === answers.place)?.title ?? ""} · ${answers.kit.length} items`,
+      "kit",
+    ],
+  ];
+  return (
+    <>
+      <dl className="jr-review">
+        {rows.map(([k, v, to]) => (
+          <div key={k}>
+            <dt>{k}</dt>
+            <dd>{v}</dd>
+            <button
+              type="button"
+              className="jr-link"
+              onClick={() => go(to)}
+              aria-label={`Change ${k.toLowerCase()}`}
+            >
+              Change
+            </button>
+          </div>
+        ))}
+      </dl>
+      <p className="jr-lead">
+        {plan
+          ? `${plan.sessions.length} sessions ready for your first week.`
+          : "No plan yet. You can build one any time in Training."}
+      </p>
+
+      <p className="jr-sub">Your name (optional)</p>
+      <label className="jr-field">
+        <span className="sr-only">Your name</span>
+        <input
+          type="text"
+          autoComplete="given-name"
+          maxLength={60}
+          value={answers.name}
+          onChange={(e) => setAnswers((a) => ({ ...a, name: e.target.value }))}
+        />
+      </label>
+      {needsHandle && (
+        <label className="jr-field">
+          Choose a handle (required for your account)
+          <input
+            type="text"
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
+            maxLength={30}
+            value={answers.username}
+            onChange={(e) => setAnswers((a) => ({ ...a, username: e.target.value }))}
+            aria-describedby="handle-state"
+          />
+          <span
+            id="handle-state"
+            className="text-xs font-normal text-muted-foreground"
+            aria-live="polite"
+          >
+            {syntaxError ??
+              (availability === "checking"
+                ? "Checking…"
+                : availability === "free"
+                  ? "Available"
+                  : availability === "taken"
+                    ? "Taken. Try another."
+                    : availability === "error"
+                      ? "Couldn't check right now."
+                      : "Letters, numbers and underscores.")}
+          </span>
+        </label>
+      )}
+
+      <p className="jr-sub">Where your data lives</p>
+      <ul className="jr-list">
+        <li>Everything stays on this device unless you sign in. Local-first: it works offline.</li>
+        {isSupabaseConfigured ? (
+          signedIn ? (
+            <li>You're signed in, so your plan can sync and back up across devices.</li>
+          ) : (
+            <li>
+              Signing in unlocks sync between devices, backup and optional crews.{" "}
+              <Link
+                to="/welcome"
+                search={{ mode: "signup" }}
+                className="underline underline-offset-4"
+              >
+                Sign in or create an account
+              </Link>
+              . Your answers here are saved and wait for you.
+            </li>
+          )
+        ) : (
+          <li>Accounts aren't enabled in this build, so there is nothing to sign in to yet.</li>
+        )}
+      </ul>
+
+      <p className="jr-sub">Everything else can wait</p>
+      <details className="jr-why">
+        <summary>What we didn't ask</summary>
+        <ul className="jr-list">
+          {DEFERRED.map((d) => (
+            <li key={d}>{d}</li>
+          ))}
+        </ul>
+        <p>All of it is in Settings, and Today's setup path suggests it one piece at a time.</p>
+      </details>
+      <button type="button" className="jr-link" onClick={() => go("personalise")}>
+        Choose a colour world and companion now (optional)
+      </button>
+    </>
   );
 }

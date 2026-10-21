@@ -1,4 +1,14 @@
 import type { CatalogueExercise, EquipmentId, MuscleId, Pattern } from "./catalogue";
+import {
+  accessTagsOf,
+  difficultyOf,
+  mediaStateOf,
+  modalityOf,
+  type AccessTag,
+  type Difficulty,
+  type MediaState,
+  type Modality,
+} from "./catalogue-facets";
 
 export type CatalogueFilter = {
   q?: string;
@@ -9,6 +19,12 @@ export type CatalogueFilter = {
   haveEquipment?: EquipmentId[];
   withImages?: boolean;
   favouritesOnly?: string[];
+  modality?: Modality;
+  difficulty?: Difficulty;
+  /** Every listed access tag must apply (estimated; see catalogue-facets). */
+  access?: AccessTag[];
+  media?: MediaState;
+  provider?: string;
 };
 
 const norm = (s: string) =>
@@ -43,6 +59,14 @@ export function searchCatalogue(all: CatalogueExercise[], f: CatalogueFilter): C
     if (have && !e.equipment.every((q) => have.has(q))) continue;
     if (f.withImages && !e.media.length) continue;
     if (f.favouritesOnly && !f.favouritesOnly.includes(e.id)) continue;
+    if (f.modality && modalityOf(e) !== f.modality) continue;
+    if (f.difficulty && difficultyOf(e).level !== f.difficulty) continue;
+    if (f.access?.length) {
+      const tags = accessTagsOf(e);
+      if (!f.access.every((a) => tags.includes(a))) continue;
+    }
+    if (f.media && mediaStateOf(e).state !== f.media) continue;
+    if (f.provider && e.source.provider !== f.provider) continue;
     let s = 0;
     if (terms.length) {
       const name = norm(e.name);

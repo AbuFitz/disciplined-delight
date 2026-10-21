@@ -81,3 +81,69 @@ and can mark it `curated: "new" | "some"`.
   person (the author of this change); it has **not** been reviewed by a coach. Rebuild with
   `bun scripts/catalogue/cli.ts build` after editing the file; `build --dry-run` shows what would change.
 - Adding to the curated set is a deliberate edit to that file, with a pattern, equipment and tracking that you have checked.
+
+## Licensed motion bundle: exact requirements
+
+`npm run catalogue:repdb:motion -- --source <dir> --license-file <file>` installs motion only
+from a bundle you have licensed. It requires: at least 100 `.webp`, `.mp4` or `.webm` motion files
+(preview/sample folders such as `premium-samples` are refused; `-start`/`-peak` stills are
+ignored); file names matching a catalogue RepDB slug (optionally suffixed `-animation`,
+`-animated` or `-loop`); and a non-empty licence or purchase record whose hash is stored. Until
+then every exercise shows stills or "illustrated steps" and is never labelled as motion.
+
+## Exercises-dataset merge (MIT data) and the restricted local media source
+
+Imported 21 October 2026 from `hasaneyldrm/exercises-dataset` (MIT for **data, text and translations**).
+`npm run catalogue:dataset -- --source /path/to/exercises-dataset` is repeatable and idempotent.
+
+- **Canonical ids never change.** Existing `wger:` / `repdb:` / `custom:` ids stay. A dataset record whose
+  normalised name (or word-order/plural-insensitive token key) equals an existing name or alias is **merged**:
+  the existing record keeps its fields and media, gains a `source.merged` cross-reference and the `xd_text`
+  flag. Everything else is added as `xd:<id>` (`ExercisesDataset`, licence `MIT (data)`, tier `library`,
+  `not_reviewed_for_generator`). Result: 1,421 -> 2,598 exercises (139 merged, 8 folded into an earlier dataset
+  record, 1,177 added).
+- `public/catalogue/v1/aliases.json` maps every dataset id to its canonical id; `useCatalogue().byId` resolves
+  aliases, and `canonicalId()` is exported. `catalogue/id-baseline.json` freezes the pre-merge ids; a test fails
+  if any stops resolving (programmes, history and favourites reference them).
+- Translations (it, tr, es, ru, zh, hi, pl, ko, fr instruction steps) are lazy per-language files in
+  `public/catalogue/v1/i18n/<lang>.json`, keyed by canonical id. English stays in the snapshot.
+- Names are title-cased from the dataset's lower-case names; muscle, equipment, pattern and tracking are mapped by
+  rules in the importer and are **not** coach-reviewed. Dataset-only records never enter the plan generator.
+
+### Media: Gym visual is NOT licensed to this project
+
+The dataset's images and GIFs are (c) Gym visual, redistributed there with permission at 180x180 and governed by
+Gym visual's terms. **We hold no licence.** Therefore:
+
+- No binary is committed, copied to `public/`, bundled or put in Git LFS. The cache is the gitignored
+  `.local-media/gymvisual/`, filled by `npm run catalogue:local-media -- --source <checkout>` (refuses to write if
+  the folder is not gitignored; `--check` verifies the cache).
+- `catalogue/local-media-index.json` (tracked, no binaries) maps canonical ids to file names and keeps the
+  dataset's provenance fields.
+- The dev adapter (`src/data/local-media.ts`) is active only when `import.meta.env.DEV` **and**
+  `VITE_LOCAL_MEDIA=gymvisual` (put it in an untracked `.env.local`). `vite.config.ts` serves `/local-media/*`
+  from the cache only with `apply: "serve"`; the plugin does not exist in a build. In a production build the whole
+  branch is dead-code-eliminated (verified: the built output contains none of the local paths).
+- Local items are labelled `Local dev media` with the credit "(c) Gym visual (not licensed)". The licensed
+  catalogue media remains the fallback and the production source.
+- **Guards:** `npm run build` ends with `node scripts/catalogue/dist-rights.mjs`, which fails if any tracked file,
+  `public/` or build output (`dist`, `.output`, `.vercel/output`, ...) contains restricted file names, `local-media`
+  paths, GIFs without licensed provenance in the media manifest, or Git LFS media config.
+  `src/data/rights-local-media.test.ts` covers the guard on leaky/clean fixtures, the dev-only gating, alias and
+  baseline integrity and that dataset records carry no media.
+- **Switching after a licence is supplied:** produce licensed `MediaItem`s (same shape, a real licence entry and
+  self-hosted files with hashes in the media manifest) from a normal importer, add them to the snapshot, and delete
+  the dev adapter and flag. Nothing else changes.
+
+### Clean-check semantics for the optional local cache
+
+`npm run catalogue:local-media:check` treats the restricted cache as **optional**: absent cache -> exit 0 ("skipped");
+present but incomplete -> exit 1; present and complete -> exit 0. Pass `--require` to fail when it is absent (for a
+developer who expects the cache). CI therefore never needs restricted files. The always-on safety check is
+`npm run catalogue:rights:guard` (also the last step of `npm run build`).
+
+### Toolchain pin
+
+`prettier` is pinned to an exact version (3.8.3) because `eslint-plugin-prettier` enforces formatting through
+`npm run lint`; an unpinned range lets a fresh `npm install` (which ignores `bun.lock`) pick a newer Prettier whose
+output differs and fails lint on untouched files. Bump it deliberately with `npx prettier --write .` in the same commit.

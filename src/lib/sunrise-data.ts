@@ -1,27 +1,3 @@
-import workoutA from "@/assets/workout-a.jpg";
-import workoutB from "@/assets/workout-b.jpg";
-import workoutC from "@/assets/workout-c.jpg";
-import workoutD from "@/assets/workout-d.jpg";
-
-import chestPress from "@/assets/exercises/chest-press-photo.webp";
-import inclinePress from "@/assets/exercises/incline-press-photo.webp";
-import cableFly from "@/assets/exercises/cable-fly-photo.webp";
-import machineFly from "@/assets/exercises/machine-fly-photo.webp";
-import tricepPushdown from "@/assets/exercises/tricep-pushdown-photo.webp";
-import overheadRopeTricepExtension from "@/assets/exercises/overhead-rope-tricep-extension-photo.webp";
-import singleArmCableTricepExtension from "@/assets/exercises/single-arm-cable-tricep-extension-photo.webp";
-import latPulldown from "@/assets/exercises/lat-pulldown-photo.webp";
-import straightArmRopePulldown from "@/assets/exercises/straight-arm-rope-pulldown-photo.webp";
-import cableRow from "@/assets/exercises/cable-row-photo.webp";
-import seatedMachineRow from "@/assets/exercises/seated-machine-row-photo.webp";
-import standingCableBicepCurl from "@/assets/exercises/standing-cable-bicep-curl-photo.webp";
-import bicepCurlMachine from "@/assets/exercises/bicep-curl-machine-photo.webp";
-import hammerCurl from "@/assets/exercises/hammer-curl-photo.webp";
-import shoulderPressMachine from "@/assets/exercises/shoulder-press-machine-photo.webp";
-import cableLateralRaise from "@/assets/exercises/cable-lateral-raise-photo.webp";
-import facePull from "@/assets/exercises/face-pull.jpg";
-import reversePecDeck from "@/assets/exercises/reversePecDeck.webp";
-
 // Search links instead of fixed video IDs / deep pages — a specific video can
 // go private or a specific page can 404, a search never breaks.
 export const youtubeSearchUrl = (query: string) =>
@@ -42,13 +18,10 @@ export type Exercise = {
   name: string;
   scheme: string;
   cue: string;
-  image: string;
   weighted: boolean;
   startWeight?: number;
   /** Machine/cable-only substitute — same muscle group, different equipment. */
   alt?: string;
-  /** Reference photo for the alt exercise, when we have one. */
-  altImage?: string;
   /** Shown only in the expanded card view. */
   muscle?: string;
   equipment?: string;
@@ -61,7 +34,6 @@ export type Workout = {
   letter: string;
   title: string;
   focus: string;
-  image: string;
   cardioMachine: string;
   cardio: string;
   exercises: Exercise[];
@@ -75,7 +47,6 @@ export const workouts: Workout[] = [
     letter: "A",
     title: "Chest & Triceps",
     focus: "Push day. Machines and cables only. Slow eccentrics, full stretch at the bottom.",
-    image: workoutA,
     cardioMachine: "Treadmill",
     cardio: "20 min, easy/moderate incline walk",
     exercises: [
@@ -84,7 +55,6 @@ export const workouts: Workout[] = [
         name: "Flat Chest Press Machine",
         scheme: "3 × 8–12",
         cue: "Handles around nipple level. Keep shoulder blades stable and control the eccentric.",
-        image: chestPress,
         weighted: true,
         startWeight: 10,
         alt: "Cable Chest Press",
@@ -99,7 +69,6 @@ export const workouts: Workout[] = [
         name: "Incline Chest Press Machine",
         scheme: "3 × 8–12",
         cue: "~30° incline. Keep elbows roughly 45° from the torso.",
-        image: inclinePress,
         weighted: true,
         startWeight: 5,
         muscle: "Chest — upper",
@@ -113,11 +82,9 @@ export const workouts: Workout[] = [
         name: "Cable Chest Fly",
         scheme: "3 × 12–15",
         cue: "Slight elbow bend, hug a tree. Squeeze in the middle.",
-        image: cableFly,
         weighted: true,
         startWeight: 3,
         alt: "Machine Pec Deck Fly",
-        altImage: machineFly,
         muscle: "Chest — inner/mid",
         equipment: "Cable crossover station",
         description:
@@ -129,7 +96,6 @@ export const workouts: Workout[] = [
         name: "Rope Tricep Pushdown",
         scheme: "3 × 10–15",
         cue: "Keep elbows fixed against the torso and fully extend the triceps.",
-        image: tricepPushdown,
         weighted: true,
         startWeight: 8,
         muscle: "Triceps — lateral head",
@@ -143,7 +109,6 @@ export const workouts: Workout[] = [
         name: "Overhead Rope Tricep Extension",
         scheme: "3 × 10–15",
         cue: "Emphasise the stretched position of the long head of the triceps.",
-        image: overheadRopeTricepExtension,
         weighted: true,
         startWeight: 5,
         alt: "Single-Arm Cable Extension",
@@ -160,7 +125,6 @@ export const workouts: Workout[] = [
     letter: "B",
     title: "Back & Biceps",
     focus: "Pull day. Machines and cables only. Lead every rep with the elbow, not the hand.",
-    image: workoutB,
     cardioMachine: "Treadmill",
     cardio: "20 min, easy/moderate incline walk",
     exercises: [
@@ -169,7 +133,6 @@ export const workouts: Workout[] = [
         name: "Lat Pulldown",
         scheme: "3 × 8–12",
         cue: "Bar to upper chest. Chest up, drive elbows down.",
-        image: latPulldown,
         weighted: true,
         startWeight: 15,
         muscle: "Back — lats, width",
@@ -183,11 +146,9 @@ export const workouts: Workout[] = [
         name: "Seated Cable Row",
         scheme: "3 × 8–12",
         cue: "Shoulders back and down. No jerking with the lower back.",
-        image: cableRow,
         weighted: true,
         startWeight: 15,
         alt: "Seated Machine Row",
-        altImage: seatedMachineRow,
         muscle: "Back — mid, thickness",
         equipment: "Seated cable row station",
         description:
@@ -199,7 +160,6 @@ export const workouts: Workout[] = [
         name: "Straight-Arm Cable/Rope Pulldown",
         scheme: "2 × 12–15",
         cue: "Hinge slightly, keep arms straight — pull with the lats, not the arms.",
-        image: straightArmRopePulldown,
         weighted: true,
         startWeight: 5,
         muscle: "Lats",
@@ -213,11 +173,9 @@ export const workouts: Workout[] = [
         name: "Machine Preacher Curl",
         scheme: "3 × 8–12",
         cue: "Upper arm pinned to the pad the whole set — no swinging.",
-        image: bicepCurlMachine,
         weighted: true,
         startWeight: 5,
         alt: "Standing Cable Bicep Curl",
-        altImage: standingCableBicepCurl,
         muscle: "Biceps",
         equipment: "Preacher curl machine",
         description:
@@ -229,7 +187,6 @@ export const workouts: Workout[] = [
         name: "Rope Hammer Curl",
         scheme: "3 × 10–15",
         cue: "Neutral grip, elbows still.",
-        image: hammerCurl,
         weighted: true,
         startWeight: 5,
         muscle: "Biceps + forearms — brachialis/brachioradialis",
@@ -245,7 +202,6 @@ export const workouts: Workout[] = [
     letter: "C",
     title: "Shoulders & Arms",
     focus: "Delts and arms. Machines and cables only. Light, strict, high volume.",
-    image: workoutC,
     cardioMachine: "Treadmill",
     cardio: "20 min, easy/moderate incline walk",
     exercises: [
@@ -254,7 +210,6 @@ export const workouts: Workout[] = [
         name: "Shoulder Press Machine",
         scheme: "3 × 8–12",
         cue: "Don't lock out hard. Keep tension on the delts.",
-        image: shoulderPressMachine,
         weighted: true,
         startWeight: 5,
         muscle: "Shoulders — front/side delts",
@@ -268,7 +223,6 @@ export const workouts: Workout[] = [
         name: "Cable Lateral Raise",
         scheme: "3 × 12–15 per arm",
         cue: "Keep these strict and relatively light — lead with the elbow, pinky slightly up.",
-        image: cableLateralRaise,
         weighted: true,
         startWeight: 2,
         muscle: "Shoulders — side delts",
@@ -282,11 +236,9 @@ export const workouts: Workout[] = [
         name: "Reverse Pec Deck",
         scheme: "3 × 12–20",
         cue: "Sit facing into the pad, sweep the arms back and squeeze the rear delts together.",
-        image: reversePecDeck,
         weighted: true,
         startWeight: 10,
         alt: "Cable Face Pull",
-        altImage: facePull,
         muscle: "Rear delts",
         equipment: "Reverse pec deck / rear-delt fly machine",
         description:
@@ -298,7 +250,6 @@ export const workouts: Workout[] = [
         name: "Standing Cable Bicep Curl",
         scheme: "3 × 10–15",
         cue: "Elbows still, stand tall. Full range top to bottom, no swinging.",
-        image: standingCableBicepCurl,
         weighted: true,
         startWeight: 5,
         muscle: "Biceps",
@@ -312,7 +263,6 @@ export const workouts: Workout[] = [
         name: "Overhead Rope Tricep Extension",
         scheme: "3 × 10–15",
         cue: "Full stretch overhead. Keep elbows narrow, don't flare.",
-        image: overheadRopeTricepExtension,
         weighted: true,
         startWeight: 5,
         muscle: "Triceps — long head",
@@ -328,7 +278,6 @@ export const workouts: Workout[] = [
     letter: "D",
     title: "Arm Specialisation + Upper Maintenance",
     focus: "Dedicated arm-focused session, plus light back/chest/shoulder maintenance.",
-    image: workoutD,
     cardioMachine: "Treadmill",
     cardio: "20 min, easy/moderate incline walk",
     exercises: [
@@ -337,7 +286,6 @@ export const workouts: Workout[] = [
         name: "Bicep Curl Machine / Standing Cable Curl",
         scheme: "3 × 10–15",
         cue: "Full range, controlled tempo — whichever's free.",
-        image: bicepCurlMachine,
         weighted: true,
         startWeight: 5,
         muscle: "Biceps",
@@ -350,7 +298,6 @@ export const workouts: Workout[] = [
         name: "Rope Hammer Curl",
         scheme: "3 × 10–15",
         cue: "Neutral grip, elbows still.",
-        image: hammerCurl,
         weighted: true,
         startWeight: 5,
         muscle: "Biceps + forearms — brachialis/brachioradialis",
@@ -363,7 +310,6 @@ export const workouts: Workout[] = [
         name: "Rope Tricep Pushdown",
         scheme: "3 × 10–15",
         cue: "Squeeze hard at the bottom for 1 second.",
-        image: tricepPushdown,
         weighted: true,
         startWeight: 8,
         muscle: "Triceps — lateral head",
@@ -377,7 +323,6 @@ export const workouts: Workout[] = [
         name: "Single-Arm Cable Tricep Extension",
         scheme: "2 × 12–15 per arm",
         cue: "One arm at a time — don't let the stronger arm do more work.",
-        image: singleArmCableTricepExtension,
         weighted: true,
         startWeight: 3,
         muscle: "Triceps — long head",
@@ -391,7 +336,6 @@ export const workouts: Workout[] = [
         name: "Chest Press Machine",
         scheme: "2 × 10–12",
         cue: "Controlled maintenance sets, not maximal pressing.",
-        image: chestPress,
         weighted: true,
         startWeight: 10,
         muscle: "Chest — mid/lower",
@@ -404,7 +348,6 @@ export const workouts: Workout[] = [
         name: "Lat Pulldown",
         scheme: "2 × 10–12",
         cue: "Feel the lats, not the biceps.",
-        image: latPulldown,
         weighted: true,
         startWeight: 15,
         muscle: "Back — lats, width",
@@ -417,7 +360,6 @@ export const workouts: Workout[] = [
         name: "Cable Lateral Raise",
         scheme: "2 × 12–15 per arm",
         cue: "Light weight, lead with the elbows.",
-        image: cableLateralRaise,
         weighted: true,
         startWeight: 2,
         muscle: "Shoulders — side delts",
@@ -558,8 +500,7 @@ export const SHOPPING: ShoppingItem[] = [
   },
 ];
 
-// `image` is a /public path, e.g. /meals/shake.jpg. Missing files fail
-// gracefully — ThumbImage falls back to an icon tile.
+// Meals are text-only by design: no photographs are bundled or referenced.
 export type DayMealSlot = "breakfast" | "lunch" | "dinner" | "evening";
 
 export type DayMeal = {
@@ -571,7 +512,6 @@ export type DayMeal = {
   fat: number;
   protein: number;
   items: string[];
-  image: string;
 };
 
 export type DayTotals = { kcal: number; carbs: number; fat: number; protein: number };
@@ -609,7 +549,6 @@ export const DAY_PLANS: DayPlan[] = [
           "25g honey",
           "Water or ice to thin it out — blend oats first so it's drinkable, not concrete",
         ],
-        image: "/meals/shake.webp",
       },
       {
         id: "a-lunch",
@@ -624,7 +563,6 @@ export const DAY_PLANS: DayPlan[] = [
           "2 boiled eggs",
           "1 Arla Protein Chocolate 482ml (225 kcal, 26.3g protein, 23g carbs, 2.9g fat)",
         ],
-        image: "/meals/tuna-lunch.webp",
       },
       {
         id: "a-dinner",
@@ -641,7 +579,6 @@ export const DAY_PLANS: DayPlan[] = [
           "20g olive oil, measured — mix into the rice or use in cooking",
           "Seasoning or sauce",
         ],
-        image: "/meals/chicken-rice.jpg",
       },
       {
         id: "a-evening",
@@ -656,7 +593,6 @@ export const DAY_PLANS: DayPlan[] = [
           "38g mixed nuts or peanuts",
           "250ml orange juice",
         ],
-        image: "/meals/bagel-nuts-oj.webp",
       },
     ],
   },
@@ -681,7 +617,6 @@ export const DAY_PLANS: DayPlan[] = [
           "300ml whole milk",
           "1 medium banana",
         ],
-        image: "/meals/eggs-bagel-milk.webp",
       },
       {
         id: "b-lunch",
@@ -699,7 +634,6 @@ export const DAY_PLANS: DayPlan[] = [
           "Sauce or seasoning",
           "Split across two containers if it's a lot to eat in one sitting",
         ],
-        image: "/meals/chicken-rice.jpg",
       },
       {
         id: "b-dinner",
@@ -713,7 +647,6 @@ export const DAY_PLANS: DayPlan[] = [
           "1 Tesco Tuna & Sweetcorn Sandwich",
           "No Arla shake needed today — chicken, eggs, milk and tuna already cover the protein target",
         ],
-        image: "/meals/tuna-sandwich.webp",
       },
       {
         id: "b-evening",
@@ -731,7 +664,6 @@ export const DAY_PLANS: DayPlan[] = [
           "36g mixed nuts or peanuts, alongside",
           "260ml orange juice, alongside",
         ],
-        image: "/meals/shake.webp",
       },
     ],
   },

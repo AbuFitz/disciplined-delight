@@ -88,6 +88,7 @@ describe("catalogue credits", () => {
       "CC BY-SA 3.0",
       "CC BY-SA 4.0",
       "CC0 1.0",
+      "MIT (data)",
       "RepDB Free Tier 1.0",
     ]);
     expect(summary.licences.every((item) => item.url.startsWith("https://"))).toBe(true);

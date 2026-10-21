@@ -18,7 +18,10 @@ function ForgotPage() {
         title="Accounts aren't set up here"
         intro="There's nothing to reset on this copy of VAYVOR."
       >
-        <Link to="/" className="underline">
+        <Link
+          to="/"
+          className="inline-flex min-h-12 items-center rounded-full bg-surface-2 px-6 font-semibold"
+        >
           Back
         </Link>
       </AuthLayout>

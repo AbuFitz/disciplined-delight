@@ -1,0 +1,468 @@
+/* ---- Shell placement: Buddy is in flow (bar, rail, panel). It never floats over content ---- */
+.buddy-sheet {
+  max-height: 50dvh;
+  border-bottom: 1px solid var(--line);
+}
+.buddy-column {
+  position: sticky;
+  top: 0;
+  height: 100dvh;
+  overflow-y: auto;
+  border-left: 1px solid var(--line);
+}
+.buddy-column .buddy-panel {
+  min-height: 100%;
+  border-top: 0;
+}
+.buddy-panel {
+  width: 100%;
+  overflow-y: auto;
+  padding: 0.8rem 1rem 0.6rem;
+  color: var(--foreground);
+  background: var(--surface);
+  outline: none;
+}
+.buddy-panel-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+.buddy-panel-state {
+  font-size: 0.8rem;
+  color: var(--muted-foreground);
+}
+.buddy-x {
+  min-width: 44px;
+  min-height: 44px;
+  margin: -0.6rem -0.7rem 0 0;
+  font-size: 1.4rem;
+  line-height: 1;
+  background: none;
+  border: 0;
+  color: var(--muted-foreground);
+  cursor: pointer;
+}
+.buddy-panel-line {
+  margin-top: 0.4rem;
+  font-family: var(--font-display, inherit);
+  font-size: 1.1rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+.buddy-panel-body {
+  margin-top: 0.45rem;
+  font-size: 0.88rem;
+  line-height: 1.45;
+  color: var(--muted-foreground);
+}
+.buddy-tips {
+  margin: 0.55rem 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.84rem;
+}
+.buddy-tips li {
+  position: relative;
+  padding: 0.2rem 0 0.2rem 0.9rem;
+}
+.buddy-tips li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.8em;
+  width: 0.45rem;
+  height: 2px;
+  background: var(--primary);
+}
+.buddy-action {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  margin-top: 0.3rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.buddy-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.1rem 0.2rem;
+  margin-top: 0.4rem;
+  padding-top: 0.4rem;
+  border-top: 1px solid var(--line);
+}
+.buddy-controls button,
+.buddy-controls a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 0.6rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  background: none;
+  border: 0;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.buddy-controls button[aria-pressed="true"] {
+  color: var(--foreground);
+  font-weight: 700;
+}
+.buddy-controls button:hover,
+.buddy-controls a:hover {
+  color: var(--foreground);
+}
+.buddy-controls button:focus-visible,
+.buddy-controls a:focus-visible,
+.buddy-action:focus-visible,
+.buddy-x:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+/* ---- Mirror Mode: a personal ledger, never a leaderboard ---- */
+.mirror {
+  border-left: 2px solid var(--primary);
+  padding: 0.1rem 0 0.1rem 0.8rem;
+}
+.mirror-lines {
+  margin: 0.25rem 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.86rem;
+  line-height: 1.4;
+}
+.mirror-lines li {
+  padding: 0.12rem 0;
+}
+.mirror-lines li[data-kind="ghost"] {
+  color: var(--foreground);
+  font-weight: 600;
+}
+.mirror-lines li[data-kind="last"],
+.mirror-lines li[data-kind="new"] {
+  color: var(--muted-foreground);
+}
+
+/* ---- Option rows used by Buddy setup and colour worlds ---- */
+.world-picker {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+.world-opt,
+.opt {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-height: 52px;
+  padding: 0.5rem 0.85rem;
+  border-radius: 1.25rem;
+  background: color-mix(in oklab, var(--surface-2) 60%, transparent);
+  cursor: pointer;
+}
+.world-opt:has(input:focus-visible),
+.opt:has(input:focus-visible) {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+.world-opt.is-on,
+.opt.is-on {
+  background: color-mix(in oklab, var(--primary) 14%, var(--surface));
+  box-shadow: inset 0 0 0 2px var(--primary);
+}
+.world-chip {
+  display: inline-flex;
+  flex: none;
+  width: 2rem;
+  height: 1.25rem;
+  overflow: hidden;
+  border-radius: 999px;
+}
+.world-chip i {
+  flex: 1;
+}
+.opts {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+.opts > legend {
+  padding: 0;
+}
+.opts-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr));
+  gap: 0.5rem;
+}
+.opt {
+  align-items: flex-start;
+  padding: 0.7rem 0.85rem;
+}
+.opt .opt-mark {
+  flex: none;
+  margin-top: 0.2rem;
+  width: 0.9rem;
+  height: 0.9rem;
+  border: 1.5px solid var(--muted-foreground);
+  border-radius: 50%;
+}
+.opt.is-on .opt-mark {
+  border-color: var(--primary);
+  background: radial-gradient(circle, var(--primary) 0 45%, transparent 50%);
+}
+.form-pick {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.4rem;
+}
+@media (min-width: 640px) {
+  .form-pick {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+.form-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.5rem 0.2rem 0.6rem;
+  text-align: center;
+  border-radius: 1.25rem;
+  background: color-mix(in oklab, var(--surface-2) 60%, transparent);
+  cursor: pointer;
+  min-height: 44px;
+}
+.form-tile.is-on {
+  background: color-mix(in oklab, var(--primary) 14%, var(--surface));
+  box-shadow: inset 0 0 0 2px var(--primary);
+}
+.form-tile:has(input:focus-visible) {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+.buddy-stage {
+  display: flex;
+  align-items: flex-end;
+  gap: 1rem;
+  padding: 0.9rem 1rem 0.5rem;
+  border-radius: 1.5rem;
+  background: color-mix(in oklab, var(--surface-2) 60%, transparent);
+}
+.buddy-try {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.75rem;
+}
+.buddy-try button {
+  min-height: 44px;
+  padding: 0 0.9rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  background: color-mix(in oklab, var(--surface-2) 70%, transparent);
+  border: 0;
+  border-radius: 999px;
+  color: var(--foreground);
+  cursor: pointer;
+}
+.buddy-try button[aria-pressed="true"] {
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+.buddy-try button:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.buddy-strip {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.7rem;
+  padding: 0.5rem 0.1rem 0.2rem;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+}
+.buddy-strip-line {
+  min-width: 0;
+  padding-bottom: 0.4rem;
+  font-size: 0.9rem;
+  line-height: 1.3;
+}
+
+/* ---- Standalone floating companion ---- */
+.buddy-float {
+  position: fixed;
+  z-index: 35;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.35rem;
+  transition:
+    bottom 0.28s cubic-bezier(0.3, 0.8, 0.3, 1),
+    left 0.28s ease,
+    right 0.28s ease,
+    opacity 0.2s ease;
+  pointer-events: none;
+  touch-action: none;
+}
+.buddy-float[data-side="left"] {
+  align-items: flex-start;
+}
+.buddy-float[data-dragging="true"] {
+  transition: none;
+}
+.buddy-float > * {
+  pointer-events: auto;
+}
+.buddy-float[data-scrolling="true"] {
+  opacity: 0.32;
+}
+.buddy-float[data-scrolling="true"] > * {
+  pointer-events: none;
+}
+.buddy-float[data-tucked="true"] .buddy-hit {
+  transform: translateX(84%);
+  opacity: 0.85;
+}
+.buddy-float[data-tucked="true"][data-side="left"] .buddy-hit {
+  transform: translateX(-84%);
+}
+.buddy-hit {
+  display: grid;
+  place-items: end center;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  cursor: grab;
+  border-radius: 16px;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    transform 0.28s ease,
+    opacity 0.2s ease;
+  filter: drop-shadow(0 6px 10px rgb(0 0 0 / 0.22));
+}
+.buddy-float[data-dragging="true"] .buddy-hit {
+  cursor: grabbing;
+}
+.buddy-hit:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 3px;
+}
+.buddy-speech {
+  position: absolute;
+  width: max-content;
+  bottom: 1.2rem;
+  max-width: min(14.5rem, calc(100vw - 6.5rem));
+  padding: 0.55rem 0.8rem;
+  text-align: left;
+  font-size: 0.85rem;
+  line-height: 1.3;
+  color: var(--foreground);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: 0 6px 22px rgb(0 0 0 / 0.18);
+  cursor: pointer;
+  animation: bd-speech 0.3s ease-out both;
+}
+.buddy-speech[data-side="right"] {
+  right: calc(100% + 0.4rem);
+  border-bottom-right-radius: 4px;
+}
+.buddy-speech[data-side="left"] {
+  left: calc(100% + 0.4rem);
+  border-bottom-left-radius: 4px;
+}
+@keyframes bd-speech {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.96);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .buddy-speech {
+    animation: none;
+  }
+  .buddy-float,
+  .buddy-hit {
+    transition: none;
+  }
+}
+.buddy-peek-tab {
+  position: fixed;
+  z-index: 35;
+  right: 0;
+}
+.buddy-peek-tab[data-side="left"] {
+  right: auto;
+  left: 0;
+}
+.buddy-peek-tab button {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  min-height: 52px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-right: 0;
+  border-radius: 14px 0 0 14px;
+  cursor: pointer;
+}
+.buddy-peek-tab[data-side="left"] button {
+  border-left: 0;
+  border-right: 1px solid var(--line);
+  border-radius: 0 14px 14px 0;
+}
+.buddy-ask {
+  margin-top: 0.6rem;
+  padding: 0.55rem 0.7rem;
+  border-radius: 12px;
+  background: color-mix(in oklab, var(--primary) 10%, var(--surface));
+  font-size: 0.85rem;
+}
+.buddy-ask p {
+  margin: 0 0 0.25rem;
+}
+.buddy-ask div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+.buddy-ask button {
+  min-height: 44px;
+  padding: 0 0.9rem;
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--primary-foreground);
+  background: var(--primary);
+  border: 0;
+  border-radius: 10px;
+  cursor: pointer;
+}
+.buddy-ask button:last-child {
+  color: var(--foreground);
+  background: transparent;
+  border: 1px solid var(--line);
+}
+
+/* Tactile press: the character squishes the instant it is touched, before the poke clip starts. */
+.buddy-hit .buddy {
+  transition: transform 160ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  transform-origin: 50% 100%;
+}
+.buddy-hit:active .buddy {
+  transform: scale(1.06, 0.9);
+  transition-duration: 70ms;
+}
+@media (prefers-reduced-motion: reduce) {
+  .buddy-hit:active .buddy {
+    transform: none;
+  }
+}

@@ -64,20 +64,18 @@ export function ReadinessCheckIn({ session }: { session: Session }) {
   };
 
   return (
-    <Panel
-      className="mb-5 !rounded-none border-l-4 border-l-primary"
-      aria-labelledby="readiness-title"
-    >
+    <Panel className="mb-4" aria-labelledby="readiness-title">
       <div className="flex items-start gap-3">
-        <VIcon name="readiness" size={28} className="mt-1 text-primary" />
+        <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-primary/15 text-primary">
+          <VIcon name="readiness" size={24} />
+        </span>
         <div className="min-w-0 flex-1">
-          <p className="eyebrow">Before you begin · optional</p>
-          <h1 id="readiness-title" className="mt-1 font-display text-3xl font-semibold">
+          <h1 id="readiness-title" className="text-xl font-semibold leading-tight">
             How ready do you feel?
           </h1>
-          <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-            This is a self-reported estimate—not medical advice, a diagnosis or wearable data. It
-            only produces a suggestion. You decide whether anything changes.
+          <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
+            Optional. A self-reported estimate, not medical advice. You decide whether anything
+            changes.
           </p>
         </div>
       </div>
@@ -142,8 +140,8 @@ export function ReadinessCheckIn({ session }: { session: Session }) {
               ))}
             </Select>
           </Field>
-          <div className="flex flex-wrap gap-2 md:col-span-2">
-            <Button variant="primary" onClick={() => setReview(true)}>
+          <div className="grid gap-2 sm:flex sm:flex-wrap md:col-span-2">
+            <Button variant="primary" size="lg" onClick={() => setReview(true)}>
               Review suggestion
             </Button>
             <Button variant="ghost" onClick={() => void persist("dismissed", false)}>
@@ -152,9 +150,9 @@ export function ReadinessCheckIn({ session }: { session: Session }) {
           </div>
         </div>
       ) : (
-        <div className="mt-6 border-t border-line pt-5">
-          <p className="num text-sm text-primary">SELF-REPORTED SIGNAL {result.score}/100</p>
-          <h2 className="mt-1 font-display text-2xl font-semibold">{label(result.action)}</h2>
+        <div className="mt-5 rounded-2xl bg-foreground/6 p-4">
+          <p className="num text-sm text-primary">Self-reported signal {result.score}/100</p>
+          <h2 className="mt-1 text-xl font-semibold">{label(result.action)}</h2>
           <p className="mt-2 max-w-2xl">{result.reason}</p>
           {result.contributors.length ? (
             <p className="mt-2 text-sm text-muted-foreground">
@@ -206,6 +204,9 @@ function Rating({
 }) {
   return (
     <div>
+      <p aria-hidden className="mb-1.5 px-1 text-sm font-medium">
+        {label}
+      </p>
       <Segmented
         label={label}
         value={String(value)}

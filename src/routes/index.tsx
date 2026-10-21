@@ -1,6 +1,9 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState, type ReactElement } from "react";
-import { Button, PageHeader, SignalRail, Skeleton } from "@/components/nl/ui";
+import { Button } from "@/components/nl/ui";
+import { buttonClasses } from "@/components/nl/button-classes";
+import { Canvas, EmptyCanvas, MetricStrip, Section, Stage, type Metric } from "@/components/living";
+import { useFoodData } from "@/data/food-hooks";
 import { VIcon } from "@/components/nl/icon";
 import {
   BudgetWidget,
@@ -11,15 +14,18 @@ import {
   TrainingWidget,
   WeightWidget,
 } from "@/components/nl/today";
+import { DaylineEnergy, type EnergyNode } from "@/components/cinema/dayline-energy";
 import { AgendaNextWidget, AgendaTimelineWidget } from "@/components/nl/agenda";
+import { useAgenda } from "@/data/agenda";
 import { useSalahEnabled } from "@/data/agenda";
 import { usePrayer } from "@/data/prayer-hooks";
 import { resolveLayout } from "@/data/actions";
 import { useCollection, useNow, useProfile } from "@/data/hooks";
-import { plannedTemplateFor } from "@/data/selectors";
+import { eatenTotals, plannedTemplateFor, weekTraining } from "@/data/selectors";
 import {
   COL,
   type PrayerSettings,
+  type Session,
   type TodayLayout,
   type WeighIn,
   type WidgetId,
@@ -33,6 +39,54 @@ export const Route = createFileRoute("/")({ component: TodayPage });
 const greeting = (h: number) =>
   h < 5 ? "Late night" : h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening";
 
+/** Up to two chosen signals above the fold: the first two visible widgets that have a compact figure. */
+function useSignals(
+  ids: WidgetId[],
+  profile: NonNullable<ReturnType<typeof useProfile>["profile"]>,
+  today: string,
+): Metric[] {
+  const food = useFoodData(today);
+  const templates = useCollection<WorkoutTemplate>(COL.templates);
+  const sessions = useCollection<Session>(COL.sessions);
+  const weights = useCollection<WeighIn>(COL.weighIns);
+  const week = weekTraining(templates.items, sessions.items, today);
+  const out: Metric[] = [];
+  for (const id of ids) {
+    if (out.length === 2) break;
+    if (id === "training")
+      out.push({
+        label: "Sessions this week",
+        value: `${week.completed}/${week.planned}`,
+        state: templates.ready ? "known" : "unknown",
+        delta: week.partial ? `${week.partial} partial` : undefined,
+      });
+    else if (id === "food") {
+      const logged = food.logs.length > 0;
+      const eaten = eatenTotals(food.logs);
+      out.push({
+        label: "Eaten today",
+        value: Math.round(eaten.kcal).toLocaleString("en-GB"),
+        unit: "kcal",
+        state: logged ? "known" : "unknown",
+        delta: logged
+          ? profile.targets.kcal
+            ? `of ${profile.targets.kcal.toLocaleString("en-GB")}`
+            : undefined
+          : "not logged",
+      });
+    } else if (id === "weight" && weights.items.length) {
+      const last = [...weights.items].sort((x, y) => y.date.localeCompare(x.date))[0]!;
+      out.push({
+        label: "Weight",
+        value: last.kg.toFixed(1),
+        unit: "kg",
+        delta: formatDateLong(last.date),
+      });
+    }
+  }
+  return out;
+}
+
 function TodayPage() {
   const now = useNow(30_000);
   const { profile, ready } = useProfile();
@@ -40,25 +94,28 @@ function TodayPage() {
   const weights = useCollection<WeighIn>(COL.weighIns);
   const prayerCfg = useCollection<PrayerSettings>(COL.prayerSettings);
   const templates = useCollection<WorkoutTemplate>(COL.templates);
+  const sessions = useCollection<Session>(COL.sessions);
+  const ag = useAgenda();
   const [edit, setEdit] = useState(false);
+  const [sel, setSel] = useState("now");
   const salah = useSalahEnabled();
   const { tz, today } = usePrayer(now);
   const widgets = useMemo(() => resolveLayout(layout.items[0]), [layout.items]);
+  const visible = widgets.filter((w) => w.visible);
+  const signals = useSignals(
+    visible.map((w) => w.id).filter((id) => id !== "next-action"),
+    profile ?? ({ targets: {} } as never),
+    today,
+  );
 
   if (!ready || !profile)
     return (
-      <div className="grid gap-4">
-        <Skeleton className="h-40" />
-        <Skeleton className="h-56" />
+      <div className="lv-canvas">
+        <EmptyCanvas kind="loading" title="Loading today" />
       </div>
     );
 
   const planned = plannedTemplateFor(templates.items, today);
-  const focus = planned
-    ? `Today's focus: Workout ${planned.letter}, ${planned.title}.`
-    : salah.enabled
-      ? "Today's focus: rest, food and prayer on time."
-      : "Today's focus: rest and food.";
   const hasBudget = profile.budgetPencePerWeek != null;
   const hasWeight = weights.items.length > 0;
   const modules = profile.modules;
@@ -82,86 +139,147 @@ function TodayPage() {
         }),
   };
   const ctx = { profile, today, now };
+  // Secondary signals live below the fold. Figures already shown above are not repeated as cards.
   const render: Record<WidgetId, () => ReactElement | null> = {
-    "next-action": () => <AgendaNextWidget {...ctx} />,
+    "next-action": () => null,
     prayer: () => (salah.enabled ? <PrayerWidget {...ctx} /> : null),
     food: () => (enabled("nutrition") ? <FoodWidget {...ctx} /> : null),
     training: () => (enabled("training") ? <TrainingWidget {...ctx} /> : null),
     weight: () => (enabled("training") && hasWeight ? <WeightWidget {...ctx} /> : null),
     budget: () => (enabled("nutrition") && hasBudget ? <BudgetWidget {...ctx} /> : null),
-    timeline: () => (enabled("routines") ? <AgendaTimelineWidget {...ctx} /> : null),
+    timeline: () => null,
     checklist: () => <ChecklistWidget {...ctx} />,
   };
+  const others = visible.filter((w) => !["next-action", "timeline"].includes(w.id));
+  const showTimeline = visible.some((w) => w.id === "timeline") && enabled("routines");
+  const setupPending =
+    !profile.setup.skipped &&
+    !(profile.setup.goals && (!salah.enabled || prayerCfg.items.length > 0));
 
-  return (
-    <>
-      <PageHeader
-        eyebrow={<time dateTime={today}>Today · {formatDateLong(today)}</time>}
-        title={
+  const scheduled = ag.items.some((i) => !i.context);
+  // The head sits on the real current moment: next action, else recovery once the day is done, else the plan.
+  const node = ag.next ? 2 : scheduled ? 3 : planned ? 1 : 3;
+  const week = weekTraining(templates.items, sessions.items, today);
+  // The lane ahead glows with this week's real follow-through (completed of planned); neutral when nothing is planned.
+  const charge = week.planned > 0 ? 0.35 + 0.55 * Math.min(1, week.completed / week.planned) : 0.5;
+  const nodes: EnergyNode[] = [
+    { id: "readiness", label: "Readiness", value: "At session start" },
+    { id: "plan", label: "Plan", value: planned ? planned.title : "Rest day" },
+    { id: "now", label: "Now", value: ag.next ? ag.next.label : "Nothing left" },
+    { id: "recovery", label: "Recovery", value: "From your records" },
+  ];
+  const stage =
+    sel === "now" ? (
+      <AgendaNextWidget {...ctx} />
+    ) : sel === "readiness" ? (
+      <Stage
+        tone="quiet"
+        kicker="Readiness"
+        title="Check in when you start"
+        meta="Readiness is a self-report taken at the start of a session. Nothing is inferred from your behaviour."
+        actions={
+          <Link to="/train" className={buttonClasses({ variant: "secondary" })}>
+            Open Train
+          </Link>
+        }
+      />
+    ) : sel === "plan" ? (
+      <Stage
+        tone="quiet"
+        kicker="Plan"
+        title={planned ? `Workout ${planned.letter}: ${planned.title}` : "Rest day"}
+        meta={
+          planned
+            ? `${planned.exercises.length} exercises`
+            : "No session planned. A rest day counts as a plan."
+        }
+        actions={
           <>
-            {greeting(Math.floor(localMinutes(now, tz) / 60))}
-            {profile.name ? `, ${profile.name}` : ""}
+            <Link to="/train" className={buttonClasses({ variant: "secondary" })}>
+              Open Train
+            </Link>
+            <Link to="/plan" className={buttonClasses({ variant: "ghost" })}>
+              Edit the week
+            </Link>
           </>
         }
-        sub={focus}
+      />
+    ) : (
+      <Stage
+        tone="quiet"
+        kicker="Recovery"
+        title="Recovery follows your records"
+        meta="Sleep, soreness and training load adjust the plan once you have logged enough. Missing days are never counted against you."
         actions={
-          <Button variant="secondary" onClick={() => setEdit(true)}>
-            <VIcon name="settings" size={16} />
-            Edit Today
-          </Button>
+          <Link to="/progress" className={buttonClasses({ variant: "secondary" })}>
+            See progress
+          </Link>
         }
       />
-      <SignalRail
-        items={[
-          { label: "Readiness", value: "Self-report when you start", state: "next" },
-          {
-            label: "Plan",
-            value: planned ? planned.title : "Recovery day",
-            state: planned ? "current" : "done",
-          },
-          {
-            label: "Current work",
-            value: planned ? "Training scheduled" : "No forced target",
-            state: planned ? "next" : "done",
-          },
-          { label: "Recovery", value: "Adjust from your records", state: "next" },
-        ]}
-      />
-      {!profile.setup.skipped &&
-        !(profile.setup.goals && (!salah.enabled || prayerCfg.items.length > 0)) && (
-          <Link
-            to="/settings"
-            className="mb-5 flex min-h-12 items-center justify-between rounded-2xl border border-line bg-surface px-4 text-sm"
+    );
+
+  return (
+    <Canvas
+      className="cn-today"
+      width="wide"
+      kicker={<time dateTime={today}>{formatDateLong(today)}</time>}
+      title={
+        <>
+          {greeting(Math.floor(localMinutes(now, tz) / 60))}
+          {profile.name ? `, ${profile.name}` : ""}
+        </>
+      }
+    >
+      <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_22rem] lg:gap-12">
+        <div className="grid content-start gap-6">
+          <DaylineEnergy
+            nodes={nodes}
+            node={node}
+            charge={charge}
+            selectedId={sel}
+            onSelect={setSel}
           >
-            <span>
-              <strong className="font-semibold">Finish setup.</strong> Confirm your goals
-              {salah.enabled ? " and prayer source" : ""} so Today uses your own numbers.
-            </span>
-            <span aria-hidden>→</span>
-          </Link>
-        )}
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3 md:gap-5">
-        {widgets
-          .filter((w) => w.visible)
-          .map((w) => {
-            const el = render[w.id]();
-            if (!el) return null;
-            return (
-              <div
-                key={w.id}
-                className={cn(
-                  "min-w-0",
-                  (w.id === "next-action" || w.size === "expanded") &&
-                    "md:col-span-2 xl:col-span-2",
-                  w.id === "next-action" && "xl:col-span-3",
-                )}
-              >
-                {el}
-              </div>
-            );
-          })}
+            {stage}
+          </DaylineEnergy>
+          {signals.length > 0 && <MetricStrip metrics={signals} label="Chosen signals" />}
+          {setupPending && (
+            <Link
+              to="/settings"
+              className="flex min-h-12 items-center justify-between gap-3 border-t border-line py-3 text-sm"
+            >
+              <span>
+                <strong className="font-semibold">Finish setup.</strong> Confirm your goals
+                {salah.enabled ? " and prayer source" : ""} so Today uses your own numbers.
+              </span>
+              <span aria-hidden>→</span>
+            </Link>
+          )}
+        </div>
+        <div className="grid content-start gap-8">
+          {showTimeline && <AgendaTimelineWidget {...ctx} />}
+        </div>
+      </div>
+      {others.length > 0 && (
+        <Section title="More from today" className="mt-2">
+          <div className="grid gap-4 pt-2 md:grid-cols-2 xl:grid-cols-3">
+            {others.map((w) => {
+              const el = render[w.id]();
+              return el ? (
+                <div key={w.id} className="min-w-0">
+                  {el}
+                </div>
+              ) : null;
+            })}
+          </div>
+        </Section>
+      )}
+      <div className="flex justify-center">
+        <Button variant="ghost" size="sm" onClick={() => setEdit(true)}>
+          <VIcon name="settings" size={16} />
+          Customise Today
+        </Button>
       </div>
       <EditTodaySheet open={edit} onOpenChange={setEdit} widgets={widgets} hidden={hiddenReasons} />
-    </>
+    </Canvas>
   );
 }

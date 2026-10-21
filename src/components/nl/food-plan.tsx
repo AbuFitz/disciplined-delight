@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, CookingPot, Copy, Plus } from "lucide-react";
+import { CookingPot, Copy, Plus } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import {
@@ -13,6 +13,8 @@ import {
   Sheet,
   TextInput,
 } from "./ui";
+import { WeekNav } from "./week-nav";
+import { weekRangeLabel } from "@/lib/week-range";
 import { addPlanEntry, assignDayTemplate, copyWeekPlan, createBatch } from "@/data/actions";
 import { put, remove } from "@/data/db";
 import { useCollection } from "@/data/hooks";
@@ -62,43 +64,32 @@ export function WeekPlanner({
 
   return (
     <div>
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-        <div className="flex items-center gap-1">
-          <button
-            aria-label="Previous week"
-            onClick={() => setAnchor(addDays(anchor, -7))}
-            className="inline-flex size-11 shrink-0 items-center justify-center rounded-full border border-line"
-          >
-            <ChevronLeft className="size-5" />
-          </button>
-          <p className="min-w-0 flex-1 px-2 text-center font-medium tnum">
-            {formatDateLong(days[0]!)} – {formatDateLong(days[6]!).split(" ").slice(1).join(" ")}
-          </p>
-          <button
-            aria-label="Next week"
-            onClick={() => setAnchor(addDays(anchor, 7))}
-            className="inline-flex size-11 shrink-0 items-center justify-center rounded-full border border-line"
-          >
-            <ChevronRight className="size-5" />
-          </button>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={async () => {
-              const n = await copyWeekPlan(addDays(days[0]!, -7), days[0]!);
-              toast(n ? `Copied ${n} meals from last week` : "Last week had no plan to copy");
-            }}
-          >
-            <Copy className="size-4" />
-            Copy last week
-          </Button>
-          <Button variant="secondary" size="sm" onClick={() => setBatch(true)}>
-            <CookingPot className="size-4" />
-            Batch cook
-          </Button>
-        </div>
+      <WeekNav
+        className="mb-3"
+        label={weekRangeLabel(days[0]!, days[6]!)}
+        onPrev={() => setAnchor(addDays(anchor, -7))}
+        onNext={() => setAnchor(addDays(anchor, 7))}
+      />
+      <div className="mb-4 grid grid-cols-2 gap-3 md:max-w-lg">
+        <Button
+          variant="ghost"
+          className="bg-surface/80 px-3 text-sm whitespace-nowrap"
+          onClick={async () => {
+            const n = await copyWeekPlan(addDays(days[0]!, -7), days[0]!);
+            toast(n ? `Copied ${n} meals from last week` : "Last week had no plan to copy");
+          }}
+        >
+          <Copy className="size-4" />
+          Copy last week
+        </Button>
+        <Button
+          variant="ghost"
+          className="bg-surface/80 px-3 text-sm whitespace-nowrap"
+          onClick={() => setBatch(true)}
+        >
+          <CookingPot className="size-4" />
+          Batch cook
+        </Button>
       </div>
 
       <div className="grid gap-3 lg:grid-cols-2 xl:grid-cols-3">
@@ -110,19 +101,19 @@ export function WeekPlanner({
               key={d}
               aria-label={formatDateLong(d)}
               className={cn(
-                "rounded-3xl border bg-surface p-4",
-                d === today ? "border-primary" : "border-line",
+                "rounded-3xl bg-surface/80 p-4",
+                d === today && "ring-2 ring-primary/60",
               )}
             >
               <div className="flex items-start justify-between gap-2">
                 <div>
-                  <p className="eyebrow">
-                    {WEEKDAY_SHORT[weekdayIndex(d)]}
-                    {d === today ? " · Today" : ""}
-                  </p>
-                  <h3 className="font-display text-lg font-semibold">
-                    {formatDateLong(d).split(" ").slice(1).join(" ")}
+                  <h3 className="text-lg font-bold tracking-tight">
+                    {WEEKDAY_SHORT[weekdayIndex(d)]}{" "}
+                    <span className="font-medium text-muted-foreground">
+                      {formatDateLong(d).split(" ").slice(1).join(" ")}
+                    </span>
                   </h3>
+                  {d === today && <p className="text-xs font-semibold text-primary">Today</p>}
                 </div>
                 {tot.entries > 0 && (
                   <p className="text-right text-xs text-muted-foreground tnum">
@@ -139,9 +130,9 @@ export function WeekPlanner({
               ) : (
                 <ul className="mt-2">
                   {entries.map((e) => (
-                    <Row as="li" key={e.id} onClick={() => setEdit(e)} className="min-h-12 py-2">
+                    <Row as="li" key={e.id} onClick={() => setEdit(e)} className="min-h-14 py-2">
                       <div className="min-w-0 flex-1">
-                        <p className="truncate font-medium">
+                        <p className="truncate font-semibold">
                           {e.name}
                           {e.portion !== 1 ? ` × ${e.portion}` : ""}
                         </p>
@@ -161,11 +152,17 @@ export function WeekPlanner({
                   ))}
                 </ul>
               )}
-              <div className="mt-3 flex flex-wrap gap-2">
-                <Button variant="secondary" size="sm" onClick={() => setAssign(d)}>
-                  Use a day template
+              <div className="mt-3 grid grid-cols-2 gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="bg-surface-2/70"
+                  aria-label={`Use a day template for ${formatDateLong(d)}`}
+                  onClick={() => setAssign(d)}
+                >
+                  Day template
                 </Button>
-                <Button variant="ghost" size="sm" onClick={() => setAdding(d)}>
+                <Button variant="primary" size="sm" onClick={() => setAdding(d)}>
                   <Plus className="size-4" />
                   Add meal
                 </Button>

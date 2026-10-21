@@ -14,6 +14,7 @@ import { useWakeLock } from "@/lib/wake-lock";
 import { useCatalogue } from "@/data/catalogue-runtime";
 import { ReadinessCheckIn } from "@/components/nl/readiness-checkin";
 import { VIcon } from "@/components/nl/icon";
+import { ShellBar } from "@/components/nl/shell-slots";
 
 export const Route = createFileRoute("/train/session")({ component: SessionPage });
 
@@ -45,7 +46,7 @@ function SessionPage() {
     }
   }, [session, openId]);
 
-  if (!sessionsQ.ready) return <Skeleton className="h-64" />;
+  if (!sessionsQ.ready) return <Skeleton className="h-64 rounded-3xl" />;
   if (!session) {
     return (
       <EmptyState
@@ -54,7 +55,7 @@ function SessionPage() {
         action={
           <Link
             to="/train"
-            className="inline-flex min-h-11 items-center rounded-md bg-primary px-5 font-medium text-primary-foreground"
+            className="inline-flex min-h-12 items-center rounded-full bg-primary px-6 font-semibold text-primary-foreground"
           >
             Go to Train
           </Link>
@@ -63,9 +64,9 @@ function SessionPage() {
     );
   }
 
-  const mediaFor = (exercise: Session["exercises"][number]) =>
-    (exercise.catalogueId ? catalogue.byId.get(exercise.catalogueId) : undefined)?.media[0] ??
-    byName.get(normalise(exercise.name))?.media[0];
+  const catalogueFor = (exercise: Session["exercises"][number]) =>
+    (exercise.catalogueId ? catalogue.byId.get(exercise.catalogueId) : undefined) ??
+    byName.get(normalise(exercise.name));
   if (gymMode)
     return (
       <>
@@ -73,7 +74,7 @@ function SessionPage() {
           session={session}
           sessions={sessionsQ.items}
           now={now}
-          mediaFor={mediaFor}
+          catalogueFor={catalogueFor}
           preferences={profile?.gymMode ?? { voice: false, haptics: false, autoMedia: false }}
           music={profile?.trainingMusic}
           wake={wake}
@@ -90,10 +91,10 @@ function SessionPage() {
     );
 
   return (
-    <div className="mx-auto max-w-3xl pb-28">
+    <div className="mx-auto max-w-3xl">
       <Link
         to="/train"
-        className="mb-3 inline-flex min-h-11 items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
+        className="mb-3 inline-flex min-h-11 items-center gap-2 rounded-full bg-surface/80 px-4 text-sm font-medium text-muted-foreground active:scale-95"
       >
         <VIcon name="back" size={16} />
         Leave (session stays saved)
@@ -103,13 +104,16 @@ function SessionPage() {
       {session.readiness?.decision && (
         <button
           onClick={() => setGymMode(true)}
-          className="mb-4 flex min-h-16 w-full items-center justify-between border-y border-primary px-4 text-left"
+          className="mb-4 flex min-h-16 w-full items-center gap-3 rounded-3xl bg-primary px-4 py-3 text-left text-primary-foreground transition active:scale-[0.98]"
         >
-          <span>
-            <span className="eyebrow text-primary">Heads-up surface</span>
-            <span className="block font-display text-xl font-semibold">Enter Gym Mode</span>
+          <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-primary-foreground/15">
+            <VIcon name="training" size={24} />
           </span>
-          <span className="text-sm text-muted-foreground">One set at a time →</span>
+          <span className="min-w-0 flex-1">
+            <span className="block text-lg font-semibold leading-tight">Enter Gym Mode</span>
+            <span className="block text-sm opacity-80">One set at a time</span>
+          </span>
+          <span aria-hidden>→</span>
         </button>
       )}
       <div className="grid grid-cols-[minmax(0,1fr)] gap-3">
@@ -125,13 +129,13 @@ function SessionPage() {
             onToggle={() => setOpenId(openId === ex.id ? null : ex.id)}
             sessions={sessionsQ.items}
             legacy={legacy}
-            media={mediaFor(ex)}
+            catalogue={catalogueFor(ex)}
           />
         ))}
       </div>
-      <div className="spatial-glass fixed inset-x-0 bottom-0 z-40 border-t px-4 pb-[calc(0.75rem+var(--safe-bottom))] pt-3 lg:left-[15.5rem]">
-        <div className="mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-3">
-          <div className="min-h-11 min-w-0 flex-1">
+      <ShellBar>
+        <div className="mx-3 mb-2 grid gap-3 rounded-3xl bg-surface p-3 shadow-lg lg:mx-0 lg:mb-0 lg:rounded-none lg:bg-transparent lg:p-0 lg:shadow-none">
+          <div className="min-h-11 min-w-0">
             {session.rest ? (
               <RestBar session={session} now={now} />
             ) : (
@@ -145,7 +149,7 @@ function SessionPage() {
             Finish
           </Button>
         </div>
-      </div>
+      </ShellBar>
       <FinishSheet
         open={finish}
         onOpenChange={setFinish}

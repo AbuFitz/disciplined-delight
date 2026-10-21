@@ -1,6 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ExternalLink } from "lucide-react";
-import { Button, EmptyState, PageHeader, Panel, Skeleton } from "@/components/nl/ui";
+import {
+  Button,
+  EmptyState,
+  Group,
+  PageHeader,
+  Panel,
+  Section,
+  Skeleton,
+} from "@/components/nl/ui";
 import { useCatalogue } from "@/data/catalogue-runtime";
 import { summariseCatalogueCredits } from "@/domain/catalogue-credits";
 
@@ -18,7 +26,7 @@ export const Route = createFileRoute("/credits")({
 });
 
 const externalClass =
-  "inline-flex min-h-11 items-center gap-1.5 rounded-full px-1 font-semibold underline underline-offset-4";
+  "inline-flex min-h-11 items-center gap-1.5 font-semibold underline underline-offset-4";
 
 function CreditsPage() {
   const catalogue = useCatalogue();
@@ -27,15 +35,14 @@ function CreditsPage() {
   return (
     <>
       <PageHeader
-        eyebrow="About the library"
-        title="Credits & licences"
-        sub="The exercise library is built from licensed, credited work. The credit stays attached to every exercise, illustration and motion asset."
+        title="Credits"
+        sub="The exercise library is built from licensed, credited work. Credit stays attached to every exercise, illustration and motion asset."
         actions={
           <Link
             to="/library"
-            className="inline-flex min-h-12 items-center rounded-full border border-input px-6 font-semibold"
+            className="inline-flex min-h-11 items-center rounded-full bg-surface-2 px-5 text-sm font-semibold"
           >
-            Open Library
+            Library
           </Link>
         }
       />
@@ -49,10 +56,9 @@ function CreditsPage() {
         />
       )}
       {catalogue.snapshot && summary && (
-        <div className="grid gap-4 lg:grid-cols-2">
-          <Panel tone="green" className="lg:col-span-2">
-            <p className="eyebrow">Source snapshot</p>
-            <h2 className="mt-2 font-display text-3xl font-semibold">
+        <>
+          <Panel tone="green" className="mb-6">
+            <h2 className="text-3xl font-bold tracking-tight">
               {summary.exercises.toLocaleString("en-GB")} credited exercises
             </h2>
             <p className="mt-3 max-w-3xl text-muted-foreground">
@@ -75,7 +81,7 @@ function CreditsPage() {
               . VAYVOR normalises that material for search, offline use and plan building without
               removing its attribution or licence.
             </p>
-            <dl className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <dl className="mt-5 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
               <Stat label="Exercises" value={summary.exercises} />
               <Stat label="Exercise contributors" value={summary.exerciseContributors} />
               <Stat label="Media assets" value={summary.media} />
@@ -83,12 +89,10 @@ function CreditsPage() {
             </dl>
           </Panel>
 
-          <Panel>
-            <p className="eyebrow">Source licences</p>
-            <h2 className="mt-2 font-display text-2xl font-semibold">What may be reused</h2>
-            <ul className="mt-4 divide-y divide-line">
+          <Section title="What may be reused">
+            <Group as="ul">
               {summary.licences.map((licence) => (
-                <li key={licence.url || licence.id} className="py-4 first:pt-0">
+                <li key={licence.url || licence.id} className="px-4 py-3">
                   <a
                     href={licence.url}
                     target="_blank"
@@ -105,29 +109,29 @@ function CreditsPage() {
                   </p>
                 </li>
               ))}
-            </ul>
-          </Panel>
+            </Group>
+          </Section>
 
-          <Panel tone="dusk">
-            <p className="eyebrow">Credit where it belongs</p>
-            <h2 className="mt-2 font-display text-2xl font-semibold">Per-exercise detail</h2>
-            <p className="mt-3 text-muted-foreground">
-              Open any exercise in Library to see its contributor, exact licence, original source
-              and media credit. Exercise data by RepDB (repdb.co) remains attributed throughout.
-              User-created exercises remain yours and are labelled separately.
-            </p>
-            <p className="mt-4 text-sm text-muted-foreground">
-              These source licences apply to the catalogue records and credited media—not to
-              unrelated VAYVOR app code or your private training data.
-            </p>
-            <Link
-              to="/library"
-              className="mt-5 inline-flex min-h-11 items-center rounded-full font-semibold underline underline-offset-4"
-            >
-              Browse exercise credits
-            </Link>
-          </Panel>
-        </div>
+          <Section title="Per-exercise detail">
+            <Panel>
+              <p className="text-muted-foreground">
+                Open any exercise in Library to see its contributor, exact licence, original source
+                and media credit. Exercise data by RepDB (repdb.co) remains attributed throughout.
+                User-created exercises remain yours and are labelled separately.
+              </p>
+              <p className="mt-3 text-sm text-muted-foreground">
+                These source licences apply to the catalogue records and credited media, not to
+                unrelated VAYVOR app code or your private training data.
+              </p>
+              <Link
+                to="/library"
+                className="mt-4 inline-flex min-h-12 w-full items-center justify-center rounded-full bg-primary px-6 font-semibold text-primary-foreground sm:w-fit"
+              >
+                Browse exercise credits
+              </Link>
+            </Panel>
+          </Section>
+        </>
       )}
     </>
   );
@@ -135,11 +139,11 @@ function CreditsPage() {
 
 function Stat({ label, value }: { label: string; value: number }) {
   return (
-    <div className="rounded-2xl bg-background/45 p-4">
-      <dt className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-        {label}
-      </dt>
-      <dd className="mt-1 font-display text-2xl font-semibold">{value.toLocaleString("en-GB")}</dd>
+    <div className="rounded-2xl bg-background/45 p-3.5">
+      <dt className="text-xs font-medium text-muted-foreground">{label}</dt>
+      <dd className="tnum mt-0.5 text-2xl font-bold tracking-tight">
+        {value.toLocaleString("en-GB")}
+      </dd>
     </div>
   );
 }

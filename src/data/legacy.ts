@@ -131,7 +131,6 @@ export function buildSeed() {
         yield: 1,
         lines: parseLegacyItems(m.items),
         items: m.items,
-        image: m.image,
         legacyEstimate: { kcal: m.kcal, protein: m.protein, carbs: m.carbs, fat: m.fat },
         notes: "Original author-entered estimate. Replace with ingredient-level data when ready.",
       });
@@ -231,7 +230,8 @@ export async function runMigration(
   let legacyDays = 0,
     weighIns = 0;
   const tracker = safeParse(raw.tracker ?? null) as
-    { logs?: Record<string, LegacyLogBlob> } | undefined;
+    | { logs?: Record<string, LegacyLogBlob> }
+    | undefined;
   for (const [date, log] of Object.entries(tracker?.logs ?? {})) {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || !log) continue;
     const exercises: LegacyDayLog["exercises"] = {};

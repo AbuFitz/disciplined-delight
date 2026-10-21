@@ -12,6 +12,7 @@ import {
 } from "react";
 import { cn } from "@/lib/utils";
 import { VIcon } from "./icon";
+import { buttonClasses } from "./button-classes";
 
 /* ------------------------------ Buttons ------------------------------ */
 type BtnProps = ButtonHTMLAttributes<HTMLButtonElement> & {
@@ -37,20 +38,7 @@ export const Button = forwardRef<HTMLButtonElement, BtnProps>(function Button(
     <button
       ref={ref}
       disabled={disabled || busy}
-      className={cn(
-        "inline-flex max-w-full items-center justify-center gap-2 rounded-md text-center font-medium select-none",
-        "transition-[transform,background-color,opacity] duration-150 active:scale-[0.97] disabled:opacity-50 disabled:active:scale-100",
-        size === "lg" && "min-h-14 px-8 text-base font-semibold",
-        size === "md" && "min-h-12 px-6 text-[0.95rem] font-semibold",
-        size === "sm" && "min-h-10 px-4 text-sm",
-        variant === "primary" && "bg-primary text-primary-foreground hover:brightness-110",
-        variant === "secondary" &&
-          "border border-input bg-transparent text-foreground hover:bg-surface-2",
-        variant === "ghost" && "text-foreground hover:bg-surface-2",
-        variant === "danger" &&
-          "border border-destructive/50 text-destructive hover:bg-destructive/10",
-        className,
-      )}
+      className={buttonClasses({ variant, size, className })}
       {...p}
     >
       {busy ? busyLabel : children}
@@ -68,7 +56,7 @@ export const IconButton = forwardRef<
       aria-label={label}
       title={label}
       className={cn(
-        "inline-flex size-11 items-center justify-center rounded-md text-foreground transition active:scale-95 hover:bg-surface-2 disabled:opacity-40",
+        "inline-flex size-11 items-center justify-center rounded-[var(--r-control)] text-foreground transition active:scale-95 hover:bg-surface-2 disabled:opacity-40",
         className,
       )}
       {...p}
@@ -95,13 +83,15 @@ export function PageHeader({
   sub?: ReactNode;
 }) {
   return (
-    <header className="mb-6 flex flex-wrap items-end justify-between gap-x-6 gap-y-3 md:mb-8">
-      <div className="min-w-0">
-        {eyebrow && <Eyebrow className="mb-2">{eyebrow}</Eyebrow>}
-        <h1 className="display-title text-[clamp(2.25rem,6vw,3.5rem)]">{title}</h1>
-        {sub && <p className="mt-3 max-w-xl text-muted-foreground">{sub}</p>}
+    <header className="mb-5 flex flex-wrap items-start justify-between gap-x-6 gap-y-3 md:mb-7">
+      <div className="min-w-0 flex-1 basis-[55%]">
+        {eyebrow && <Eyebrow className="mb-1.5">{eyebrow}</Eyebrow>}
+        <h1 className="display-title text-[clamp(1.85rem,5vw,2.75rem)]">{title}</h1>
+        {sub && <p className="mt-2 max-w-xl text-[0.95rem] text-muted-foreground">{sub}</p>}
       </div>
-      {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
+      {actions && (
+        <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">{actions}</div>
+      )}
     </header>
   );
 }
@@ -120,10 +110,11 @@ export function Panel({
 } & React.HTMLAttributes<HTMLElement>) {
   return (
     <As
+      data-panel=""
       className={cn(
-        "rounded-md border border-line p-5 md:p-7",
-        tone === "plain" && "bg-surface",
-        tone === "ink" && "loud loud-ink",
+        "rounded-[1.75rem] border border-transparent p-5 md:p-7",
+        tone === "plain" && "bg-surface/80 backdrop-blur-sm",
+        tone === "ink" && "hero-panel",
         tone === "green" && "tint-green bg-surface",
         tone === "dusk" && "tint-dusk bg-surface",
         tone === "warm" && "tint-warm bg-surface",
@@ -141,6 +132,87 @@ export const Rule = ({ className }: { className?: string }) => (
 );
 
 /** Signature daily scoreline: one continuous sequence, not a row of disconnected cards. */
+/** A titled section: a small bold heading with an optional trailing action. */
+export function Section({
+  title,
+  action,
+  children,
+  className,
+}: {
+  title?: ReactNode;
+  action?: ReactNode;
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <section className={cn("mb-6", className)}>
+      {(title || action) && (
+        <div className="mb-2.5 flex items-center justify-between gap-3 px-1">
+          {title && <h2 className="text-[1.05rem] font-semibold tracking-tight">{title}</h2>}
+          {action && <div className="text-sm">{action}</div>}
+        </div>
+      )}
+      {children}
+    </section>
+  );
+}
+
+/** A grouped list: one rounded surface, rows divided by inset hairlines. The default list look. */
+export function Group({
+  children,
+  className,
+  as: As = "div",
+  ...rest
+}: {
+  children: ReactNode;
+  className?: string;
+  as?: "div" | "ul" | "nav";
+} & React.HTMLAttributes<HTMLElement>) {
+  return (
+    <As
+      {...(rest as object)}
+      className={cn(
+        "overflow-hidden rounded-3xl bg-surface/80 [&>*+*]:border-t [&>*+*]:border-line/70",
+        className,
+      )}
+    >
+      {children}
+    </As>
+  );
+}
+
+/** A big rounded quick-action tile: a circular icon chip over a short label. */
+export function Tile({
+  icon,
+  label,
+  hint,
+  className,
+  ...rest
+}: {
+  icon: ReactNode;
+  label: ReactNode;
+  hint?: ReactNode;
+  className?: string;
+} & React.HTMLAttributes<HTMLElement> & { as?: never }) {
+  return (
+    <span
+      className={cn(
+        "flex min-h-[5.5rem] w-full min-w-0 flex-col items-stretch justify-between gap-2 rounded-3xl bg-surface/80 p-3.5 text-left transition active:scale-[0.97]",
+        className,
+      )}
+      {...rest}
+    >
+      <span className="flex size-10 shrink-0 items-center justify-center self-start rounded-full bg-primary/15 text-primary">
+        {icon}
+      </span>
+      <span className="min-w-0">
+        <span className="block truncate text-[0.95rem] font-semibold leading-tight">{label}</span>
+        {hint && <span className="block truncate text-xs text-muted-foreground">{hint}</span>}
+      </span>
+    </span>
+  );
+}
+
 export function SignalRail({
   label = "Daily signal",
   items,
@@ -153,21 +225,21 @@ export function SignalRail({
   return (
     <ol
       aria-label={label}
-      className={cn("mb-6 grid border-y border-line sm:grid-flow-col sm:auto-cols-fr", className)}
+      className={cn("mb-6 grid grid-cols-2 gap-2 sm:grid-flow-col sm:auto-cols-fr", className)}
     >
       {items.map((item, index) => (
         <li
           key={`${item.label}-${index}`}
           aria-current={item.state === "current" ? "step" : undefined}
           className={cn(
-            "relative min-h-16 border-b border-line py-3 pl-7 pr-3 last:border-b-0 sm:border-b-0 sm:border-r sm:last:border-r-0",
-            item.state === "current" && "bg-surface",
+            "relative min-h-14 min-w-0 rounded-2xl bg-surface/60 py-2.5 pl-7 pr-3 sm:min-h-16 sm:py-3 sm:pl-8",
+            item.state === "current" && "bg-surface ring-1 ring-primary/40",
           )}
         >
           <span
             aria-hidden
             className={cn(
-              "absolute left-2.5 top-[1.15rem] size-2 border border-muted-foreground bg-background",
+              "absolute left-3 top-[1.05rem] size-2 rounded-full border sm:top-[1.2rem] border-muted-foreground bg-background",
               item.state === "done" && "border-primary bg-primary",
               item.state === "current" && "scale-125 border-primary bg-primary",
             )}
@@ -216,7 +288,7 @@ export function EmptyState({
   action?: ReactNode;
 }) {
   return (
-    <div className="rounded-md border border-dashed border-line px-5 py-8 text-center">
+    <div className="rounded-3xl bg-surface/80 px-5 py-8 text-center">
       <p className="font-display text-lg font-semibold">{title}</p>
       {body && <p className="mx-auto mt-1 max-w-sm text-sm text-muted-foreground">{body}</p>}
       {action && <div className="mt-4 flex justify-center">{action}</div>}
@@ -240,8 +312,8 @@ export function Chip({
   return (
     <span
       className={cn(
-        "inline-flex max-w-full items-center gap-1.5 rounded-sm border px-2.5 py-1 text-xs font-medium",
-        tone === "neutral" && "border-line text-muted-foreground",
+        "inline-flex max-w-full items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium",
+        tone === "neutral" && "border-transparent bg-surface-2/70 text-muted-foreground",
         tone === "ok" && "border-ok/40 text-ok",
         tone === "warn" && "border-warn/50 text-warn",
         tone === "info" && "border-line bg-surface-2 text-foreground",
@@ -327,7 +399,7 @@ export function Field({
 }
 
 export const inputCls =
-  "min-h-11 w-full rounded-md border border-input bg-surface-2/50 px-4 text-base text-foreground placeholder:text-muted-foreground/70 focus-visible:border-ring disabled:cursor-not-allowed disabled:opacity-50 aria-[invalid=true]:border-destructive";
+  "min-h-12 w-full rounded-2xl border border-input bg-surface-2/50 px-4 text-base text-foreground placeholder:text-muted-foreground/70 focus-visible:border-ring disabled:cursor-not-allowed disabled:opacity-50 aria-[invalid=true]:border-destructive";
 
 export const TextInput = forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLInputElement>>(
   function TextInput({ className, ...p }, ref) {
@@ -400,7 +472,7 @@ export function NumberField({
           type="button"
           aria-label={`Decrease ${label}`}
           onClick={() => bump(-1)}
-          className="inline-flex size-11 shrink-0 items-center justify-center rounded-md border border-input active:scale-95"
+          className="inline-flex size-11 shrink-0 items-center justify-center rounded-full bg-surface-2 active:scale-95"
         >
           <VIcon name="minus" size={16} />
         </button>
@@ -428,7 +500,7 @@ export function NumberField({
           type="button"
           aria-label={`Increase ${label}`}
           onClick={() => bump(1)}
-          className="inline-flex size-11 shrink-0 items-center justify-center rounded-md border border-input active:scale-95"
+          className="inline-flex size-11 shrink-0 items-center justify-center rounded-full bg-surface-2 active:scale-95"
         >
           <VIcon name="add" size={16} />
         </button>
@@ -452,7 +524,7 @@ export function Segmented<T extends string>({
     <div
       role="radiogroup"
       aria-label={label}
-      className="inline-flex max-w-full flex-wrap rounded-md border border-line bg-surface p-1"
+      className="inline-flex max-w-full flex-wrap gap-1 rounded-[var(--r-control)] bg-surface-2 p-1"
     >
       {options.map((o) => (
         <button
@@ -461,7 +533,7 @@ export function Segmented<T extends string>({
           aria-checked={o.value === value}
           onClick={() => onChange(o.value)}
           className={cn(
-            "min-h-11 rounded-sm px-4 text-sm font-medium transition",
+            "min-h-11 min-w-11 rounded-[calc(var(--r-control)-2px)] px-4 text-sm font-medium transition",
             o.value === value
               ? "bg-primary text-primary-foreground"
               : "text-muted-foreground hover:text-foreground",
@@ -578,8 +650,8 @@ export function Sheet({
           aria-describedby={description ? undefined : undefined}
           className={cn(
             "fixed z-50 flex max-h-[92dvh] flex-col overflow-hidden border border-line bg-popover text-popover-foreground shadow-2xl outline-none",
-            "max-w-[100vw] inset-x-0 bottom-0 rounded-t-[1.75rem] data-[state=open]:animate-in data-[state=open]:slide-in-from-bottom data-[state=closed]:animate-out data-[state=closed]:slide-out-to-bottom",
-            "md:inset-y-3 md:right-3 md:left-auto md:bottom-3 md:max-h-none md:rounded-3xl md:data-[state=open]:slide-in-from-right md:data-[state=closed]:slide-out-to-right",
+            "max-w-[100vw] inset-x-0 bottom-0 rounded-t-[var(--r-stage)] data-[state=open]:animate-in data-[state=open]:slide-in-from-bottom data-[state=closed]:animate-out data-[state=closed]:slide-out-to-bottom",
+            "md:inset-y-3 md:right-3 md:left-auto md:bottom-3 md:max-h-none md:rounded-lg md:data-[state=open]:slide-in-from-right md:data-[state=closed]:slide-out-to-right",
             wide ? "md:w-[min(40rem,calc(100vw-1.5rem))]" : "md:w-[min(30rem,calc(100vw-1.5rem))]",
           )}
         >
@@ -610,7 +682,7 @@ export function Sheet({
             {children}
           </div>
           {footer && (
-            <div className="shrink-0 border-t border-line bg-popover px-5 pb-[calc(1rem+var(--safe-bottom))] pt-3 md:px-6">
+            <div className="shrink-0 bg-popover px-5 pb-[calc(1rem+var(--safe-bottom))] pt-3 md:px-6">
               {footer}
             </div>
           )}
@@ -641,7 +713,7 @@ export function ConfirmDialog({
     <AlertDialog.Root open={open} onOpenChange={onOpenChange}>
       <AlertDialog.Portal>
         <AlertDialog.Overlay className="fixed inset-0 z-[60] bg-black/60 data-[state=open]:animate-in data-[state=open]:fade-in-0" />
-        <AlertDialog.Content className="fixed left-1/2 top-1/2 z-[60] w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-md border border-line bg-popover p-6 shadow-2xl data-[state=open]:animate-in data-[state=open]:zoom-in-95 data-[state=open]:fade-in-0">
+        <AlertDialog.Content className="fixed left-1/2 top-1/2 z-[60] w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-[1.75rem] border border-line bg-popover p-6 shadow-2xl data-[state=open]:animate-in data-[state=open]:zoom-in-95 data-[state=open]:fade-in-0">
           <AlertDialog.Title className="font-display text-xl font-semibold">
             {title}
           </AlertDialog.Title>
@@ -692,7 +764,7 @@ export function Menu({
         <DM.Content
           align="end"
           sideOffset={6}
-          className="z-[70] min-w-52 rounded-md border border-line bg-popover p-1.5 shadow-2xl data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95"
+          className="z-[70] min-w-52 rounded-2xl border border-line bg-popover p-1.5 shadow-2xl data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95"
         >
           {items.map((it) => (
             <DM.Item

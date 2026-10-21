@@ -5,7 +5,7 @@ import { buddyGuidance } from "./companion-guidance";
 const config = {
   ...DEFAULT_COMPANION,
   enabled: true,
-  placement: "dashboard" as const,
+  placement: "dock_right" as const,
   quiet: { enabled: false, start: "22:00", end: "07:00" },
 };
 describe("Buddy contextual guidance", () => {

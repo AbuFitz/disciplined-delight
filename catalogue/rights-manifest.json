@@ -1,0 +1,65 @@
+{
+  "snapshot": "2026-10-16+repdb-free-3+xd-mit-1",
+  "sources": {
+    "wger": {
+      "name": "wger Workout Manager",
+      "url": "https://wger.de",
+      "use": "Exercise text, muscles and images, redistributed per-entry under the licence recorded on each record.",
+      "redistribution": "Allowed with attribution; ShareAlike applies to CC BY-SA material.",
+      "exercises": 879,
+      "withMedia": 266,
+      "mediaItems": 416
+    },
+    "ExercisesDataset": {
+      "name": "hasaneyldrm/exercises-dataset (data only)",
+      "url": "https://github.com/hasaneyldrm/exercises-dataset",
+      "use": "Exercise names, muscles, equipment, instructions and translations (MIT). Its images and GIFs are (c) Gym visual and are NOT shipped.",
+      "redistribution": "MIT for data and text. Media excluded: not licensed to this project.",
+      "exercises": 1177,
+      "withMedia": 0,
+      "mediaItems": 0
+    },
+    "RepDB": {
+      "name": "RepDB Free tier dataset",
+      "url": "https://repdb.co",
+      "use": "Exercise records and static WebP start/peak illustrations.",
+      "redistribution": "Permitted by the RepDB Free Tier 1.0 licence with attribution. Paid RepDB Standard motion is NOT included.",
+      "exercises": 542,
+      "withMedia": 542,
+      "mediaItems": 957
+    }
+  },
+  "mediaLicences": {
+    "CC BY-SA 3.0": 71,
+    "CC BY-SA 4.0": 164,
+    "RepDB Free Tier 1.0": 1138
+  },
+  "mediaKinds": {
+    "image": 1373
+  },
+  "totals": {
+    "exercises": 2598,
+    "mediaItems": 1373,
+    "remoteUrls": 0,
+    "missingFiles": 0
+  },
+  "motion": {
+    "genuineMotionItems": 0,
+    "note": "All current assets are static images. RepDB Standard (paid) motion is not included; install a licensed bundle with `npm run catalogue:repdb:motion`."
+  },
+  "unverifiedProvenance": [],
+  "originalAssets": [
+    "apple-touch-icon.png",
+    "brand/vayvor-wordmark-email.png",
+    "icon-192.png",
+    "icon-512.png",
+    "icon-maskable-512.png"
+  ],
+  "allowedMediaLicences": [
+    "CC BY-SA 3.0",
+    "CC BY-SA 4.0",
+    "CC0",
+    "CC0 1.0",
+    "RepDB Free Tier 1.0"
+  ]
+}

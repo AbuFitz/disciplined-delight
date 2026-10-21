@@ -56,7 +56,6 @@ export type Recipe = {
   yield: number; // servings produced
   prepMinutes?: number;
   notes?: string;
-  image?: string;
   lines: RecipeLine[];
   /** Legacy hand-entered estimate for the whole recipe (per serving) kept until structured data replaces it. */
   legacyEstimate?: Macros;

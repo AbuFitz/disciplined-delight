@@ -7,7 +7,6 @@ import {
   Chip,
   ConfirmDialog,
   EmptyState,
-  Eyebrow,
   Field,
   PageHeader,
   Panel,
@@ -49,13 +48,12 @@ function FourPage() {
   return (
     <>
       <PageHeader
-        eyebrow="Circle · Four in a Row"
-        title="Seven columns. One honest stake."
-        sub="Invite a real connection, each choose your own dare, then take turns. The server—not the screen—settles every move."
+        title="Four in a Row"
+        sub="Invite a connection, each choose a dare, take turns. The server settles every move."
         actions={
           <Link
             to="/circle"
-            className="inline-flex min-h-11 items-center gap-2 rounded-full border border-input px-4 text-sm font-semibold"
+            className="inline-flex min-h-11 items-center gap-2 rounded-full bg-surface-2 px-4 text-sm font-semibold"
           >
             <ArrowLeft className="size-4" /> Circle
           </Link>
@@ -69,7 +67,9 @@ function FourPage() {
 function FourGate() {
   return (
     <Panel tone="dusk">
-      <Gamepad2 className="size-10" aria-hidden />
+      <span className="flex size-12 items-center justify-center rounded-full bg-primary/15 text-primary">
+        <Gamepad2 className="size-6" aria-hidden />
+      </span>
       <h2 className="mt-4 font-display text-2xl font-bold">No bots. No pretend opponents.</h2>
       <p className="mt-2 max-w-xl text-sm text-muted-foreground">
         Connect account services, sign in, finish your handle and accept a Circle connection. Games
@@ -77,7 +77,7 @@ function FourGate() {
       </p>
       <Link
         to="/settings"
-        className="mt-5 inline-flex min-h-12 items-center rounded-full bg-primary px-6 font-semibold text-primary-foreground"
+        className="mt-5 inline-flex min-h-12 w-full items-center justify-center rounded-full bg-primary px-6 font-semibold text-primary-foreground sm:w-fit"
       >
         Open account settings
       </Link>
@@ -159,7 +159,6 @@ function FourLive() {
         <Panel className="h-fit" aria-label="Four in a Row games">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <Eyebrow>Match book</Eyebrow>
               <h2 className="mt-1 font-display text-xl font-bold">Your games</h2>
             </div>
             <Button
@@ -185,14 +184,14 @@ function FourLive() {
             </p>
           )}
           {games.length ? (
-            <ul className="mt-4 border-t border-line">
+            <ul className="mt-2 divide-y divide-line/70">
               {games.map((game) => (
                 <li key={game.id}>
                   <button
                     type="button"
                     onClick={() => setSelectedId(game.id)}
                     className={cn(
-                      "min-h-16 w-full border-b border-line py-3 text-left",
+                      "min-h-16 w-full py-3 text-left",
                       selectedId === game.id && "text-primary",
                     )}
                   >
@@ -275,7 +274,6 @@ function CreateGame({
     <Panel tone="green" aria-label="Create Four in a Row game">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <Eyebrow>New game</Eyebrow>
           <h2 className="mt-1 font-display text-2xl font-bold">Put your own stake on the board</h2>
         </div>
         <Button variant="ghost" size="sm" aria-label="Cancel new game" onClick={onCancel}>
@@ -390,7 +388,7 @@ function GameDetail({
       </div>
 
       {game.status === "pending" && game.invited_me ? (
-        <div className="mt-6 border-t border-line pt-5">
+        <div className="mt-6 pt-5">
           <p className="text-sm text-muted-foreground">
             {game.other_display_name} chose: <strong>{game.creator_dare}</strong>
           </p>
@@ -439,7 +437,7 @@ function GameDetail({
           <p className="mt-3 text-center text-sm text-muted-foreground" aria-live="polite">
             {canMove ? "Choose a column. Your token falls to the lowest open space." : turnLine}
           </p>
-          <div className="mt-6 grid gap-3 border-t border-line pt-5 sm:grid-cols-2">
+          <div className="mt-6 grid gap-3 pt-2 sm:grid-cols-2">
             <Stake label="Your stake" value={myDare} mine />
             <Stake label={`${game.other_display_name}'s stake`} value={theirDare} />
           </div>

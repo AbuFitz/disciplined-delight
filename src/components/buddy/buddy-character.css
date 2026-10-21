@@ -1,0 +1,305 @@
+/* Companion renderer styles. Geometry comes from the art pack; state is shown by data-* attributes
+   (static key poses) and by authored WAAPI clips (motion). No keyframe animation lives in CSS. */
+.buddy {
+  --bd-accent: var(--primary);
+  --bd-cream: #eee5d3;
+  --bd-edge: color-mix(in oklab, var(--bd-cream) 55%, #4d412f);
+  --bd-win: #25211e;
+  --bd-eye: #f7e8c8;
+  --bd-lean: 0deg;
+  display: block;
+  overflow: visible;
+}
+.buddy[data-palette="mint"] {
+  --bd-accent: #4fd9a0;
+}
+:root[data-theme="light"] .buddy[data-palette="mint"] {
+  --bd-accent: #0c6a49;
+}
+.buddy[data-palette="cobalt"] {
+  --bd-accent: #5b8def;
+}
+:root[data-theme="light"] .buddy[data-palette="cobalt"] {
+  --bd-accent: #1558b0;
+}
+.buddy[data-palette="violet"] {
+  --bd-accent: #a58cf5;
+}
+:root[data-theme="light"] .buddy[data-palette="violet"] {
+  --bd-accent: #6841a7;
+}
+.buddy[data-palette="coral"] {
+  --bd-accent: #f0846b;
+}
+:root[data-theme="light"] .buddy[data-palette="coral"] {
+  --bd-accent: #a93824;
+}
+.buddy[data-palette="amber"] {
+  --bd-accent: #e8b04a;
+}
+:root[data-theme="light"] .buddy[data-palette="amber"] {
+  --bd-accent: #9a6a00;
+}
+.buddy[data-palette="rose"] {
+  --bd-accent: #ec8fb0;
+}
+:root[data-theme="light"] .buddy[data-palette="rose"] {
+  --bd-accent: #9b315a;
+}
+.buddy[data-palette="slate"] {
+  --bd-accent: #9fb0ba;
+}
+:root[data-theme="light"] .buddy[data-palette="slate"] {
+  --bd-accent: #394b55;
+}
+
+.buddy [data-part="root"],
+.buddy [data-part="body"],
+.buddy [data-part="shadow"],
+.buddy [data-part="acc"] {
+  transform-box: view-box;
+  transform-origin: 60px 114px;
+}
+.buddy [data-part="eyes"],
+.buddy [data-part="mouth"] {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.buddy .bd-eye-in,
+.buddy .bd-mouth-in {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.buddy .bd-lean {
+  transform: rotate(var(--bd-lean));
+}
+.buddy .bd-fill-cream {
+  fill: var(--bd-cream);
+}
+.buddy .bd-fill-accent {
+  fill: var(--bd-accent);
+}
+.buddy .bd-fill-shade {
+  fill: var(--bd-shade, #6b4f2a);
+}
+.buddy .bd-fill-patch {
+  fill: #a39a8c;
+}
+.buddy .bd-fill-light {
+  fill: #ffffff;
+}
+.buddy .bd-fill-deep {
+  fill: var(--bd-win);
+}
+.buddy .bd-edged {
+  stroke: var(--bd-edge);
+  stroke-width: 1.2;
+  stroke-linejoin: round;
+}
+.buddy [data-part="armL"],
+.buddy [data-part="armR"] {
+  transform-box: view-box;
+}
+.buddy .bd-ticks path {
+  stroke: var(--bd-accent);
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  fill: none;
+}
+.buddy .bd-window {
+  fill: var(--bd-win);
+}
+.buddy .bd-lens {
+  fill: var(--bd-eye);
+}
+.buddy .bd-pupil {
+  fill: var(--bd-win);
+}
+.buddy .bd-stroke {
+  fill: none;
+  stroke: var(--bd-eye);
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.buddy .bd-thin {
+  stroke-width: 1.7;
+}
+.buddy .bd-cheeks ellipse {
+  fill: #ff9a8a;
+  opacity: 0;
+}
+.buddy .bd-glint {
+  fill: var(--bd-eye);
+}
+.buddy[data-expression="bright"] .bd-cheeks ellipse {
+  opacity: 0.5;
+}
+.buddy .bd-brows path {
+  fill: none;
+  stroke: var(--bd-eye);
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  opacity: 0;
+}
+.buddy[data-expression="focused"] .bd-brows path {
+  opacity: 0.9;
+}
+.buddy[data-eyes="soft"] .bd-brows path {
+  opacity: 0;
+}
+.buddy .bd-ground path {
+  stroke: var(--foreground);
+  stroke-opacity: 0.3;
+  stroke-width: 1.1;
+  fill: none;
+}
+.buddy .bd-shadow {
+  fill: var(--foreground);
+  opacity: 0.12;
+}
+
+/* Face part visibility (static key pose) */
+.buddy .bd-eye,
+.buddy .bd-mouth {
+  display: none;
+}
+.buddy[data-eyes="open"] .bd-eye-open,
+.buddy[data-eyes="wide"] .bd-eye-wide,
+.buddy[data-eyes="happy"] .bd-eye-happy,
+.buddy[data-eyes="closed"] .bd-eye-closed,
+.buddy[data-eyes="half"] .bd-eye-half,
+.buddy[data-eyes="up"] .bd-eye-up,
+.buddy[data-eyes="side"] .bd-eye-side,
+.buddy[data-eyes="soft"] .bd-eye-soft {
+  display: inline;
+}
+.buddy[data-mouth="smile"] .bd-mouth-smile,
+.buddy[data-mouth="grin"] .bd-mouth-grin,
+.buddy[data-mouth="flat"] .bd-mouth-flat,
+.buddy[data-mouth="open"] .bd-mouth-open,
+.buddy[data-mouth="small"] .bd-mouth-small,
+.buddy[data-mouth="soft"] .bd-mouth-soft,
+.buddy[data-mouth="wavy"] .bd-mouth-wavy {
+  display: inline;
+}
+
+/* Accessories */
+.buddy .bd-acc {
+  display: none;
+  fill: none;
+  stroke: var(--foreground);
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.buddy[data-accessory="waves"] .bd-acc-waves,
+.buddy[data-accessory="dots"] .bd-acc-dots,
+.buddy[data-accessory="arrow"] .bd-acc-arrow,
+.buddy[data-accessory="pip"] .bd-acc-pip,
+.buddy[data-accessory="tally"] .bd-acc-tally,
+.buddy[data-accessory="dawn"] .bd-acc-dawn,
+.buddy[data-accessory="zzz"] .bd-acc-zzz,
+.buddy[data-accessory="bang"] .bd-acc-bang,
+.buddy[data-accessory="cloud"] .bd-acc-cloud,
+.buddy[data-accessory="ring"] .bd-acc-ring {
+  display: inline;
+}
+.buddy .bd-acc-dots circle {
+  fill: var(--foreground);
+  stroke: none;
+}
+.buddy .bd-fillacc {
+  fill: var(--bd-accent);
+  stroke: none;
+}
+.buddy .bd-acc-dawn {
+  stroke: var(--bd-accent);
+}
+.buddy .bd-acc-ring {
+  stroke: var(--bd-accent);
+  stroke-width: 1.4;
+  opacity: 0.55;
+}
+.buddy .bd-warnring {
+  stroke: var(--warn, #e8a33d);
+  stroke-width: 2.2;
+  fill: none;
+}
+.buddy .bd-warnmark {
+  stroke: var(--warn, #e8a33d);
+  stroke-width: 2.8;
+}
+.buddy .bd-warnfill {
+  fill: var(--warn, #e8a33d);
+  stroke: none;
+}
+.buddy .bd-cloud-slash {
+  stroke: var(--foreground);
+}
+.buddy .bd-tally-bars,
+.buddy .bd-tally-slash {
+  stroke: var(--bd-accent);
+  stroke-width: 2.8;
+}
+.buddy[data-state="offline"] {
+  filter: saturate(0.4);
+  opacity: 0.88;
+}
+
+/* Blob sets: the body colour is the variant's own matte tone; choosing a colour world tints it.
+   The face is ink on the body: upright oval eyes, a small smile and light brows. */
+.buddy[data-art="blob-v1"] {
+  --bd-cream: var(--bd-tone);
+  --bd-eye: var(--bd-ink);
+  --bd-win: var(--bd-ink);
+}
+.buddy[data-art="blob-v1"]:not([data-palette="world"]) {
+  --bd-cream: color-mix(in oklab, var(--bd-accent) 55%, var(--bd-tone));
+}
+.buddy[data-art="blob-v1"] .bd-eye-in {
+  transform: scale(0.82, 1.1);
+}
+.buddy[data-art="blob-v1"] .bd-eye-in .bd-stroke {
+  stroke-width: 2.6;
+}
+.buddy[data-art="blob-v1"] .bd-mouth-in {
+  transform: scale(0.86);
+}
+.buddy[data-art="blob-v1"] .bd-brows path {
+  opacity: 0.55;
+  stroke-width: 1.5;
+}
+.buddy[data-art="blob-v1"][data-expression="focused"] .bd-brows path {
+  opacity: 0.85;
+}
+.buddy[data-art="blob-v1"][data-eyes="closed"] .bd-brows path,
+.buddy[data-art="blob-v1"][data-eyes="happy"] .bd-brows path {
+  opacity: 0.25;
+}
+.buddy[data-art="blob-v1"] .bd-cheeks ellipse {
+  fill: #ff8f86;
+  opacity: 0.5;
+}
+.buddy[data-art="blob-v1"][data-expression="bright"] .bd-cheeks ellipse {
+  opacity: 0.7;
+}
+.buddy[data-art="blob-v1"] .bd-glint {
+  fill: #fffaf0;
+}
+.buddy[data-art="blob-v1"] .bd-glint-soft {
+  opacity: 0.55;
+}
+.buddy[data-art="blob-v1"] .bd-g0 {
+  stop-color: color-mix(in oklab, var(--bd-cream) 82%, white);
+}
+.buddy[data-art="blob-v1"] .bd-g1 {
+  stop-color: var(--bd-cream);
+}
+.buddy[data-art="blob-v1"] .bd-g2 {
+  stop-color: color-mix(in oklab, var(--bd-cream) 84%, black);
+}
+.buddy [data-part="back"] {
+  transform-box: view-box;
+  transform-origin: 60px 64px;
+}

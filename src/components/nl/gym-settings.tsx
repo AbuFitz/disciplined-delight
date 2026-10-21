@@ -77,6 +77,7 @@ export function GymSettings() {
         />
         <Switch
           label="Haptic set cues"
+          hint="Short ticks for a logged set and a finished rest. Works on Android Chrome and native wrappers. iOS Safari can't vibrate, so you'll see the visual cue instead."
           checked={prefs.haptics}
           onChange={(haptics) => void update({ haptics })}
         />

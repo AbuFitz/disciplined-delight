@@ -9,19 +9,32 @@ import type {
 import { COL } from "./types";
 import { useCollection } from "./hooks";
 import { newId, put, remove } from "./db";
+import { applyLocalMedia, loadLocalMedia } from "./local-media";
 
 /* ------------------------------ Snapshot ------------------------------ */
 let inflight: Promise<CatalogueSnapshot> | null = null;
 let loaded: CatalogueSnapshot | null = null;
+/** Retired or merged ids (for example `xd:0001`) that resolve to a canonical id so old references keep working. */
+let aliasMap: Record<string, string> = {};
+export const canonicalId = (id: string) => aliasMap[id] ?? id;
 
 export function loadCatalogue(): Promise<CatalogueSnapshot> {
   if (loaded) return Promise.resolve(loaded);
-  inflight ??= fetch("/catalogue/v1/exercises.json")
-    .then((r) => {
+  inflight ??= Promise.all([
+    fetch("/catalogue/v1/exercises.json").then((r) => {
       if (!r.ok) throw new Error(`Catalogue unavailable (${r.status})`);
       return r.json() as Promise<CatalogueSnapshot>;
+    }),
+    fetch("/catalogue/v1/aliases.json")
+      .then((r) => (r.ok ? (r.json() as Promise<{ aliases: Record<string, string> }>) : null))
+      .catch(() => null),
+    loadLocalMedia(),
+  ])
+    .then(([snapshot, aliases, local]) => {
+      aliasMap = aliases?.aliases ?? {};
+      loaded = { ...snapshot, exercises: applyLocalMedia(snapshot.exercises, local) };
+      return loaded;
     })
-    .then((s) => (loaded = s))
     .finally(() => {
       inflight = null;
     });
@@ -120,7 +133,15 @@ export function useCatalogue() {
     () => [...custom.items.map(customToCatalogue), ...(state.snapshot?.exercises ?? [])],
     [custom.items, state.snapshot],
   );
-  const byId = useMemo(() => new Map(exercises.map((e) => [e.id, e])), [exercises]);
+  const byId = useMemo(() => {
+    const map = new Map(exercises.map((e) => [e.id, e]));
+    // Merged or retired ids resolve to their canonical record, so existing plans and history keep working.
+    for (const [from, to] of Object.entries(aliasMap)) {
+      const target = map.get(to);
+      if (target && !map.has(from)) map.set(from, target);
+    }
+    return map;
+  }, [exercises]);
   return {
     status: state.status,
     error: state.error,
