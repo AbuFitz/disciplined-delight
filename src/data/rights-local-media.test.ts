@@ -44,7 +44,7 @@ describe("restricted local media guard", () => {
     expect(scanOutput(clean, process.cwd())).toEqual([]);
   });
 
-  it("fails a production output whose design-lab route is more than an empty stub", () => {
+  it("fails a production output whose dev lab route is more than an empty stub", () => {
     const dir = mkdtempSync(join(tmpdir(), "lab-"));
     mkdirSync(join(dir, "assets"), { recursive: true });
     writeFileSync(join(dir, "assets", "dev.design-lab-abc.js"), "x".repeat(2000));

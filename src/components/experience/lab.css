@@ -1,0 +1,139 @@
+.xl {
+  --xl-bg: #0b0b0d;
+  --xl-ink: #ececef;
+  --xl-mut: #9b9ba5;
+  --xl-line: rgb(255 255 255 / 0.12);
+  min-height: 100dvh;
+  padding: 1rem;
+  background: var(--xl-bg);
+  color: var(--xl-ink);
+  font-family: var(--font-body);
+}
+.xl[data-mode="light"] {
+  --xl-bg: #efece5;
+  --xl-ink: #1a1814;
+  --xl-mut: #5a574f;
+  --xl-line: rgb(26 24 20 / 0.16);
+}
+.xl[data-chrome="false"] {
+  padding: 0;
+  display: grid;
+  place-items: center;
+  background: transparent;
+}
+.xl-head {
+  display: grid;
+  gap: 0.6rem;
+  max-width: 68rem;
+  margin: 0 auto 1.25rem;
+}
+.xl-head h1 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 5vw, 2.2rem);
+  letter-spacing: -0.02em;
+}
+.xl-kicker {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--xl-mut);
+}
+.xl-lede {
+  margin: 0;
+  max-width: 46rem;
+  font-size: 0.92rem;
+  color: var(--xl-mut);
+}
+.xl-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+}
+.xl-bar button,
+.xl-sel select {
+  min-height: 2.75rem;
+  min-width: 2.75rem;
+  padding: 0 0.85rem;
+  border: 0;
+  border-radius: 6px;
+  background: color-mix(in oklab, var(--xl-ink) 9%, transparent);
+  color: var(--xl-ink);
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+.xl-bar button[aria-pressed="true"],
+.xl-bar button[aria-checked="true"] {
+  background: var(--primary);
+  color: var(--primary-foreground, #fff);
+}
+.xl-sep {
+  width: 1px;
+  height: 1.5rem;
+  background: var(--xl-line);
+  margin-inline: 0.25rem;
+}
+.xl-scrub {
+  flex: 1 1 12rem;
+  display: flex;
+  min-width: 10rem;
+}
+.xl-scrub input {
+  width: 100%;
+  min-height: 2.75rem;
+  accent-color: var(--primary);
+}
+.xl-time,
+.xl-sel {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--xl-mut);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.xl-log {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--xl-mut);
+  min-height: 1.1rem;
+}
+.xl-stage {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1.5rem;
+}
+.xl-fig {
+  margin: 0;
+  display: grid;
+  gap: 0.6rem;
+  max-width: 100%;
+}
+.xl-fig figcaption {
+  display: grid;
+  gap: 0.15rem;
+  max-width: var(--frame-w);
+  font-size: 0.85rem;
+}
+.xl-fig figcaption span {
+  color: var(--xl-mut);
+}
+.xl-frame {
+  position: relative;
+  max-width: 100%;
+  overflow: hidden;
+  border-radius: 20px;
+  box-shadow: 0 0 0 1px var(--xl-line);
+  background: #000;
+  isolation: isolate;
+}
+.xl[data-chrome="false"] .xl-frame {
+  border-radius: 0;
+  box-shadow: none;
+}
