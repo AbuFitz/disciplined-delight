@@ -144,7 +144,10 @@ function TodayPage() {
       />
       {nextAction && <div className="mb-4 min-w-0">{render["next-action"]()}</div>}
       {quick.length > 0 && (
-        <nav aria-label="Quick actions" className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <nav
+          aria-label="Quick actions"
+          className="mb-4 grid grid-cols-[repeat(2,minmax(0,1fr))] gap-3 sm:grid-cols-4"
+        >
           {quick.map((q) => (
             <Link key={q.to} to={q.to} className="min-w-0">
               <Tile icon={<VIcon name={q.icon} size={20} />} label={q.label} hint={q.hint} />

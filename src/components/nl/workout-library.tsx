@@ -184,7 +184,7 @@ export function WorkoutLibrary({
             Discover
           </h2>
           <div
-            className="inline-flex rounded-full bg-foreground/8 p-1"
+            className="inline-flex max-w-full overflow-x-auto rounded-full bg-foreground/8 p-1"
             role="tablist"
             aria-label="Library type"
           >
@@ -195,7 +195,7 @@ export function WorkoutLibrary({
                 aria-selected={tab === value}
                 onClick={() => selectTab(value)}
                 className={cn(
-                  "min-h-10 rounded-full px-4 text-sm font-semibold capitalize transition",
+                  "min-h-10 shrink-0 rounded-full px-4 text-sm font-semibold capitalize transition",
                   tab === value ? "bg-primary text-primary-foreground" : "text-muted-foreground",
                 )}
               >

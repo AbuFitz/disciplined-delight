@@ -7,7 +7,7 @@ import { useBuddyDock } from "./buddy-context";
 
 type Anchor = { side: "left" | "right"; lift: number };
 const KEY = "vayvor:buddy:anchor";
-const LIFTS = [0, 76, 152, 228];
+const LIFTS = [0, 44];
 const INTERACTIVE =
   "button, a[href], input, select, textarea, summary, label, [role=button], [role=tab], [role=switch], [role=radio], [role=checkbox]";
 
@@ -30,11 +30,12 @@ function carriesContent(el: Element) {
 
 /** True when an interactive control sits under this rectangle (the companion itself is ignored). */
 function blockedAt(rect: { left: number; top: number; right: number; bottom: number }) {
-  const cols = 4;
+  const cols = Math.min(14, Math.max(3, Math.ceil((rect.right - rect.left) / 12)));
+  const rows = Math.min(14, Math.max(3, Math.ceil((rect.bottom - rect.top) / 12)));
   for (let i = 0; i < cols; i++)
-    for (let j = 0; j < cols; j++) {
+    for (let j = 0; j < rows; j++) {
       const x = rect.left + ((rect.right - rect.left) * (i + 0.5)) / cols;
-      const y = rect.top + ((rect.bottom - rect.top) * (j + 0.5)) / cols;
+      const y = rect.top + ((rect.bottom - rect.top) * (j + 0.5)) / rows;
       if (x < 0 || y < 0 || x > innerWidth || y > innerHeight) continue;
       const top = document.elementsFromPoint(x, y).find((el) => !el.closest("[data-buddy]"));
       if (!top || top.closest("[data-buddy]") || top === document.body) continue;

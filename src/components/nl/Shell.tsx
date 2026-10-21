@@ -325,7 +325,7 @@ function ShellFrame({ children }: { children: ReactNode }) {
                   to={t.to}
                   aria-current={isActive(t.to, t.match) ? "page" : undefined}
                   className={cn(
-                    "flex min-h-[3.6rem] min-w-0 flex-col items-center justify-center gap-0.5 overflow-hidden text-ellipsis whitespace-nowrap px-0.5 text-[0.68rem] font-medium",
+                    "flex min-h-[3.6rem] min-w-0 flex-col items-center justify-center gap-0.5 overflow-hidden text-ellipsis whitespace-nowrap px-0.5 text-[min(0.68rem,2.9vw)] font-medium",
                     isActive(t.to, t.match) ? "text-foreground" : "text-muted-foreground",
                   )}
                 >
@@ -349,7 +349,7 @@ function ShellFrame({ children }: { children: ReactNode }) {
                   aria-expanded={more}
                   onClick={() => setMore(true)}
                   className={cn(
-                    "flex min-h-[3.5rem] w-full min-w-0 flex-col items-center justify-center gap-0.5 px-0.5 text-[0.68rem] font-medium",
+                    "flex min-h-[3.5rem] w-full min-w-0 flex-col items-center justify-center gap-0.5 px-0.5 text-[min(0.68rem,2.9vw)] font-medium",
                     moreActive ? "text-foreground" : "text-muted-foreground",
                   )}
                 >

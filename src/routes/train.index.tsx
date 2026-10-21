@@ -169,7 +169,7 @@ function TrainPage() {
       ) : null}
 
       <div
-        className="mb-4 grid grid-cols-7 gap-1.5 rounded-3xl bg-surface/80 p-2.5 md:gap-2 md:p-3"
+        className="mb-4 grid grid-cols-7 gap-[min(0.375rem,1vw)] rounded-3xl bg-surface/80 p-2.5 md:gap-2 md:p-3"
         role="list"
         aria-label="Weekly split"
       >
@@ -184,10 +184,12 @@ function TrainPage() {
                 i === todayIdx && "bg-primary/12",
               )}
             >
-              <p className="text-[0.68rem] font-medium text-muted-foreground">{d}</p>
+              <p className="text-[min(0.68rem,2.9vw)] font-medium text-muted-foreground md:text-[0.68rem]">
+                {d}
+              </p>
               <p
                 className={cn(
-                  "flex size-8 items-center justify-center rounded-full font-display text-base font-bold md:size-9",
+                  "flex size-[min(2rem,8.6vw)] items-center justify-center rounded-full font-display text-[min(1rem,4vw)] font-bold md:size-9 md:text-base",
                   tpl
                     ? "bg-primary text-primary-foreground"
                     : "bg-foreground/8 text-muted-foreground",
@@ -201,7 +203,10 @@ function TrainPage() {
         })}
       </div>
 
-      <nav aria-label="Training areas" className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <nav
+        aria-label="Training areas"
+        className="mb-6 grid grid-cols-[repeat(2,minmax(0,1fr))] gap-3 sm:grid-cols-4"
+      >
         {quick.map((q) => (
           <button key={q.key} type="button" onClick={q.onClick} className="min-w-0 text-left">
             <Tile icon={<VIcon name={q.icon} size={20} />} label={q.label} hint={q.hint} />

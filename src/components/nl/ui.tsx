@@ -208,12 +208,12 @@ export function Tile({
   return (
     <span
       className={cn(
-        "flex min-h-[5.5rem] min-w-0 flex-col items-start justify-between gap-2 rounded-3xl bg-surface/80 p-3.5 text-left transition active:scale-[0.97]",
+        "flex min-h-[5.5rem] w-full min-w-0 flex-col items-stretch justify-between gap-2 rounded-3xl bg-surface/80 p-3.5 text-left transition active:scale-[0.97]",
         className,
       )}
       {...rest}
     >
-      <span className="flex size-10 items-center justify-center rounded-full bg-primary/15 text-primary">
+      <span className="flex size-10 shrink-0 items-center justify-center self-start rounded-full bg-primary/15 text-primary">
         {icon}
       </span>
       <span className="min-w-0">

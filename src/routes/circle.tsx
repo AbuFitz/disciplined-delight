@@ -58,7 +58,10 @@ function CirclePage() {
         actions={handle ? <Chip tone="ok">@{handle}</Chip> : undefined}
       />
       {handle && (
-        <nav aria-label="Circle sections" className="mb-6 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+        <nav
+          aria-label="Circle sections"
+          className="mb-6 grid grid-cols-[repeat(2,minmax(0,1fr))] gap-2.5 sm:grid-cols-4"
+        >
           {[
             { to: "/circle/chat", label: "Chat", icon: MessageCircle },
             { to: "/circle/crews", label: "Crews", icon: Users },
