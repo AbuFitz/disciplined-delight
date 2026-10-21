@@ -289,7 +289,7 @@ function Credit({ d }: { d: MediaDescription }) {
   if (!d.credit) return null;
   return (
     <p className="text-xs text-muted-foreground">
-      {d.note} Illustration by {d.credit.author} · {d.credit.licence} ·{" "}
+      {d.note} {d.restricted ? "Media" : "Illustration"} by {d.credit.author} · {d.credit.licence} ·{" "}
       <Link
         to="/credits"
         className="inline-flex min-h-11 min-w-11 items-center justify-center underline underline-offset-4"

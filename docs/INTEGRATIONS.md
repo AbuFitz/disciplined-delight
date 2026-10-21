@@ -5,13 +5,13 @@ VAYVOR treats every external provider as optional. The code reports what each on
 provider as connected unless a real adapter and credentials exist. **No provider adapter ships
 in this build**, so nothing here is connected.
 
-| Provider | Today | To make it real |
-| --- | --- | --- |
-| Spotify | Saved playlist link opens in Spotify from Gym Mode. | Register a Spotify app, set `VITE_SPOTIFY_CLIENT_ID`, implement PKCE auth and a playback adapter behind the provider interface, ask for consent in-app. |
-| Apple Music | Saved playlist link opens in Apple Music. | Apple developer account, set `VITE_APPLE_MUSIC_DEVELOPER_TOKEN`, add a MusicKit adapter, ask for consent. |
-| Wearables / health | Not available. Apple Health and Health Connect cannot be read from a web app. | Native wrapper with HealthKit / Health Connect entitlements and per-data-type consent. |
-| Location | Optional foreground check from Gym settings, after a direct tap. | Background arrival needs native geofencing and "always" location permission. |
-| Notifications | Local reminders while the app is open or installed. | Closed-app delivery needs `VITE_VAPID_PUBLIC_KEY` and a server-side push sender (server key never in the client). |
+| Provider           | Today                                                                         | To make it real                                                                                                                                         |
+| ------------------ | ----------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Spotify            | Saved playlist link opens in Spotify from Gym Mode.                           | Register a Spotify app, set `VITE_SPOTIFY_CLIENT_ID`, implement PKCE auth and a playback adapter behind the provider interface, ask for consent in-app. |
+| Apple Music        | Saved playlist link opens in Apple Music.                                     | Apple developer account, set `VITE_APPLE_MUSIC_DEVELOPER_TOKEN`, add a MusicKit adapter, ask for consent.                                               |
+| Wearables / health | Not available. Apple Health and Health Connect cannot be read from a web app. | Native wrapper with HealthKit / Health Connect entitlements and per-data-type consent.                                                                  |
+| Location           | Optional foreground check from Gym settings, after a direct tap.              | Background arrival needs native geofencing and "always" location permission.                                                                            |
+| Notifications      | Local reminders while the app is open or installed.                           | Closed-app delivery needs `VITE_VAPID_PUBLIC_KEY` and a server-side push sender (server key never in the client).                                       |
 
 ## Boundaries
 

@@ -90,3 +90,47 @@ from a bundle you have licensed. It requires: at least 100 `.webp`, `.mp4` or `.
 ignored); file names matching a catalogue RepDB slug (optionally suffixed `-animation`,
 `-animated` or `-loop`); and a non-empty licence or purchase record whose hash is stored. Until
 then every exercise shows stills or "illustrated steps" and is never labelled as motion.
+
+## Exercises-dataset merge (MIT data) and the restricted local media source
+
+Imported 21 October 2026 from `hasaneyldrm/exercises-dataset` (MIT for **data, text and translations**).
+`npm run catalogue:dataset -- --source /path/to/exercises-dataset` is repeatable and idempotent.
+
+- **Canonical ids never change.** Existing `wger:` / `repdb:` / `custom:` ids stay. A dataset record whose
+  normalised name (or word-order/plural-insensitive token key) equals an existing name or alias is **merged**:
+  the existing record keeps its fields and media, gains a `source.merged` cross-reference and the `xd_text`
+  flag. Everything else is added as `xd:<id>` (`ExercisesDataset`, licence `MIT (data)`, tier `library`,
+  `not_reviewed_for_generator`). Result: 1,421 -> 2,598 exercises (139 merged, 8 folded into an earlier dataset
+  record, 1,177 added).
+- `public/catalogue/v1/aliases.json` maps every dataset id to its canonical id; `useCatalogue().byId` resolves
+  aliases, and `canonicalId()` is exported. `catalogue/id-baseline.json` freezes the pre-merge ids; a test fails
+  if any stops resolving (programmes, history and favourites reference them).
+- Translations (it, tr, es, ru, zh, hi, pl, ko, fr instruction steps) are lazy per-language files in
+  `public/catalogue/v1/i18n/<lang>.json`, keyed by canonical id. English stays in the snapshot.
+- Names are title-cased from the dataset's lower-case names; muscle, equipment, pattern and tracking are mapped by
+  rules in the importer and are **not** coach-reviewed. Dataset-only records never enter the plan generator.
+
+### Media: Gym visual is NOT licensed to this project
+
+The dataset's images and GIFs are (c) Gym visual, redistributed there with permission at 180x180 and governed by
+Gym visual's terms. **We hold no licence.** Therefore:
+
+- No binary is committed, copied to `public/`, bundled or put in Git LFS. The cache is the gitignored
+  `.local-media/gymvisual/`, filled by `npm run catalogue:local-media -- --source <checkout>` (refuses to write if
+  the folder is not gitignored; `--check` verifies the cache).
+- `catalogue/local-media-index.json` (tracked, no binaries) maps canonical ids to file names and keeps the
+  dataset's provenance fields.
+- The dev adapter (`src/data/local-media.ts`) is active only when `import.meta.env.DEV` **and**
+  `VITE_LOCAL_MEDIA=gymvisual` (put it in an untracked `.env.local`). `vite.config.ts` serves `/local-media/*`
+  from the cache only with `apply: "serve"`; the plugin does not exist in a build. In a production build the whole
+  branch is dead-code-eliminated (verified: the built output contains none of the local paths).
+- Local items are labelled `Local dev media` with the credit "(c) Gym visual (not licensed)". The licensed
+  catalogue media remains the fallback and the production source.
+- **Guards:** `npm run build` ends with `node scripts/catalogue/dist-rights.mjs`, which fails if any tracked file,
+  `public/` or build output (`dist`, `.output`, `.vercel/output`, ...) contains restricted file names, `local-media`
+  paths, GIFs without licensed provenance in the media manifest, or Git LFS media config.
+  `src/data/rights-local-media.test.ts` covers the guard on leaky/clean fixtures, the dev-only gating, alias and
+  baseline integrity and that dataset records carry no media.
+- **Switching after a licence is supplied:** produce licensed `MediaItem`s (same shape, a real licence entry and
+  self-hosted files with hashes in the media manifest) from a normal importer, add them to the snapshot, and delete
+  the dev adapter and flag. Nothing else changes.

@@ -4,16 +4,16 @@ Source: `src/routes/onboarding.tsx`, `src/domain/onboarding.ts`, `src/components
 
 ## The path: 8 screens, one decision each
 
-| # | Screen | Decision | Why it is here |
-|---|--------|----------|----------------|
-| 1 | Outcome | strength / muscle / fitter / lose weight / not sure | programme style and rep ranges |
-| 2 | Experience | new / returning / some / experienced | how much we start with |
-| 3 | Safety (optional) | 18+ confirmation, movements to leave out, free note, "clinician limited my exercise" | the generator refuses adults-only or clinician-restricted cases rather than guessing |
-| 4 | Days | 2-7 weekdays | schedule |
-| 5 | Time | 30 / 45 / 60 / 75 min | exercises per session |
-| 6 | Kit | place, then tick equipment | only doable exercises |
-| 7 | Your plan | none (review) | generated first week, "why this", first-day dry run |
-| 8 | Start | name (optional), handle (only when signed in) | review with Change links, data-location explanation, start |
+| #   | Screen            | Decision                                                                             | Why it is here                                                                       |
+| --- | ----------------- | ------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------ |
+| 1   | Outcome           | strength / muscle / fitter / lose weight / not sure                                  | programme style and rep ranges                                                       |
+| 2   | Experience        | new / returning / some / experienced                                                 | how much we start with                                                               |
+| 3   | Safety (optional) | 18+ confirmation, movements to leave out, free note, "clinician limited my exercise" | the generator refuses adults-only or clinician-restricted cases rather than guessing |
+| 4   | Days              | 2-7 weekdays                                                                         | schedule                                                                             |
+| 5   | Time              | 30 / 45 / 60 / 75 min                                                                | exercises per session                                                                |
+| 6   | Kit               | place, then tick equipment                                                           | only doable exercises                                                                |
+| 7   | Your plan         | none (review)                                                                        | generated first week, "why this", first-day dry run                                  |
+| 8   | Start             | name (optional), handle (only when signed in)                                        | review with Change links, data-location explanation, start                           |
 
 Optional, never required: a "Make it yours" screen (colour world and companion) reachable from screen 8.
 Scripted run on the production build: about 7 s with defaults (a person takes roughly 45-90 s).

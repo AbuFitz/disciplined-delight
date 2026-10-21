@@ -12,8 +12,13 @@ export type MediaFrame = {
   label: string;
 };
 
+/** Licence id carried by media from the restricted, development-only local source. */
+export const LOCAL_RESTRICTED_LICENCE_ID = "gymvisual-local-unlicensed";
+
 export type MediaDescription = {
   mode: MediaMode;
+  /** True when the media comes from the development-only local source (not licensed for distribution). */
+  restricted?: boolean;
   frames: MediaFrame[];
   /** Genuine motion item, when one exists. */
   motion?: MediaItem;
@@ -67,6 +72,16 @@ export function describeMedia(items: readonly MediaItem[] | undefined | null): M
     licenceUrl: first.licence.url,
     sourceUrl: first.sourceUrl,
   };
+  if (first.licence.id === LOCAL_RESTRICTED_LICENCE_ID && motion)
+    return {
+      mode: "motion",
+      restricted: true,
+      frames,
+      motion,
+      badge: "Local dev media",
+      note: "Local development media only (© Gym visual). Not licensed for this project and never shipped.",
+      credit,
+    };
   if (motion)
     return {
       mode: "motion",

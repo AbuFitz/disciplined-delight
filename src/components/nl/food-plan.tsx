@@ -13,7 +13,8 @@ import {
   Sheet,
   TextInput,
 } from "./ui";
-import { WeekNav, weekRangeLabel } from "./week-nav";
+import { WeekNav } from "./week-nav";
+import { weekRangeLabel } from "@/lib/week-range";
 import { addPlanEntry, assignDayTemplate, copyWeekPlan, createBatch } from "@/data/actions";
 import { put, remove } from "@/data/db";
 import { useCollection } from "@/data/hooks";

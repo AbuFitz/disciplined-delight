@@ -1,5 +1,5 @@
 {
-  "snapshot": "2026-10-16+repdb-free-3",
+  "snapshot": "2026-10-16+repdb-free-3+xd-mit-1",
   "sources": {
     "wger": {
       "name": "wger Workout Manager",
@@ -9,6 +9,15 @@
       "exercises": 879,
       "withMedia": 266,
       "mediaItems": 416
+    },
+    "ExercisesDataset": {
+      "name": "hasaneyldrm/exercises-dataset (data only)",
+      "url": "https://github.com/hasaneyldrm/exercises-dataset",
+      "use": "Exercise names, muscles, equipment, instructions and translations (MIT). Its images and GIFs are (c) Gym visual and are NOT shipped.",
+      "redistribution": "MIT for data and text. Media excluded: not licensed to this project.",
+      "exercises": 1177,
+      "withMedia": 0,
+      "mediaItems": 0
     },
     "RepDB": {
       "name": "RepDB Free tier dataset",
@@ -29,7 +38,7 @@
     "image": 1373
   },
   "totals": {
-    "exercises": 1421,
+    "exercises": 2598,
     "mediaItems": 1373,
     "remoteUrls": 0,
     "missingFiles": 0

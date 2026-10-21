@@ -6,3 +6,12 @@ pnpm-lock.yaml
 package-lock.json
 bun.lock
 routeTree.gen.ts
+public/catalogue
+catalogue/local-media-index.json
+catalogue/rights-manifest.json
+catalogue/overrides.json
+catalogue/quarantine.json
+catalogue/id-baseline.json
+public/sw.js
+public/manifest.webmanifest
+supabase

@@ -16,7 +16,8 @@ import {
   Sheet,
   TextInput,
 } from "./ui";
-import { WeekNav, weekRangeLabel } from "./week-nav";
+import { WeekNav } from "./week-nav";
+import { weekRangeLabel } from "@/lib/week-range";
 import { IngredientEditor } from "./food-manage";
 import { newId, put, remove } from "@/data/db";
 import { useCollection } from "@/data/hooks";

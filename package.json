@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite dev",
-    "build": "vite build",
+    "build": "vite build && node scripts/catalogue/dist-rights.mjs",
     "build:dev": "vite build --mode development",
     "build:preview": "NITRO_PRESET=node-server vite build",
     "preview": "npm run build:preview && node .output/server/index.mjs",
@@ -17,7 +17,11 @@
     "lint": "eslint src",
     "format": "prettier --write .",
     "test": "vitest run",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "catalogue:dataset": "node scripts/catalogue/exercises-dataset.mjs",
+    "catalogue:local-media": "node scripts/catalogue/local-media.mjs",
+    "catalogue:local-media:check": "node scripts/catalogue/local-media.mjs --check",
+    "catalogue:rights:guard": "node scripts/catalogue/dist-rights.mjs"
   },
   "dependencies": {
     "@fontsource-variable/fraunces": "^5.3.0",

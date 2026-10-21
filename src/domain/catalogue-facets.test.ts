@@ -7,7 +7,9 @@ import { searchCatalogue } from "./catalogue-search";
 const all = (
   JSON.parse(readFileSync("public/catalogue/v1/exercises.json", "utf8")) as CatalogueSnapshot
 ).exercises;
-const by = (n: string) => all.find((e) => e.name.toLowerCase().includes(n.toLowerCase()))!;
+const by = (n: string) =>
+  all.find((e) => e.name.toLowerCase() === n.toLowerCase()) ??
+  all.find((e) => e.name.toLowerCase().includes(n.toLowerCase()))!;
 
 describe("library facets", () => {
   it("gives every exercise a modality, difficulty and a deterministic media state", () => {
