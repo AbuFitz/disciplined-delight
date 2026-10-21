@@ -45,6 +45,16 @@ if (!ignored())
   throw new Error(`${CACHE_DIR} is not gitignored; refusing to write restricted media.`);
 
 if (process.argv.includes("--check")) {
+  // The cache is OPTIONAL and restricted, so CI must not require it. Semantics:
+  //   absent cache            -> exit 0 ("skipped"), unless --require is passed
+  //   present but incomplete  -> exit 1 (a half-filled cache is a fault)
+  //   present and complete    -> exit 0
+  if (!existsSync(cache)) {
+    console.log(
+      `Local media cache ${CACHE_DIR} not present: skipped (optional; pass --require to fail).`,
+    );
+    process.exit(process.argv.includes("--require") ? 1 : 0);
+  }
   const missing = wanted.filter((p) => !existsSync(join(cache, p)));
   console.log(
     `${wanted.length - missing.length}/${wanted.length} media files present in ${CACHE_DIR}`,

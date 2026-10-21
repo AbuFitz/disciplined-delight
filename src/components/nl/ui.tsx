@@ -38,7 +38,7 @@ export const Button = forwardRef<HTMLButtonElement, BtnProps>(function Button(
       ref={ref}
       disabled={disabled || busy}
       className={cn(
-        "inline-flex max-w-full items-center justify-center gap-2 rounded-full text-center font-medium whitespace-normal select-none [overflow-wrap:anywhere]",
+        "inline-flex max-w-full items-center justify-center gap-2 rounded-[var(--r-control)] text-center font-medium whitespace-normal select-none [overflow-wrap:anywhere]",
         "transition-[transform,background-color,opacity] duration-150 active:scale-[0.97] disabled:opacity-50 disabled:active:scale-100",
         size === "lg" && "min-h-14 px-8 text-base font-semibold",
         size === "md" && "min-h-12 px-6 text-[0.95rem] font-semibold",
@@ -68,7 +68,7 @@ export const IconButton = forwardRef<
       aria-label={label}
       title={label}
       className={cn(
-        "inline-flex size-11 items-center justify-center rounded-full text-foreground transition active:scale-95 hover:bg-surface-2 disabled:opacity-40",
+        "inline-flex size-11 items-center justify-center rounded-[var(--r-control)] text-foreground transition active:scale-95 hover:bg-surface-2 disabled:opacity-40",
         className,
       )}
       {...p}
@@ -535,7 +535,7 @@ export function Segmented<T extends string>({
     <div
       role="radiogroup"
       aria-label={label}
-      className="inline-flex max-w-full flex-wrap gap-1 rounded-full bg-surface/80 p-1"
+      className="inline-flex max-w-full flex-wrap gap-1 rounded-[var(--r-control)] bg-surface-2 p-1"
     >
       {options.map((o) => (
         <button
@@ -544,7 +544,7 @@ export function Segmented<T extends string>({
           aria-checked={o.value === value}
           onClick={() => onChange(o.value)}
           className={cn(
-            "min-h-11 min-w-11 rounded-full px-4 text-sm font-medium transition",
+            "min-h-11 min-w-11 rounded-[calc(var(--r-control)-2px)] px-4 text-sm font-medium transition",
             o.value === value
               ? "bg-primary text-primary-foreground"
               : "text-muted-foreground hover:text-foreground",
@@ -661,7 +661,7 @@ export function Sheet({
           aria-describedby={description ? undefined : undefined}
           className={cn(
             "fixed z-50 flex max-h-[92dvh] flex-col overflow-hidden border border-line bg-popover text-popover-foreground shadow-2xl outline-none",
-            "max-w-[100vw] inset-x-0 bottom-0 rounded-t-[2rem] data-[state=open]:animate-in data-[state=open]:slide-in-from-bottom data-[state=closed]:animate-out data-[state=closed]:slide-out-to-bottom",
+            "max-w-[100vw] inset-x-0 bottom-0 rounded-t-[var(--r-stage)] data-[state=open]:animate-in data-[state=open]:slide-in-from-bottom data-[state=closed]:animate-out data-[state=closed]:slide-out-to-bottom",
             "md:inset-y-3 md:right-3 md:left-auto md:bottom-3 md:max-h-none md:rounded-lg md:data-[state=open]:slide-in-from-right md:data-[state=closed]:slide-out-to-right",
             wide ? "md:w-[min(40rem,calc(100vw-1.5rem))]" : "md:w-[min(30rem,calc(100vw-1.5rem))]",
           )}

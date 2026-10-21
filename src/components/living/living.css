@@ -1,0 +1,527 @@
+/* Living Instrument primitives. Tokens come from src/styles.css: --r-control 6px, --r-media 12px, --r-stage 20px.
+   Solid canvas; glass only on Utility (ActionDock). Structure from rules and rhythm before boxes. */
+
+.lv-mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+.lv-kicker {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  line-height: 1.2;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+.lv-title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+
+/* Canvas */
+.lv-canvas {
+  display: grid;
+  gap: 1.75rem;
+  width: 100%;
+  max-width: 44rem;
+  margin-inline: auto;
+}
+.lv-canvas[data-width="wide"] {
+  max-width: 72rem;
+}
+.lv-canvas-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.75rem 1.5rem;
+}
+.lv-canvas-head h1 {
+  font-size: clamp(1.75rem, 6vw, 2.5rem);
+}
+
+/* Stage: the one dominant object */
+.lv-stage {
+  position: relative;
+  display: grid;
+  gap: 1rem;
+  padding: clamp(1.1rem, 4.5vw, 1.75rem);
+  border-radius: var(--r-stage);
+  background: var(--surface);
+  overflow: hidden;
+}
+.lv-stage::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto auto 0;
+  width: 3rem;
+  height: 2px;
+  background: var(--primary);
+}
+.lv-stage[data-tone="quiet"] {
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+.lv-stage[data-tone="quiet"]::before {
+  background: var(--line);
+}
+.lv-stage-title {
+  font-size: clamp(1.5rem, 6.5vw, 2.1rem);
+}
+.lv-stage-meta {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--muted-foreground);
+}
+.lv-stage-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+/* Section: a rule, a heading, rows. No box. */
+.lv-section {
+  display: grid;
+  gap: 0.25rem;
+}
+.lv-section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 0.25rem;
+}
+.lv-section-head h2 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+}
+.lv-section-action {
+  font-size: 0.875rem;
+}
+.lv-section-action a,
+.lv-section-action button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-height: 2.75rem;
+  min-width: 2.75rem;
+  margin-block: -0.5rem;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.lv-rows {
+  display: grid;
+}
+
+/* DataRow */
+.lv-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  column-gap: 0.85rem;
+  min-height: 3.5rem;
+  padding-block: 0.65rem;
+  border-top: 1px solid var(--line);
+  color: var(--foreground);
+  text-align: left;
+  width: 100%;
+}
+.lv-row:first-child {
+  border-top-color: transparent;
+}
+a.lv-row,
+button.lv-row {
+  cursor: pointer;
+  transition: background-color 100ms;
+  border-radius: 0;
+}
+a.lv-row:hover,
+button.lv-row:hover {
+  background: color-mix(in oklab, var(--foreground) 4%, transparent);
+}
+.lv-row-lead {
+  color: var(--muted-foreground);
+  display: inline-flex;
+}
+.lv-row-main {
+  min-width: 0;
+}
+.lv-row-label {
+  font-size: 0.95rem;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+.lv-row-hint {
+  font-size: 0.8rem;
+  line-height: 1.35;
+  color: var(--muted-foreground);
+  overflow-wrap: anywhere;
+}
+.lv-row-value {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.9rem;
+  text-align: right;
+}
+.lv-row-chev {
+  color: var(--muted-foreground);
+  display: inline-flex;
+}
+.lv-row:not(:has(.lv-row-lead)) {
+  grid-template-columns: minmax(0, 1fr) auto auto;
+}
+
+/* MetricStrip */
+.lv-metrics {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 0;
+  container-type: inline-size;
+}
+.lv-metric {
+  flex: 1 1 7.5rem;
+  min-width: 0;
+  padding: 0.25rem 1rem 0.25rem 0;
+  margin-right: 1rem;
+  border-right: 1px solid var(--line);
+}
+.lv-metric:last-child {
+  border-right: 0;
+  margin-right: 0;
+}
+.lv-metric dt {
+  font-size: 0.78rem;
+  color: var(--muted-foreground);
+  order: 2;
+}
+.lv-metric dd {
+  margin: 0;
+}
+.lv-metric-value {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: clamp(1.35rem, 5.5vw, 1.75rem);
+  font-weight: 500;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+.lv-metric-unit {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+  margin-left: 0.2rem;
+}
+.lv-metric-delta {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--muted-foreground);
+}
+.lv-metric[data-state="unknown"] .lv-metric-value {
+  color: var(--muted-foreground);
+}
+@media (max-width: 30rem) {
+  .lv-metric:nth-child(2n) {
+    border-right: 0;
+    margin-right: 0;
+  }
+}
+
+/* Dayline: a thin rail through readiness, plan, now and recovery. Vertical when narrow or zoomed. */
+.lv-dayline {
+  container-type: inline-size;
+}
+.lv-dayline-list {
+  display: grid;
+  grid-auto-flow: row;
+}
+.lv-node {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1.25rem minmax(0, 1fr);
+  column-gap: 0.75rem;
+  align-items: start;
+  min-height: 2.75rem;
+  padding: 0.35rem 0.25rem 0.35rem 0;
+  text-align: left;
+  color: var(--muted-foreground);
+}
+.lv-node[aria-selected="true"] {
+  color: var(--foreground);
+}
+.lv-dot {
+  position: relative;
+  z-index: 1;
+  justify-self: center;
+  margin-top: 0.4rem;
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 50%;
+  background: var(--background);
+  box-shadow: inset 0 0 0 1.5px var(--muted-foreground);
+}
+.lv-node[data-state="done"] .lv-dot {
+  background: var(--foreground);
+  box-shadow: none;
+}
+.lv-node[data-state="current"] .lv-dot {
+  background: var(--primary);
+  box-shadow: 0 0 0 4px color-mix(in oklab, var(--primary) 28%, transparent);
+}
+.lv-node[data-state="unknown"] .lv-dot {
+  box-shadow: inset 0 0 0 1.5px var(--line);
+  background: transparent;
+}
+.lv-node[data-state="skipped"] .lv-dot {
+  background: transparent;
+  box-shadow: inset 0 0 0 1.5px var(--muted-foreground);
+  opacity: 0.6;
+}
+.lv-node-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+.lv-node-value {
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  line-height: 1.3;
+  color: var(--muted-foreground);
+  overflow-wrap: anywhere;
+}
+/* connectors */
+.lv-node::before,
+.lv-node::after {
+  content: "";
+  position: absolute;
+  left: calc(0.625rem - 0.5px);
+  width: 1px;
+  background: var(--line);
+}
+.lv-node::before {
+  top: 0;
+  height: 0.7rem;
+}
+.lv-node::after {
+  top: 0.7rem;
+  bottom: 0;
+}
+.lv-node:first-child::before,
+.lv-node:last-child::after {
+  display: none;
+}
+.lv-node[data-reached="true"]::before,
+.lv-node[data-reached="true"]::after {
+  background: var(--primary);
+}
+.lv-node[data-last-reached="true"]::after {
+  background: var(--line);
+}
+@container (min-width: 21rem) {
+  .lv-dayline-list {
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+  }
+  .lv-node {
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: center;
+    text-align: center;
+    padding: 0.2rem 0.25rem;
+  }
+  .lv-node .lv-dot {
+    margin-top: 0;
+  }
+  .lv-node::before,
+  .lv-node::after {
+    top: calc(0.3rem + 0.2rem + 0.3rem - 0.5px);
+    bottom: auto;
+    height: 1px;
+    width: auto;
+  }
+  .lv-node::before {
+    left: 0;
+    right: 50%;
+  }
+  .lv-node::after {
+    left: 50%;
+    right: 0;
+  }
+  .lv-node-label {
+    margin-top: 0.4rem;
+  }
+}
+
+/* MediaTile: media first */
+.lv-media {
+  display: grid;
+  gap: 0.5rem;
+  min-width: 0;
+  color: var(--foreground);
+  text-align: left;
+}
+.lv-media-frame {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  border-radius: var(--r-media);
+  background: var(--surface-2);
+  overflow: hidden;
+}
+.lv-media-frame > img,
+.lv-media-frame > video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.lv-media-badge {
+  position: absolute;
+  left: 0.5rem;
+  bottom: 0.5rem;
+  max-width: calc(100% - 1rem);
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+  background: color-mix(in oklab, var(--background) 82%, transparent);
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  line-height: 1.3;
+  letter-spacing: 0.02em;
+}
+.lv-media-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1.25;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
+.lv-media-meta {
+  font-size: 0.78rem;
+  color: var(--muted-foreground);
+  overflow-wrap: anywhere;
+}
+a.lv-media:focus-visible,
+button.lv-media:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 3px;
+  border-radius: var(--r-media);
+}
+.lv-poster {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  text-align: center;
+  color: var(--muted-foreground);
+}
+.lv-poster-cue {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+/* ActionDock: Utility. The only glass in the app besides sheets and nav. */
+.lv-dock {
+  position: sticky;
+  bottom: 0;
+  z-index: 20;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem calc(0.75rem + var(--safe-bottom, 0px));
+  background: color-mix(in oklab, var(--surface) 82%, transparent);
+  -webkit-backdrop-filter: blur(18px) saturate(1.1);
+  backdrop-filter: blur(18px) saturate(1.1);
+  border-top: 1px solid var(--line);
+}
+.lv-dock > .lv-dock-primary {
+  flex: 1 1 10rem;
+}
+@media (forced-colors: active) {
+  .lv-dock {
+    background: Canvas;
+    backdrop-filter: none;
+  }
+}
+
+/* FilterSheet groups */
+.lv-fgroup {
+  display: grid;
+  gap: 0.5rem;
+  padding-block: 0.9rem;
+  border-top: 1px solid var(--line);
+}
+.lv-fgroup:first-child {
+  border-top: 0;
+}
+.lv-fgroup h3 {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+.lv-fopts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+.lv-fopt {
+  min-height: 2.75rem;
+  min-width: 2.75rem;
+  padding: 0 0.85rem;
+  border-radius: var(--r-control);
+  font-size: 0.88rem;
+  background: var(--surface-2);
+  color: var(--foreground);
+  box-shadow: inset 0 0 0 1px transparent;
+  transition: background-color 100ms;
+}
+.lv-fopt[aria-pressed="true"] {
+  background: color-mix(in oklab, var(--primary) 18%, var(--surface-2));
+  box-shadow: inset 0 0 0 1.5px var(--primary);
+}
+
+/* EmptyCanvas */
+.lv-empty {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.25rem 0.9rem;
+  align-items: start;
+  padding-block: 1.25rem;
+  color: var(--foreground);
+}
+.lv-empty-glyph {
+  grid-row: 1 / span 3;
+  color: var(--muted-foreground);
+  padding-top: 0.1rem;
+}
+.lv-empty[data-kind="error"] .lv-empty-glyph {
+  color: var(--destructive);
+}
+.lv-empty[data-kind="offline"] .lv-empty-glyph {
+  color: var(--warn);
+}
+.lv-empty h3 {
+  font-size: 1rem;
+  font-weight: 600;
+}
+.lv-empty p {
+  font-size: 0.9rem;
+  color: var(--muted-foreground);
+  max-width: 34rem;
+}
+.lv-empty-action {
+  margin-top: 0.6rem;
+}
+.lv-skel {
+  height: 0.8rem;
+  border-radius: 4px;
+  background: var(--surface-2);
+}

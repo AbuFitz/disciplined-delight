@@ -150,7 +150,7 @@ function RootComponent() {
   );
 }
 
-const BARE = /^\/(welcome|auth|onboarding)(\/|$)/;
+const BARE = /^\/(welcome|auth|onboarding|dev)(\/|$)/;
 
 function Gate() {
   const { ready, error, report } = useData();

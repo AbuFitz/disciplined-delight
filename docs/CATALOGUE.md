@@ -134,3 +134,16 @@ Gym visual's terms. **We hold no licence.** Therefore:
 - **Switching after a licence is supplied:** produce licensed `MediaItem`s (same shape, a real licence entry and
   self-hosted files with hashes in the media manifest) from a normal importer, add them to the snapshot, and delete
   the dev adapter and flag. Nothing else changes.
+
+### Clean-check semantics for the optional local cache
+
+`npm run catalogue:local-media:check` treats the restricted cache as **optional**: absent cache -> exit 0 ("skipped");
+present but incomplete -> exit 1; present and complete -> exit 0. Pass `--require` to fail when it is absent (for a
+developer who expects the cache). CI therefore never needs restricted files. The always-on safety check is
+`npm run catalogue:rights:guard` (also the last step of `npm run build`).
+
+### Toolchain pin
+
+`prettier` is pinned to an exact version (3.8.3) because `eslint-plugin-prettier` enforces formatting through
+`npm run lint`; an unpinned range lets a fresh `npm install` (which ignores `bun.lock`) pick a newer Prettier whose
+output differs and fails lint on untouched files. Bump it deliberately with `npx prettier --write .` in the same commit.
