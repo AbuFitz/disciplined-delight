@@ -56,8 +56,7 @@ function GuestView() {
     for (const s of await listLocalScopes()) {
       if (s.kind !== "user") continue;
       const label = (await (await getScopeDB(s)).get("meta", "scope:label")) as
-        | { email?: string; username?: string }
-        | undefined;
+        { email?: string; username?: string } | undefined;
       out.push({
         scope: s,
         label: label?.username

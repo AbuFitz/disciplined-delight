@@ -8,16 +8,7 @@ import type { MotionProfile } from "./variants";
 import type { BuddyState } from "./state";
 
 export type Part =
-  | "root"
-  | "back"
-  | "body"
-  | "armL"
-  | "armR"
-  | "face"
-  | "eyes"
-  | "mouth"
-  | "acc"
-  | "shadow";
+  "root" | "back" | "body" | "armL" | "armR" | "face" | "eyes" | "mouth" | "acc" | "shadow";
 export type Track = {
   part: Part;
   keyframes: Keyframe[];

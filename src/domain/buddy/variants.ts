@@ -28,16 +28,7 @@ export type MotionProfile = {
   idleMoves: IdleMove[];
 };
 export type IdleMove =
-  | "look"
-  | "tilt"
-  | "hop"
-  | "stretch"
-  | "puff"
-  | "sway"
-  | "blink"
-  | "shimmy"
-  | "wobble"
-  | "peek";
+  "look" | "tilt" | "hop" | "stretch" | "puff" | "sway" | "blink" | "shimmy" | "wobble" | "peek";
 
 export type BuddyVariant = {
   id: VariantId;

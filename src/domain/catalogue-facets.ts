@@ -55,11 +55,7 @@ export function difficultyOf(e: CatalogueExercise): { level: Difficulty; reviewe
 }
 
 export type AccessTag =
-  | "no_equipment"
-  | "seated_supported"
-  | "no_floor_work"
-  | "low_impact"
-  | "single_joint";
+  "no_equipment" | "seated_supported" | "no_floor_work" | "low_impact" | "single_joint";
 export const ACCESS_TAGS: AccessTag[] = [
   "no_equipment",
   "seated_supported",

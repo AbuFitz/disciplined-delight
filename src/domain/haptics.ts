@@ -5,12 +5,7 @@
  * few important moments do.
  */
 export type HapticKind =
-  | "selection"
-  | "acknowledge"
-  | "set_logged"
-  | "rest_finished"
-  | "personal_best"
-  | "warning";
+  "selection" | "acknowledge" | "set_logged" | "rest_finished" | "personal_best" | "warning";
 
 /** Milliseconds on/off/on... Restrained: short, few pulses. */
 export const HAPTIC_PATTERNS: Record<HapticKind, number[]> = {
