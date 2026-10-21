@@ -2,16 +2,7 @@ import { Link, createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState, type ReactElement } from "react";
 import { Button } from "@/components/nl/ui";
 import { buttonClasses } from "@/components/nl/button-classes";
-import {
-  Canvas,
-  Dayline,
-  EmptyCanvas,
-  MetricStrip,
-  Section,
-  Stage,
-  type DaylineNode,
-  type Metric,
-} from "@/components/living";
+import { Canvas, EmptyCanvas, MetricStrip, Section, Stage, type Metric } from "@/components/living";
 import { useFoodData } from "@/data/food-hooks";
 import { VIcon } from "@/components/nl/icon";
 import {
@@ -23,6 +14,7 @@ import {
   TrainingWidget,
   WeightWidget,
 } from "@/components/nl/today";
+import { DaylineEnergy, type EnergyNode } from "@/components/cinema/dayline-energy";
 import { AgendaNextWidget, AgendaTimelineWidget } from "@/components/nl/agenda";
 import { useAgenda } from "@/data/agenda";
 import { useSalahEnabled } from "@/data/agenda";
@@ -102,6 +94,7 @@ function TodayPage() {
   const weights = useCollection<WeighIn>(COL.weighIns);
   const prayerCfg = useCollection<PrayerSettings>(COL.prayerSettings);
   const templates = useCollection<WorkoutTemplate>(COL.templates);
+  const sessions = useCollection<Session>(COL.sessions);
   const ag = useAgenda();
   const [edit, setEdit] = useState(false);
   const [sel, setSel] = useState("now");
@@ -163,21 +156,17 @@ function TodayPage() {
     !profile.setup.skipped &&
     !(profile.setup.goals && (!salah.enabled || prayerCfg.items.length > 0));
 
-  const nodes: DaylineNode[] = [
-    { id: "readiness", label: "Readiness", value: "At session start", state: "unknown" },
-    {
-      id: "plan",
-      label: "Plan",
-      value: planned ? planned.title : "Rest day",
-      state: "done",
-    },
-    {
-      id: "now",
-      label: "Now",
-      value: ag.next ? ag.next.label : "Nothing left",
-      state: "current",
-    },
-    { id: "recovery", label: "Recovery", value: "From your records", state: "next" },
+  const scheduled = ag.items.some((i) => !i.context);
+  // The head sits on the real current moment: next action, else recovery once the day is done, else the plan.
+  const node = ag.next ? 2 : scheduled ? 3 : planned ? 1 : 3;
+  const week = weekTraining(templates.items, sessions.items, today);
+  // The lane ahead glows with this week's real follow-through (completed of planned); neutral when nothing is planned.
+  const charge = week.planned > 0 ? 0.35 + 0.55 * Math.min(1, week.completed / week.planned) : 0.5;
+  const nodes: EnergyNode[] = [
+    { id: "readiness", label: "Readiness", value: "At session start" },
+    { id: "plan", label: "Plan", value: planned ? planned.title : "Rest day" },
+    { id: "now", label: "Now", value: ag.next ? ag.next.label : "Nothing left" },
+    { id: "recovery", label: "Recovery", value: "From your records" },
   ];
   const stage =
     sel === "now" ? (
@@ -231,6 +220,7 @@ function TodayPage() {
 
   return (
     <Canvas
+      className="cn-today"
       width="wide"
       kicker={<time dateTime={today}>{formatDateLong(today)}</time>}
       title={
@@ -242,9 +232,15 @@ function TodayPage() {
     >
       <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_22rem] lg:gap-12">
         <div className="grid content-start gap-6">
-          <Dayline nodes={nodes} selectedId={sel} onSelect={setSel}>
+          <DaylineEnergy
+            nodes={nodes}
+            node={node}
+            charge={charge}
+            selectedId={sel}
+            onSelect={setSel}
+          >
             {stage}
-          </Dayline>
+          </DaylineEnergy>
           {signals.length > 0 && <MetricStrip metrics={signals} label="Chosen signals" />}
           {setupPending && (
             <Link

@@ -9,11 +9,10 @@ import type { AppModule } from "@/data/types";
 import { VIcon, type VIconName } from "./icon";
 import { Sheet } from "./ui";
 import { BOTTOM_SLOT_ID, SIDE_SLOT_ID } from "./shell-slots";
-import { BuddyPanel } from "@/components/buddy/BuddyDock";
-import { BuddyFloat } from "@/components/buddy/BuddyFloat";
 import { GlobalHaptics } from "@/components/buddy/GlobalHaptics";
 import { BuddyProvider } from "@/components/buddy/BuddyProvider";
-import { useBuddyDock } from "@/components/buddy/buddy-context";
+import { CinemaScope } from "@/components/cinema/app-look";
+import { AssistantEntry } from "@/components/cinema/assistant-entry";
 
 type NavItem = {
   to: string;
@@ -150,7 +149,6 @@ export function Shell({ children }: { children: ReactNode }) {
 }
 
 function ShellFrame({ children }: { children: ReactNode }) {
-  const buddy = useBuddyDock();
   const stack = useRef<HTMLDivElement>(null);
   useReservedBottom(stack);
   const loc = useLocation();
@@ -162,7 +160,6 @@ function ShellFrame({ children }: { children: ReactNode }) {
     (item) => !item.module || !selected || selected.includes(item.module),
   );
   const onSession = loc.pathname.startsWith("/train/session");
-  const panelOpen = !!buddy?.open;
   const [more, setMore] = useState(false);
   const MAX_TABS = 5;
   const tabs = primary.length > MAX_TABS ? primary.slice(0, MAX_TABS - 1) : primary;
@@ -200,41 +197,184 @@ function ShellFrame({ children }: { children: ReactNode }) {
         )
       : null;
   return (
-    <div
-      className={cn(
-        "min-h-[calc(100dvh-var(--reserve-bottom,0px))] lg:min-h-dvh lg:grid",
-        panelOpen
-          ? "lg:grid-cols-[15.5rem_minmax(0,1fr)_20rem]"
-          : "lg:grid-cols-[15.5rem_minmax(0,1fr)]",
-      )}
-    >
-      <a
-        href="#main"
-        className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-[80] focus:rounded-full focus:bg-primary focus:px-5 focus:py-3 focus:font-semibold focus:text-primary-foreground"
+    <CinemaScope>
+      <div
+        className={cn(
+          "min-h-[calc(100dvh-var(--reserve-bottom,0px))] lg:min-h-dvh lg:grid",
+          "lg:grid-cols-[15.5rem_minmax(0,1fr)]",
+        )}
       >
-        Skip to content
-      </a>
-      {/* Desktop sidebar */}
-      <aside className="sticky top-0 hidden h-dvh flex-col justify-between overflow-y-auto px-4 py-6 lg:flex">
-        <div>
-          <Link
-            to="/"
-            aria-label="VAYVOR, Today"
-            className="mb-6 flex min-h-11 items-center px-3 text-[1.35rem]"
+        <a
+          href="#main"
+          className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-[80] focus:rounded-full focus:bg-primary focus:px-5 focus:py-3 focus:font-semibold focus:text-primary-foreground"
+        >
+          Skip to content
+        </a>
+        {/* Desktop sidebar */}
+        <aside className="cn-side sticky top-0 hidden h-dvh flex-col justify-between overflow-y-auto px-4 py-6 lg:flex">
+          <div>
+            <Link
+              to="/"
+              aria-label="VAYVOR, Today"
+              className="mb-6 flex min-h-11 items-center px-3 text-[1.35rem]"
+            >
+              <Wordmark className="text-[1.05rem]" />
+            </Link>
+            <nav aria-label="Primary" className="grid gap-1">
+              {primary.map((t) => (
+                <Link
+                  key={t.to}
+                  to={t.to}
+                  aria-current={isActive(t.to, t.match) ? "page" : undefined}
+                  className={cn(
+                    "cn-side-link flex min-h-11 items-center gap-3 rounded-[var(--r-control)] px-3 text-[0.95rem] font-medium transition",
+                  )}
+                >
+                  <NavIcon name={t.icon} active={isActive(t.to, t.match)} />
+                  {t.label}
+                </Link>
+              ))}
+            </nav>
+            <nav aria-label="Shortcuts" className="mt-6 grid gap-1">
+              <p className="eyebrow mb-1 px-3">Shortcuts</p>
+              {QUICK.map((t) => (
+                <Link
+                  key={t.to}
+                  to={t.to}
+                  aria-current={isActive(t.to, t.match) ? "page" : undefined}
+                  className={cn(
+                    "cn-side-link flex min-h-11 items-center gap-3 rounded-[var(--r-control)] px-3 text-sm font-medium transition",
+                  )}
+                >
+                  <NavIcon name={t.icon} size={18} active={isActive(t.to, t.match)} />
+                  {t.label}
+                </Link>
+              ))}
+            </nav>
+          </div>
+          <div className="grid gap-1">
+            <AssistantEntry variant="row" />
+            {resume && <div className="border-y border-line">{resume("")}</div>}
+            <div id={SIDE_SLOT_ID} className="grid gap-3 empty:hidden" />
+            <Link
+              to="/settings"
+              aria-current={isActive("/settings") ? "page" : undefined}
+              className={cn(
+                "flex min-h-11 items-center gap-3 rounded-[var(--r-control)] px-3 text-[0.95rem] font-medium",
+                isActive("/settings")
+                  ? "text-foreground"
+                  : "text-muted-foreground hover:text-foreground",
+              )}
+            >
+              <VIcon name="settings" active={isActive("/settings")} />
+              Settings
+            </Link>
+            <div className="px-3">
+              <SyncChip />
+            </div>
+          </div>
+        </aside>
+
+        <div className="min-w-0">
+          {/* Mobile header */}
+          <div className="cn-head sticky top-0 z-30 flex items-center justify-between px-4 pb-1 pt-[calc(0.5rem+var(--safe-top))] lg:hidden">
+            <Link to="/" aria-label="VAYVOR, Today" className="flex min-h-11 items-center">
+              <Wordmark className="text-[1.05rem]" />
+            </Link>
+            <div className="flex items-center">
+              <AssistantEntry />
+              <Link
+                to="/plan"
+                aria-label="Plan the week"
+                className="inline-flex size-[44px] items-center justify-center rounded-full hover:bg-surface-2"
+              >
+                <VIcon name="calendar" />
+              </Link>
+              <Link
+                to="/settings"
+                aria-label="Settings"
+                className="inline-flex size-[44px] items-center justify-center rounded-full hover:bg-surface-2"
+              >
+                <VIcon name="settings" />
+              </Link>
+            </div>
+          </div>
+
+          <main
+            id="main"
+            className="mx-auto w-full max-w-[88rem] px-4 pb-28 pt-4 md:px-8 md:pt-8 lg:pb-28"
           >
-            <Wordmark className="text-[1.05rem]" />
-          </Link>
-          <nav aria-label="Primary" className="grid gap-1">
-            {primary.map((t) => (
+            {children}
+          </main>
+        </div>
+
+        {/* Reserved bottom stack (small screens): resume bar, Buddy, then tabs. All in flow, none over content. */}
+        <div
+          ref={stack}
+          className="cn-navbar fixed inset-x-0 bottom-0 z-40 lg:hidden"
+          data-testid="bottom-stack"
+        >
+          {resume && !typing && <div className="border-b border-line">{resume("")}</div>}
+          <div id={BOTTOM_SLOT_ID} className="empty:hidden" />
+
+          <nav
+            aria-label="Primary"
+            className={cn("px-1 pb-[var(--safe-bottom)]", (typing || onSession) && "hidden")}
+          >
+            <ul className="mx-auto flex max-w-2xl">
+              {tabs.map((t) => (
+                <li key={t.to} className="min-w-0 flex-1">
+                  <Link
+                    to={t.to}
+                    aria-current={isActive(t.to, t.match) ? "page" : undefined}
+                    className="cn-tab flex min-h-[3.6rem] min-w-0 flex-col items-center justify-center gap-0.5 overflow-hidden text-ellipsis whitespace-nowrap px-0.5 text-[min(0.68rem,2.9vw)] font-medium"
+                  >
+                    <span className="cn-tab-ico flex h-7 w-12 max-w-full items-center justify-center">
+                      <NavIcon name={t.icon} size={20} active={isActive(t.to, t.match)} />
+                    </span>
+                    {t.label}
+                  </Link>
+                </li>
+              ))}
+              {overflow.length > 0 && (
+                <li className="min-w-0 flex-1">
+                  <button
+                    type="button"
+                    aria-haspopup="dialog"
+                    aria-expanded={more}
+                    onClick={() => setMore(true)}
+                    aria-current={moreActive ? "page" : undefined}
+                    className="cn-tab flex min-h-[3.5rem] w-full min-w-0 flex-col items-center justify-center gap-0.5 px-0.5 text-[min(0.68rem,2.9vw)] font-medium"
+                  >
+                    <span className="cn-tab-ico flex h-7 w-12 max-w-full items-center justify-center">
+                      <VIcon name="more" size={20} />
+                    </span>
+                    More
+                  </button>
+                </li>
+              )}
+            </ul>
+          </nav>
+        </div>
+        <Sheet open={more} onOpenChange={setMore} title="More">
+          <nav aria-label="More" className="grid pb-4">
+            {[
+              ...overflow,
+              ...QUICK,
+              {
+                to: "/settings",
+                label: "Settings",
+                icon: "settings" as VIconName,
+                match: [] as string[],
+              },
+            ].map((t) => (
               <Link
                 key={t.to}
                 to={t.to}
                 aria-current={isActive(t.to, t.match) ? "page" : undefined}
                 className={cn(
-                  "relative flex min-h-11 items-center gap-3 rounded-[var(--r-control)] px-3 text-[0.95rem] font-medium transition",
-                  isActive(t.to, t.match)
-                    ? "text-foreground before:absolute before:inset-y-2 before:left-0 before:w-0.5 before:bg-primary"
-                    : "text-muted-foreground hover:text-foreground",
+                  "flex min-h-14 items-center gap-4 rounded-[var(--r-control)] px-3 text-base font-medium",
+                  isActive(t.to, t.match) ? "text-foreground" : "text-muted-foreground",
                 )}
               >
                 <NavIcon name={t.icon} active={isActive(t.to, t.match)} />
@@ -242,178 +382,9 @@ function ShellFrame({ children }: { children: ReactNode }) {
               </Link>
             ))}
           </nav>
-          <nav aria-label="Shortcuts" className="mt-6 grid gap-1">
-            <p className="eyebrow mb-1 px-3">Shortcuts</p>
-            {QUICK.map((t) => (
-              <Link
-                key={t.to}
-                to={t.to}
-                aria-current={isActive(t.to, t.match) ? "page" : undefined}
-                className={cn(
-                  "flex min-h-11 items-center gap-3 rounded-[var(--r-control)] px-3 text-sm font-medium transition",
-                  isActive(t.to, t.match)
-                    ? "text-foreground underline decoration-primary decoration-2 underline-offset-8"
-                    : "text-muted-foreground hover:text-foreground",
-                )}
-              >
-                <NavIcon name={t.icon} size={18} active={isActive(t.to, t.match)} />
-                {t.label}
-              </Link>
-            ))}
-          </nav>
-        </div>
-        <div className="grid gap-3">
-          {resume && <div className="border-y border-line">{resume("")}</div>}
-          <div id={SIDE_SLOT_ID} className="grid gap-3 empty:hidden" />
-          <Link
-            to="/settings"
-            aria-current={isActive("/settings") ? "page" : undefined}
-            className={cn(
-              "flex min-h-11 items-center gap-3 rounded-[var(--r-control)] px-3 text-[0.95rem] font-medium",
-              isActive("/settings")
-                ? "text-foreground"
-                : "text-muted-foreground hover:text-foreground",
-            )}
-          >
-            <VIcon name="settings" active={isActive("/settings")} />
-            Settings
-          </Link>
-          <div className="px-3">
-            <SyncChip />
-          </div>
-        </div>
-      </aside>
-
-      <div className="min-w-0">
-        {/* Mobile header */}
-        <div className="sticky top-0 z-30 flex items-center justify-between border-b border-line bg-background/80 px-4 pb-1 pt-[calc(0.5rem+var(--safe-top))] backdrop-blur-xl lg:hidden">
-          <Link to="/" aria-label="VAYVOR, Today" className="flex min-h-11 items-center">
-            <Wordmark className="text-[1.05rem]" />
-          </Link>
-          <div className="flex items-center">
-            <Link
-              to="/plan"
-              aria-label="Plan the week"
-              className="inline-flex size-[44px] items-center justify-center rounded-full hover:bg-surface-2"
-            >
-              <VIcon name="calendar" />
-            </Link>
-            <Link
-              to="/settings"
-              aria-label="Settings"
-              className="inline-flex size-[44px] items-center justify-center rounded-full hover:bg-surface-2"
-            >
-              <VIcon name="settings" />
-            </Link>
-          </div>
-        </div>
-
-        <main
-          id="main"
-          className="mx-auto w-full max-w-[88rem] px-4 pb-28 pt-4 md:px-8 md:pt-8 lg:pb-28"
-        >
-          {children}
-        </main>
+        </Sheet>
+        <GlobalHaptics />
       </div>
-
-      {/* Reserved bottom stack (small screens): resume bar, Buddy, then tabs. All in flow, none over content. */}
-      <div
-        ref={stack}
-        className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-background/80 backdrop-blur-xl lg:hidden"
-        data-testid="bottom-stack"
-      >
-        {resume && !typing && <div className="border-b border-line">{resume("")}</div>}
-        <div id={BOTTOM_SLOT_ID} className="empty:hidden" />
-        {!typing && <BuddyPanel className="buddy-sheet" />}
-
-        <nav
-          aria-label="Primary"
-          className={cn("px-1 pb-[var(--safe-bottom)]", (typing || onSession) && "hidden")}
-        >
-          <ul className="mx-auto flex max-w-2xl">
-            {tabs.map((t) => (
-              <li key={t.to} className="min-w-0 flex-1">
-                <Link
-                  to={t.to}
-                  aria-current={isActive(t.to, t.match) ? "page" : undefined}
-                  className={cn(
-                    "flex min-h-[3.6rem] min-w-0 flex-col items-center justify-center gap-0.5 overflow-hidden text-ellipsis whitespace-nowrap px-0.5 text-[min(0.68rem,2.9vw)] font-medium",
-                    isActive(t.to, t.match) ? "text-foreground" : "text-muted-foreground",
-                  )}
-                >
-                  <span
-                    className={cn(
-                      "flex h-7 w-12 max-w-full items-center justify-center transition",
-                      isActive(t.to, t.match) ? "text-primary" : "",
-                    )}
-                  >
-                    <NavIcon name={t.icon} size={20} active={isActive(t.to, t.match)} />
-                  </span>
-                  {t.label}
-                </Link>
-              </li>
-            ))}
-            {overflow.length > 0 && (
-              <li className="min-w-0 flex-1">
-                <button
-                  type="button"
-                  aria-haspopup="dialog"
-                  aria-expanded={more}
-                  onClick={() => setMore(true)}
-                  className={cn(
-                    "flex min-h-[3.5rem] w-full min-w-0 flex-col items-center justify-center gap-0.5 px-0.5 text-[min(0.68rem,2.9vw)] font-medium",
-                    moreActive ? "text-foreground" : "text-muted-foreground",
-                  )}
-                >
-                  <span
-                    className={cn(
-                      "flex h-7 w-12 max-w-full items-center justify-center transition",
-                      moreActive ? "text-primary" : "",
-                    )}
-                  >
-                    <VIcon name="more" size={20} />
-                  </span>
-                  More
-                </button>
-              </li>
-            )}
-          </ul>
-        </nav>
-      </div>
-      <Sheet open={more} onOpenChange={setMore} title="More">
-        <nav aria-label="More" className="grid pb-4">
-          {[
-            ...overflow,
-            ...QUICK,
-            {
-              to: "/settings",
-              label: "Settings",
-              icon: "settings" as VIconName,
-              match: [] as string[],
-            },
-          ].map((t) => (
-            <Link
-              key={t.to}
-              to={t.to}
-              aria-current={isActive(t.to, t.match) ? "page" : undefined}
-              className={cn(
-                "flex min-h-14 items-center gap-4 rounded-[var(--r-control)] px-3 text-base font-medium",
-                isActive(t.to, t.match) ? "text-foreground" : "text-muted-foreground",
-              )}
-            >
-              <NavIcon name={t.icon} active={isActive(t.to, t.match)} />
-              {t.label}
-            </Link>
-          ))}
-        </nav>
-      </Sheet>
-      <BuddyFloat />
-      <GlobalHaptics />
-      {panelOpen && (
-        <aside className="buddy-column hidden lg:block" aria-label="Buddy">
-          <BuddyPanel />
-        </aside>
-      )}
-    </div>
+    </CinemaScope>
   );
 }

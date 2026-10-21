@@ -110,6 +110,7 @@ export function Panel({
 } & React.HTMLAttributes<HTMLElement>) {
   return (
     <As
+      data-panel=""
       className={cn(
         "rounded-[1.75rem] border border-transparent p-5 md:p-7",
         tone === "plain" && "bg-surface/80 backdrop-blur-sm",
