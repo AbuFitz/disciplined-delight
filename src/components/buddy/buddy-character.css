@@ -125,11 +125,14 @@
 .buddy .bd-thin {
   stroke-width: 1.7;
 }
-.buddy .bd-cheeks circle {
+.buddy .bd-cheeks ellipse {
   fill: #ff9a8a;
   opacity: 0;
 }
-.buddy[data-expression="bright"] .bd-cheeks circle {
+.buddy .bd-glint {
+  fill: var(--bd-eye);
+}
+.buddy[data-expression="bright"] .bd-cheeks ellipse {
   opacity: 0.5;
 }
 .buddy .bd-brows path {
@@ -255,7 +258,7 @@
   --bd-cream: color-mix(in oklab, var(--bd-accent) 55%, var(--bd-tone));
 }
 .buddy[data-art="blob-v1"] .bd-eye-in {
-  transform: scale(0.64, 0.92);
+  transform: scale(0.82, 1.1);
 }
 .buddy[data-art="blob-v1"] .bd-eye-in .bd-stroke {
   stroke-width: 2.6;
@@ -274,6 +277,29 @@
 .buddy[data-art="blob-v1"][data-eyes="happy"] .bd-brows path {
   opacity: 0.25;
 }
-.buddy[data-art="blob-v1"] .bd-cheeks circle {
-  fill: #ff9a8a;
+.buddy[data-art="blob-v1"] .bd-cheeks ellipse {
+  fill: #ff8f86;
+  opacity: 0.5;
+}
+.buddy[data-art="blob-v1"][data-expression="bright"] .bd-cheeks ellipse {
+  opacity: 0.7;
+}
+.buddy[data-art="blob-v1"] .bd-glint {
+  fill: #fffaf0;
+}
+.buddy[data-art="blob-v1"] .bd-glint-soft {
+  opacity: 0.55;
+}
+.buddy[data-art="blob-v1"] .bd-g0 {
+  stop-color: color-mix(in oklab, var(--bd-cream) 82%, white);
+}
+.buddy[data-art="blob-v1"] .bd-g1 {
+  stop-color: var(--bd-cream);
+}
+.buddy[data-art="blob-v1"] .bd-g2 {
+  stop-color: color-mix(in oklab, var(--bd-cream) 84%, black);
+}
+.buddy [data-part="back"] {
+  transform-box: view-box;
+  transform-origin: 60px 64px;
 }

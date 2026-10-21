@@ -21,14 +21,16 @@ function Eye({ kind, x, y }: { kind: string; x: number; y: number }) {
           <>
             <ellipse rx="5" ry="6" className="bd-lens" />
             <circle cx="1.2" cy="0.6" r="3" className="bd-pupil" />
-            <circle cx="2.2" cy="-0.8" r="1" className="bd-lens" />
+            <circle cx="1.6" cy="-1.8" r="1.5" className="bd-glint" />
+            <circle cx="-1.2" cy="2" r="0.7" className="bd-glint bd-glint-soft" />
           </>
         )}
         {kind === "wide" && (
           <>
             <ellipse rx="5.6" ry="6.8" className="bd-lens" />
             <circle cx="1.2" cy="0.6" r="3.5" className="bd-pupil" />
-            <circle cx="2.4" cy="-1" r="1.2" className="bd-lens" />
+            <circle cx="1.8" cy="-2.2" r="1.7" className="bd-glint" />
+            <circle cx="-1.2" cy="2.4" r="0.8" className="bd-glint bd-glint-soft" />
           </>
         )}
         {kind === "happy" && <path d="M-5.5 2.4 Q0 -5.6 5.5 2.4" className="bd-stroke" />}
@@ -80,12 +82,15 @@ function Mouth({ kind, x, y }: { kind: string; x: number; y: number }) {
   );
 }
 
-function Layers({ layers, clipId }: { layers: Layer[]; clipId: string }) {
+function Layers({ layers, clipId, grad }: { layers: Layer[]; clipId: string; grad?: string }) {
   return (
     <>
       {layers.map((l, i) => {
         const cls = `bd-fill-${l.fill}${l.edge ? " bd-edged" : ""}`;
-        const style = l.opacity === undefined ? undefined : { opacity: l.opacity };
+        const style: React.CSSProperties = {
+          ...(l.opacity === undefined ? {} : { opacity: l.opacity }),
+          ...(grad && l.fill === "cream" ? { fill: `url(#${grad})` } : {}),
+        };
         return l.clip ? (
           <g key={i} clipPath={`url(#${clipId}-${i})`}>
             <path d={l.d} className={cls} style={style} />
@@ -224,6 +229,13 @@ export function BuddyCharacter({
       focusable="false"
     >
       <defs>
+        {art.tone && (
+          <radialGradient id={`${clip}-g`} cx="0.34" cy="0.24" r="0.95" fx="0.3" fy="0.18">
+            <stop offset="0" className="bd-g0" />
+            <stop offset="0.55" className="bd-g1" />
+            <stop offset="1" className="bd-g2" />
+          </radialGradient>
+        )}
         {art.body.map((l, i) =>
           l.clip ? (
             <clipPath key={i} id={`${clip}-${i}`}>
@@ -240,8 +252,10 @@ export function BuddyCharacter({
       </g>
       <g data-part="root" className="bd-lean">
         <g data-part="body">
-          <Layers layers={art.back} clipId={clip} />
-          <Layers layers={art.body} clipId={clip} />
+          <g data-part="back" className="bd-back">
+            <Layers layers={art.back} clipId={clip} grad={art.tone ? `${clip}-g` : undefined} />
+          </g>
+          <Layers layers={art.body} clipId={clip} grad={art.tone ? `${clip}-g` : undefined} />
           {art.limbs && (
             <>
               {(["l", "r"] as const).map((side) => (
@@ -267,8 +281,8 @@ export function BuddyCharacter({
               <rect x={f.x} y={f.y} width={f.w} height={f.h} rx={f.r} className="bd-window" />
             )}
             <g className="bd-cheeks">
-              <circle cx={ex[0] - 3} cy={f.y + f.h * 0.78} r="2.6" />
-              <circle cx={ex[1] + 3} cy={f.y + f.h * 0.78} r="2.6" />
+              <ellipse cx={ex[0] - 4.5} cy={f.y + f.h * 0.74} rx="4.2" ry="2.8" />
+              <ellipse cx={ex[1] + 4.5} cy={f.y + f.h * 0.74} rx="4.2" ry="2.8" />
             </g>
             <g className="bd-brows">
               <path d={`M${ex[0] - 4} ${ey - 8} Q${ex[0]} ${ey - 10.4} ${ex[0] + 4} ${ey - 8.4}`} />

@@ -27,7 +27,17 @@ export type MotionProfile = {
   /** Idle micro-moves this variant favours, in order of preference. */
   idleMoves: IdleMove[];
 };
-export type IdleMove = "look" | "tilt" | "hop" | "stretch" | "puff" | "sway" | "blink";
+export type IdleMove =
+  | "look"
+  | "tilt"
+  | "hop"
+  | "stretch"
+  | "puff"
+  | "sway"
+  | "blink"
+  | "shimmy"
+  | "wobble"
+  | "peek";
 
 export type BuddyVariant = {
   id: VariantId;
@@ -55,7 +65,7 @@ export const VARIANTS: Record<VariantId, BuddyVariant> = {
       anticipation: 0.9,
       overshoot: 1.2,
       idleEvery: [2600, 5200],
-      idleMoves: ["look", "hop", "blink", "tilt"],
+      idleMoves: ["shimmy", "look", "hop", "blink", "peek", "tilt"],
     },
   },
   ollo: {
@@ -72,7 +82,7 @@ export const VARIANTS: Record<VariantId, BuddyVariant> = {
       anticipation: 0.6,
       overshoot: 0.7,
       idleEvery: [5200, 9000],
-      idleMoves: ["stretch", "blink", "sway", "look"],
+      idleMoves: ["wobble", "stretch", "blink", "sway", "peek"],
     },
   },
   zuri: {
@@ -89,7 +99,7 @@ export const VARIANTS: Record<VariantId, BuddyVariant> = {
       anticipation: 1.3,
       overshoot: 1.5,
       idleEvery: [3600, 6400],
-      idleMoves: ["puff", "hop", "tilt", "blink"],
+      idleMoves: ["shimmy", "puff", "hop", "wobble", "blink"],
     },
   },
   eira: {
@@ -106,7 +116,7 @@ export const VARIANTS: Record<VariantId, BuddyVariant> = {
       anticipation: 0.5,
       overshoot: 0.5,
       idleEvery: [4800, 8400],
-      idleMoves: ["sway", "look", "blink", "stretch"],
+      idleMoves: ["peek", "sway", "wobble", "blink", "stretch"],
     },
   },
 };

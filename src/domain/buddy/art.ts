@@ -241,6 +241,8 @@ const sage: BodyArt = {
   back: [
     { d: ell(26, 38, 12, 11), fill: "cream" },
     { d: ell(94, 38, 12, 11), fill: "cream" },
+    { d: ell(26, 39, 6, 5.5), fill: "shade", opacity: 0.22 },
+    { d: ell(94, 39, 6, 5.5), fill: "shade", opacity: 0.22 },
   ],
   body: [
     { d: rr(10, 34, 100, 80, 32), fill: "cream" },
@@ -275,8 +277,11 @@ const terracotta: BodyArt = {
   tone: { body: "#d58a72", ink: "#33211c", shade: "#a85d46" },
 };
 const onigiri: BodyArt = {
-  // Zuri: a rounded triangle, bold and ready to cheer.
-  back: [],
+  // Zuri: a rounded triangle with a little leaf sprout, bold and ready to cheer.
+  back: [
+    { d: "M58 30 C54 16 62 6 76 8 C74 20 68 28 62 32Z", fill: "accent" },
+    { d: "M58 30 C60 22 64 16 70 12 C66 20 64 26 62 32Z", fill: "shade", opacity: 0.2 },
+  ],
   body: [
     {
       d: "M60 22 C67 22 73 27 79 37 L107 92 C113 104 105 114 91 114 H29 C15 114 7 104 13 92 L41 37 C47 27 53 22 60 22Z",
@@ -294,8 +299,13 @@ const onigiri: BodyArt = {
   tone: { body: "#6f8aa8", ink: "#1f2a38", shade: "#475e7a" },
 };
 const hood: BodyArt = {
-  // Eira: a dark rounded hood around a soft taupe face, elegant and quiet.
-  back: [],
+  // Eira: a dark rounded hood with small ear nubs around a soft taupe face, elegant and quiet.
+  back: [
+    { d: ell(28, 34, 11, 10), fill: "cream" },
+    { d: ell(92, 34, 11, 10), fill: "cream" },
+    { d: ell(28, 35, 5.5, 5), fill: "patch", opacity: 0.55 },
+    { d: ell(92, 35, 5.5, 5), fill: "patch", opacity: 0.55 },
+  ],
   body: [
     { d: rr(10, 30, 100, 84, 36), fill: "cream" },
     {

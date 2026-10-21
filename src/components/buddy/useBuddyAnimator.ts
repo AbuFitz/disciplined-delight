@@ -3,15 +3,26 @@ import { KEY_POSES, clipFor, idleVariation, type Clip, type Part } from "@/domai
 import type { BuddyState } from "@/domain/buddy/state";
 import type { MotionProfile } from "@/domain/buddy/variants";
 
-const PARTS: Part[] = ["root", "body", "armL", "armR", "face", "eyes", "mouth", "acc", "shadow"];
+const PARTS: Part[] = [
+  "root",
+  "back",
+  "body",
+  "armL",
+  "armR",
+  "face",
+  "eyes",
+  "mouth",
+  "acc",
+  "shadow",
+];
 const BLEND_MS = 150;
 
 /** Gentle keeps every clip but with softer squash, anticipation and overshoot. */
 export const softened = (p: MotionProfile): MotionProfile => ({
   ...p,
-  squash: p.squash * 0.6,
-  anticipation: p.anticipation * 0.7,
-  overshoot: p.overshoot * 0.6,
+  squash: p.squash * 0.75,
+  anticipation: p.anticipation * 0.8,
+  overshoot: p.overshoot * 0.75,
 });
 
 /**

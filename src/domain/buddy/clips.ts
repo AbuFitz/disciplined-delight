@@ -7,7 +7,17 @@
 import type { MotionProfile } from "./variants";
 import type { BuddyState } from "./state";
 
-export type Part = "root" | "body" | "armL" | "armR" | "face" | "eyes" | "mouth" | "acc" | "shadow";
+export type Part =
+  | "root"
+  | "back"
+  | "body"
+  | "armL"
+  | "armR"
+  | "face"
+  | "eyes"
+  | "mouth"
+  | "acc"
+  | "shadow";
 export type Track = {
   part: Part;
   keyframes: Keyframe[];
@@ -59,10 +69,114 @@ const sq = (p: MotionProfile, a: number) => a * p.squash;
 
 export function clipFor(state: BuddyState, p: MotionProfile): Clip {
   const base = bodyClip(state, p);
-  const extra = armTracks(state, p);
+  const extra = [...armTracks(state, p), ...followTracks(state, p)];
   return extra.length
     ? { ...base, tracks: [...base.tracks, ...extra], length: sum([...base.tracks, ...extra]) }
     : base;
+}
+
+/**
+ * Secondary motion: ears, knob, sprout and tail lag behind the body and swing past (follow-through),
+ * and the face slides a little across the body so a limbless blob still feels alive and looks where it is
+ * going. Missing parts are skipped by the renderer.
+ */
+const swing = (amp: number, n: number, damp = 0.62): Keyframe[] => {
+  const out: Keyframe[] = [rot(0, 0)];
+  let a = amp;
+  for (let i = 1; i <= n; i++) {
+    out.push(rot(i % 2 ? a : -a, i / (n + 1)));
+    a *= damp;
+  }
+  out.push(rot(0, 1));
+  return out;
+};
+const slide = (x: number, y: number, offset?: number): Keyframe => tf({ x, y }, offset);
+
+function followTracks(state: BuddyState, p: MotionProfile): Track[] {
+  const o = p.overshoot;
+  const B = (kf: Keyframe[], d: number, extra: Partial<Track> = {}) =>
+    track("back", kf, d, p, { easing: SOFT, ...extra });
+  const F = (kf: Keyframe[], d: number, extra: Partial<Track> = {}) =>
+    track("face", kf, d, p, { easing: SOFT, ...extra });
+  switch (state) {
+    case "enter":
+      return [
+        B(swing(9 * o, 4), 1300, { delay: 250 }),
+        F([slide(0, 3, 0), slide(0, -1, 0.5), slide(0, 0, 1)], 900),
+      ];
+    case "idle":
+      return [
+        B([rot(-2.5, 0), rot(2.5, 0.5), rot(-2.5, 1)], 3600, { iterations: Infinity }),
+        F([slide(-0.8, 0, 0), slide(0.8, -0.4, 0.5), slide(-0.8, 0, 1)], 5200, {
+          iterations: Infinity,
+        }),
+      ];
+    case "breathe":
+      return [B([rot(-1.5, 0), rot(1.5, 0.5), rot(-1.5, 1)], 5200, { iterations: Infinity })];
+    case "listen":
+      return [
+        F([slide(0, 0, 0), slide(-3, -0.5, 0.45), slide(-2.4, -0.5, 1)], 700, { easing: SPRING }),
+        B(swing(5, 2), 800),
+      ];
+    case "think":
+      return [
+        F([slide(-1.5, -1.2, 0), slide(2.5, -2, 0.5), slide(-1.5, -1.2, 1)], 2600, {
+          iterations: Infinity,
+        }),
+        B([rot(-3, 0), rot(3, 0.5), rot(-3, 1)], 2200, { iterations: Infinity }),
+      ];
+    case "explain":
+      return [B([rot(-4, 0), rot(4, 0.5), rot(-4, 1)], 1300, { iterations: Infinity })];
+    case "point":
+      return [
+        F([slide(0, 0, 0), slide(3.4, 0, 0.5), slide(3, 0, 1)], 1000, { easing: SPRING }),
+        B(swing(9 * o, 3), 1000),
+      ];
+    case "encourage":
+      return [
+        B(swing(12 * o, 5), 1100, { delay: 120 }),
+        F([slide(0, 0, 0), slide(0, -2.4, 0.38), slide(0, 1, 0.55), slide(0, 0, 1)], 1100),
+      ];
+    case "celebrate":
+      return [
+        B(swing(16 * o, 7, 0.7), 1500, { delay: 100 }),
+        F(
+          [
+            slide(0, 0, 0),
+            slide(0, -2.8, 0.26),
+            slide(0, 1.6, 0.42),
+            slide(0, -2, 0.58),
+            slide(0, 1, 0.72),
+            slide(0, 0, 1),
+          ],
+          1500,
+        ),
+      ];
+    case "recover":
+      return [F([slide(0, 2.4, 0), slide(0, 2.4, 0.2), slide(0, 0, 1)], 1500, { easing: EASE })];
+    case "rest":
+      return [
+        F([slide(0, 2.2, 0), slide(0, 1.4, 0.5), slide(0, 2.2, 1)], 5600, { iterations: Infinity }),
+      ];
+    case "error":
+      return [B(swing(6, 3), 700), F([slide(-1.5, 1, 0), slide(0, 1.6, 1)], 700)];
+    case "poke":
+      return [
+        B(swing(18 * o, 5, 0.66), 900, { delay: 60 }),
+        F(
+          [
+            slide(0, 0, 0),
+            slide(0, 2, 0.14),
+            slide(0, -2.8, 0.4),
+            slide(0, 1.2, 0.62),
+            slide(0, 0, 1),
+          ],
+          900,
+        ),
+      ];
+    default:
+      return [];
+  }
 }
 
 /** Arm rotation in degrees. Left arm swings outward with positive angles, right with negative. */
@@ -541,8 +655,9 @@ function bodyClip(state: BuddyState, p: MotionProfile): Clip {
             tf({}, 0),
             tf({ y: 3, sx: 1 + sq(p, 0.14) * a, sy: 1 - sq(p, 0.18) * a }, 0.14),
             tf({ y: -10 * o, sx: 1 - sq(p, 0.09), sy: 1 + sq(p, 0.16) }, 0.4),
-            tf({ y: 0, sx: 1 + sq(p, 0.08), sy: 1 - sq(p, 0.1) }, 0.62),
-            tf({ y: -2, sy: 1 + sq(p, 0.03) }, 0.8),
+            tf({ y: 0, sx: 1 + sq(p, 0.12), sy: 1 - sq(p, 0.14) }, 0.58),
+            tf({ y: -3, sx: 1 - sq(p, 0.05), sy: 1 + sq(p, 0.07) }, 0.74),
+            tf({ y: 0, sx: 1 + sq(p, 0.04), sy: 1 - sq(p, 0.05) }, 0.88),
             tf({}, 1),
           ],
           900,
@@ -683,6 +798,66 @@ export function idleVariation(p: MotionProfile, pick: number): Clip {
     case "sway":
       return clip("idle-variation", false, [
         t("root", [tf({}, 0), tf({ x: 2, r: 2 }, 0.3), tf({ x: -2, r: -2 }, 0.7), tf({}, 1)], 2600),
+      ]);
+    case "shimmy":
+      return clip("idle-variation", false, [
+        t(
+          "root",
+          [
+            tf({}, 0),
+            tf({ x: 2, r: 4 }, 0.15),
+            tf({ x: -2, r: -4 }, 0.3),
+            tf({ x: 2, r: 4 }, 0.45),
+            tf({ x: -1.5, r: -3 }, 0.6),
+            tf({}, 0.8),
+            tf({}, 1),
+          ],
+          1100,
+        ),
+        t(
+          "body",
+          [
+            tf({}, 0),
+            tf({ sx: 1 + sq(p, 0.05), sy: 1 - sq(p, 0.04) }, 0.15),
+            tf({ sx: 1 - sq(p, 0.04), sy: 1 + sq(p, 0.05) }, 0.3),
+            tf({ sx: 1 + sq(p, 0.04), sy: 1 - sq(p, 0.03) }, 0.45),
+            tf({}, 0.7),
+            tf({}, 1),
+          ],
+          1100,
+        ),
+        t("back", swing(12, 5), 1200),
+      ]);
+    case "wobble":
+      return clip("idle-variation", false, [
+        t(
+          "body",
+          [
+            tf({}, 0),
+            tf({ sx: 1 + sq(p, 0.08), sy: 1 - sq(p, 0.09) }, 0.2),
+            tf({ sx: 1 - sq(p, 0.05), sy: 1 + sq(p, 0.06) }, 0.4),
+            tf({ sx: 1 + sq(p, 0.03), sy: 1 - sq(p, 0.03) }, 0.6),
+            tf({}, 1),
+          ],
+          1500,
+        ),
+        t("back", swing(8, 3), 1500),
+      ]);
+    case "peek":
+      return clip("idle-variation", false, [
+        t(
+          "face",
+          [
+            slide(0, 0, 0),
+            slide(-4, 0.5, 0.25),
+            slide(-4, 0.5, 0.5),
+            slide(4, 0.5, 0.7),
+            slide(4, 0.5, 0.85),
+            slide(0, 0, 1),
+          ],
+          2600,
+        ),
+        t("eyes", [tf({}, 0), tf({ x: -1.8 }, 0.25), tf({ x: 1.8 }, 0.7), tf({}, 1)], 2600),
       ]);
     case "blink":
       return clip("idle-variation", false, [
