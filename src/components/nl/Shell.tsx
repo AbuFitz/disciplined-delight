@@ -8,7 +8,6 @@ import { useProfile } from "@/data/hooks";
 import type { AppModule } from "@/data/types";
 import { VIcon, type VIconName } from "./icon";
 import { Sheet } from "./ui";
-import { Glyph, type GlyphName } from "@/components/living";
 import { BOTTOM_SLOT_ID, SIDE_SLOT_ID } from "./shell-slots";
 import { BuddyPanel } from "@/components/buddy/BuddyDock";
 import { BuddyFloat } from "@/components/buddy/BuddyFloat";
@@ -63,15 +62,7 @@ const QUICK: NavItem[] = [
   { to: "/library", label: "Library", icon: "library", match: ["/library"] },
 ];
 
-const GLYPH_FOR: Partial<Record<VIconName, GlyphName>> = {
-  today: "dayline",
-  training: "train",
-  nutrition: "fuel",
-  mind: "mind",
-  community: "circle",
-  spirituality: "meaning",
-};
-/** Primary areas use the authored VAYVOR glyphs; universal actions keep the Phosphor set. */
+/** Navigation uses one consistent icon family (Phosphor via VIcon). The authored glyph experiment was retired. */
 function NavIcon({
   name,
   size = 20,
@@ -81,8 +72,7 @@ function NavIcon({
   size?: 16 | 18 | 20 | 24 | 28;
   active?: boolean;
 }) {
-  const g = GLYPH_FOR[name];
-  return g ? <Glyph name={g} size={size} /> : <VIcon name={name} size={size} active={active} />;
+  return <VIcon name={name} size={size} active={active} />;
 }
 
 function useTyping() {
