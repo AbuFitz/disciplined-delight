@@ -209,7 +209,15 @@ export function BuddyCharacter({
       data-expression={expression}
       data-art={getArtPack().id}
       data-provisional={getArtPack().provisional ? "true" : "false"}
-      style={{ ["--bd-lean" as string]: `${pose.lean}deg` }}
+      style={{
+        ["--bd-lean" as string]: `${pose.lean}deg`,
+        ...(art.tone && {
+          ["--bd-tone" as string]: art.tone.body,
+          ["--bd-ink" as string]: art.tone.ink,
+          ["--bd-shade" as string]: art.tone.shade,
+        }),
+      }}
+      data-faceon={art.window === false ? "true" : undefined}
       role={decorative ? undefined : "img"}
       aria-hidden={decorative ? true : undefined}
       aria-label={decorative ? undefined : `${name}, ${STATE_META[state].label}`}
@@ -255,14 +263,18 @@ export function BuddyCharacter({
             ))}
           </g>
           <g data-part="face">
-            <rect x={f.x} y={f.y} width={f.w} height={f.h} rx={f.r} className="bd-window" />
+            {art.window !== false && art.tone === undefined && (
+              <rect x={f.x} y={f.y} width={f.w} height={f.h} rx={f.r} className="bd-window" />
+            )}
             <g className="bd-cheeks">
               <circle cx={ex[0] - 3} cy={f.y + f.h * 0.78} r="2.6" />
               <circle cx={ex[1] + 3} cy={f.y + f.h * 0.78} r="2.6" />
             </g>
             <g className="bd-brows">
-              <path d={`M${ex[0] - 4.5} ${ey - 7.5} L${ex[0] + 3.5} ${ey - 5.5}`} />
-              <path d={`M${ex[1] + 4.5} ${ey - 7.5} L${ex[1] - 3.5} ${ey - 5.5}`} />
+              <path d={`M${ex[0] - 4} ${ey - 8} Q${ex[0]} ${ey - 10.4} ${ex[0] + 4} ${ey - 8.4}`} />
+              <path
+                d={`M${ex[1] - 4} ${ey - 9.6} Q${ex[1]} ${ey - 12.4} ${ex[1] + 4} ${ey - 10}`}
+              />
             </g>
             <g data-part="eyes">
               {EYES.map((k) => (

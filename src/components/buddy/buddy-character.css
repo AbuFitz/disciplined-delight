@@ -80,7 +80,10 @@
   fill: var(--bd-accent);
 }
 .buddy .bd-fill-shade {
-  fill: #6b4f2a;
+  fill: var(--bd-shade, #6b4f2a);
+}
+.buddy .bd-fill-patch {
+  fill: #a39a8c;
 }
 .buddy .bd-fill-light {
   fill: #ffffff;
@@ -239,4 +242,38 @@
 .buddy[data-state="offline"] {
   filter: saturate(0.4);
   opacity: 0.88;
+}
+
+/* Blob sets: the body colour is the variant's own matte tone; choosing a colour world tints it.
+   The face is ink on the body: upright oval eyes, a small smile and light brows. */
+.buddy[data-art="blob-v1"] {
+  --bd-cream: var(--bd-tone);
+  --bd-eye: var(--bd-ink);
+  --bd-win: var(--bd-ink);
+}
+.buddy[data-art="blob-v1"]:not([data-palette="world"]) {
+  --bd-cream: color-mix(in oklab, var(--bd-accent) 55%, var(--bd-tone));
+}
+.buddy[data-art="blob-v1"] .bd-eye-in {
+  transform: scale(0.64, 0.92);
+}
+.buddy[data-art="blob-v1"] .bd-eye-in .bd-stroke {
+  stroke-width: 2.6;
+}
+.buddy[data-art="blob-v1"] .bd-mouth-in {
+  transform: scale(0.86);
+}
+.buddy[data-art="blob-v1"] .bd-brows path {
+  opacity: 0.55;
+  stroke-width: 1.5;
+}
+.buddy[data-art="blob-v1"][data-expression="focused"] .bd-brows path {
+  opacity: 0.85;
+}
+.buddy[data-art="blob-v1"][data-eyes="closed"] .bd-brows path,
+.buddy[data-art="blob-v1"][data-eyes="happy"] .bd-brows path {
+  opacity: 0.25;
+}
+.buddy[data-art="blob-v1"] .bd-cheeks circle {
+  fill: #ff9a8a;
 }

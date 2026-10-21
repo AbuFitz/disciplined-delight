@@ -12,7 +12,7 @@
 import type { Silhouette } from "./variants";
 
 /** cream = body, accent = the user's colour, shade/light = soft volume, deep = inner details */
-export type Fill = "cream" | "accent" | "shade" | "light" | "deep";
+export type Fill = "cream" | "accent" | "shade" | "light" | "deep" | "patch";
 export type Layer = { d: string; fill: Fill; edge?: boolean; opacity?: number; clip?: string };
 export type Limb = { layers: Layer[]; pivot: [number, number] };
 export type FaceWindow = { x: number; y: number; w: number; h: number; r: number };
@@ -24,6 +24,10 @@ export type BodyArt = {
   face: FaceWindow;
   /** Short accent strokes above the face window. */
   ticks: { x: number; y: number; r: number }[];
+  /** Matte body colour and the ink used for the face. Omitted: the stylesheet defaults apply. */
+  tone?: { body: string; ink: string; shade: string };
+  /** Draw the dark face window (plush sets). Blob sets put the face straight on the body. */
+  window?: boolean;
 };
 export type BuddyArtPack = {
   id: string;
@@ -229,7 +233,91 @@ export const PLUSH_PACK: BuddyArtPack = {
   bodies: { squircle, pebble, capsule, lozenge },
 };
 
-let active: BuddyArtPack = PLUSH_PACK;
+/* ------------------------------ blob-v1 ------------------------------ */
+/* Soft matte plush blobs with no limbs: the face sits straight on the body (two upright oval eyes,
+   a small smile, light brows). Drawn from the owner's six-blob reference; original vector shapes. */
+const sage: BodyArt = {
+  // Ollo: a wide, calm squircle with round ears.
+  back: [
+    { d: ell(26, 38, 12, 11), fill: "cream" },
+    { d: ell(94, 38, 12, 11), fill: "cream" },
+  ],
+  body: [
+    { d: rr(10, 34, 100, 80, 32), fill: "cream" },
+    {
+      d: "M10 92 C30 104 90 104 110 92 V100 Q110 114 90 114 H30 Q10 114 10 100Z",
+      fill: "shade",
+      opacity: 0.14,
+    },
+    { d: "M22 52 C28 42 42 38 54 38 C44 42 32 48 28 60Z", fill: "light", opacity: 0.07 },
+  ],
+  face: { x: 22, y: 62, w: 76, h: 40, r: 0 },
+  ticks: [],
+  tone: { body: "#9aa683", ink: "#2c2b26", shade: "#6b7559" },
+};
+const terracotta: BodyArt = {
+  // Tavi: an egg with a swept knob, alert and a touch lopsided.
+  back: [{ d: "M30 46 C20 36 26 18 42 18 C54 18 58 28 62 36 C54 38 42 42 36 52Z", fill: "cream" }],
+  body: [
+    {
+      d: "M60 30 C92 30 112 54 112 82 C112 104 92 114 60 114 C28 114 8 104 8 82 C8 54 28 30 60 30Z",
+      fill: "cream",
+    },
+    {
+      d: "M8 90 C28 106 92 106 112 90 C112 106 92 114 60 114 C28 114 8 106 8 90Z",
+      fill: "shade",
+      opacity: 0.14,
+    },
+    { d: "M20 58 C26 46 40 38 54 36 C42 44 32 52 28 66Z", fill: "light", opacity: 0.07 },
+  ],
+  face: { x: 20, y: 64, w: 80, h: 38, r: 0 },
+  ticks: [],
+  tone: { body: "#d58a72", ink: "#33211c", shade: "#a85d46" },
+};
+const onigiri: BodyArt = {
+  // Zuri: a rounded triangle, bold and ready to cheer.
+  back: [],
+  body: [
+    {
+      d: "M60 22 C67 22 73 27 79 37 L107 92 C113 104 105 114 91 114 H29 C15 114 7 104 13 92 L41 37 C47 27 53 22 60 22Z",
+      fill: "cream",
+    },
+    {
+      d: "M10 98 C30 108 90 108 110 98 C108 110 98 114 88 114 H32 C22 114 12 110 10 98Z",
+      fill: "shade",
+      opacity: 0.14,
+    },
+    { d: "M42 44 C48 34 56 28 62 28 C54 34 48 44 44 54Z", fill: "light", opacity: 0.07 },
+  ],
+  face: { x: 24, y: 70, w: 72, h: 34, r: 0 },
+  ticks: [],
+  tone: { body: "#6f8aa8", ink: "#1f2a38", shade: "#475e7a" },
+};
+const hood: BodyArt = {
+  // Eira: a dark rounded hood around a soft taupe face, elegant and quiet.
+  back: [],
+  body: [
+    { d: rr(10, 30, 100, 84, 36), fill: "cream" },
+    {
+      d: "M10 94 C30 106 90 106 110 94 V100 Q110 114 90 114 H30 Q10 114 10 100Z",
+      fill: "shade",
+      opacity: 0.14,
+    },
+    { d: rr(22, 56, 76, 46, 22), fill: "patch" },
+    { d: "M24 62 C34 56 52 56 64 58 C50 60 36 64 30 72Z", fill: "light", opacity: 0.05 },
+  ],
+  face: { x: 22, y: 60, w: 76, h: 40, r: 22 },
+  ticks: [],
+  tone: { body: "#4a4745", ink: "#2d2926", shade: "#2b2928" },
+  window: false,
+};
+export const BLOB_PACK: BuddyArtPack = {
+  id: "blob-v1",
+  provisional: true,
+  bodies: { squircle: terracotta, pebble: sage, capsule: onigiri, lozenge: hood },
+};
+
+let active: BuddyArtPack = BLOB_PACK;
 /** Swap in approved production art. */
 export const registerArtPack = (pack: BuddyArtPack) => {
   active = pack;

@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { BuddyCharacter } from "./BuddyCharacter";
 import { BuddySetup } from "./BuddySetup";
 import { BUDDY_STATES, POSES } from "@/domain/buddy/state";
-import { PLUSH_PACK, PROVISIONAL_PACK, registerArtPack } from "@/domain/buddy/art";
+import { BLOB_PACK, PLUSH_PACK, PROVISIONAL_PACK, registerArtPack } from "@/domain/buddy/art";
 import { VARIANTS, VARIANT_IDS } from "@/domain/buddy/variants";
 import { DEFAULT_COMPANION } from "@/domain/companion";
 import { readFileSync } from "node:fs";
@@ -19,7 +19,7 @@ describe("Companion renderer", () => {
       const o = html({ variant: id });
       expect(o).toContain(`data-variant="${id}"`);
       expect(o).toContain(`data-silhouette="${VARIANTS[id].silhouette}"`);
-      expect(o).toContain("bd-window");
+      expect(o).toContain(`data-part="eyes"`);
     }
     expect(new Set(VARIANT_IDS.map((id) => VARIANTS[id].silhouette)).size).toBe(4);
   });
@@ -30,16 +30,18 @@ describe("Companion renderer", () => {
   });
   it("is labelled as an unfinished first authored set, and the neutral pack stays available", () => {
     expect(html()).toContain('data-provisional="true"');
-    expect(html()).toContain('data-art="plush-v1"');
+    expect(html()).toContain('data-art="blob-v1"');
     registerArtPack(PROVISIONAL_PACK);
     try {
       expect(html()).toContain('data-art="provisional-v0"');
     } finally {
-      registerArtPack(PLUSH_PACK);
+      registerArtPack(BLOB_PACK);
     }
   });
   it("draws limbs as separately animated parts in the plush set", () => {
+    registerArtPack(PLUSH_PACK);
     const o = html();
+    registerArtPack(BLOB_PACK);
     expect(o).toContain('data-part="armL"');
     expect(o).toContain('data-part="armR"');
   });
@@ -70,7 +72,7 @@ describe("Companion renderer", () => {
   });
   it("can be re-skinned by registering another art pack without touching behaviour", () => {
     const custom = {
-      ...PLUSH_PACK,
+      ...BLOB_PACK,
       id: "test-pack",
       provisional: false,
     };
@@ -79,8 +81,13 @@ describe("Companion renderer", () => {
       expect(html()).toContain('data-art="test-pack"');
       expect(html()).toContain('data-provisional="false"');
     } finally {
-      registerArtPack(PLUSH_PACK);
+      registerArtPack(BLOB_PACK);
     }
+  });
+  it("blob set puts the face on the body with no face window and no limbs", () => {
+    const o = html();
+    expect(o).not.toContain('class="bd-window"');
+    expect(o).not.toContain('data-part="armL"');
   });
 });
 

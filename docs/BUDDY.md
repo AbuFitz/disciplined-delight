@@ -10,8 +10,9 @@ signals.
 companion is now a family of four non-gendered variants (Tavi quick/curious, Ollo cosy/calm, Zuri
 bold/celebratory, Eira elegant/reflective) that share one face and state set and differ by silhouette
 and motion profile (`src/domain/buddy/variants.ts`). Bodies come from a replaceable art pack
-(`src/domain/buddy/art.ts`); the shipped pack `plush-v1` is a first authored set (rounded plush bodies, dark face window,
-limbs, per-variant hood/ears/tail) and is labelled provisional, not final production art; `provisional-v0`
+(`src/domain/buddy/art.ts`); the shipped pack `blob-v1` is a first authored set drawn from the owner's six-blob reference (soft matte
+limbless blobs, face straight on the body: Tavi terracotta knob, Ollo sage ears, Zuri blue rounded
+triangle, Eira charcoal hood; choosing a colour world tints the body). `plush-v1` (limbed, dark face window) stays as an alternate set and is labelled provisional, not final production art; `provisional-v0`
 remains as the neutral fallback. The approved four-variant exploration is reference-only
 (`docs/design-reference/`) and was not traced. Names are working names (see variants.ts for the collision note).
 
