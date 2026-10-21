@@ -44,11 +44,19 @@ export function MediaTile({
   loading?: boolean;
   className?: string;
 }) {
-  const [failed, setFailed] = useState(false);
+  // Failure is remembered per source, so a reused tile that receives a new valid src tries it afresh.
+  const [failedSrc, setFailedSrc] = useState<string | null>(null);
+  const failed = src !== undefined && failedSrc === src;
   const frame = (
     <span className="lv-media-frame" aria-busy={loading || undefined}>
       {loading ? null : src && !failed ? (
-        <img src={src} alt={alt} loading="lazy" decoding="async" onError={() => setFailed(true)} />
+        <img
+          src={src}
+          alt={alt}
+          loading="lazy"
+          decoding="async"
+          onError={() => setFailedSrc(src ?? null)}
+        />
       ) : (
         <MediaPoster glyph={glyph} cue={cue} />
       )}

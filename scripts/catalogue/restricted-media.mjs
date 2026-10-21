@@ -21,6 +21,8 @@ const BINARY = new Set([
   ".mov",
 ]);
 /** Strings that must never appear in shipped output. */
+/** Development-only UI must not be in a build (the route stays registered but 404s; its code must be absent). */
+const DEV_ONLY_TEXT = ["Living Instrument design lab", "Two specimens, one decision"];
 const FORBIDDEN_TEXT = [".local-media", "/local-media/", "local-media-index"];
 
 export function restrictedFileNames(root) {
@@ -62,17 +64,22 @@ export function scanOutput(dir, root = process.cwd()) {
   const restricted = restrictedFileNames(root);
   const licensed = licensedMediaNames(root);
   const problems = [];
-  walk(dir, (full, rel) => {
+  walk(dir, (full, rel, st) => {
     const ext = extname(rel).toLowerCase();
     if (restricted.has(rel.split("/").pop()))
       problems.push(`${rel}: file name matches restricted Gym visual media`);
     else if (ext === ".gif" && !licensed.has(rel.split("/").pop()))
       problems.push(`${rel}: GIF in build output with no recorded licensed provenance`);
+    // The dev route stays registered (file-based routing) but must be a stub that renders the 404 page.
+    if (/(^|\/)dev\.design-lab-[^/]*\.js$/.test(rel) && st.size > 1024)
+      problems.push(
+        `${rel}: design-lab route chunk is ${st.size} bytes; it must be an empty stub in production`,
+      );
     if (/(^|\/)\.?local-media(\/|$)/.test(rel))
       problems.push(`${rel}: local-media path in build output`);
     if ([".js", ".mjs", ".css", ".html", ".json", ".map"].includes(ext)) {
       const text = readFileSync(full, "utf8");
-      for (const t of FORBIDDEN_TEXT)
+      for (const t of [...FORBIDDEN_TEXT, ...DEV_ONLY_TEXT])
         if (text.includes(t)) problems.push(`${rel}: contains "${t}"`);
     }
   });

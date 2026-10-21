@@ -44,6 +44,23 @@ describe("restricted local media guard", () => {
     expect(scanOutput(clean, process.cwd())).toEqual([]);
   });
 
+  it("fails a production output whose design-lab route is more than an empty stub", () => {
+    const dir = mkdtempSync(join(tmpdir(), "lab-"));
+    mkdirSync(join(dir, "assets"), { recursive: true });
+    writeFileSync(join(dir, "assets", "dev.design-lab-abc.js"), "x".repeat(2000));
+    expect((scanOutput(dir, process.cwd()) as string[]).some((p) => /empty stub/.test(p))).toBe(
+      true,
+    );
+    writeFileSync(
+      join(dir, "assets", "dev.design-lab-abc.js"),
+      "var n=()=>null;export{n as component};",
+    );
+    expect(scanOutput(dir, process.cwd())).toEqual([]);
+    const text = mkdtempSync(join(tmpdir(), "labtext-"));
+    writeFileSync(join(text, "a.js"), 'x="Living Instrument design lab"');
+    expect((scanOutput(text, process.cwd()) as string[]).length).toBeGreaterThan(0);
+  });
+
   it("only activates the adapter in the dev server behind an explicit env flag", () => {
     const adapter = read("src/data/local-media.ts");
     expect(adapter).toMatch(

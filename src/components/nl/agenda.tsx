@@ -2,17 +2,9 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { Check, MoreHorizontal, Play, Utensils } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import {
-  Button,
-  Chip,
-  EmptyState,
-  Eyebrow,
-  Field,
-  Menu,
-  Panel,
-  Sheet,
-  TextInput,
-} from "@/components/nl/ui";
+import { Button, Field, Menu, Sheet, TextInput } from "@/components/nl/ui";
+import { EmptyCanvas, Section, Stage } from "@/components/living";
+import { buttonClasses } from "@/components/nl/button-classes";
 import { logPrayer, startSession, unlogPrayer } from "@/data/actions";
 import { useAgenda } from "@/data/agenda";
 import { useCollection } from "@/data/hooks";
@@ -48,14 +40,6 @@ const STATUS_LABEL: Record<Status, string> = {
   skipped: "Skipped",
   missed: "Missed",
   rest: "Rest day",
-};
-const STATUS_TONE: Record<Status, "neutral" | "ok" | "warn" | "info"> = {
-  upcoming: "neutral",
-  now: "info",
-  done: "ok",
-  skipped: "neutral",
-  missed: "warn",
-  rest: "neutral",
 };
 
 const origDate = (i: AgendaItem, fallback: ISODate) => i.key.split(":")[1] ?? fallback;
@@ -190,7 +174,7 @@ function PrimaryAction({
   );
 }
 
-/* ------------------------------ Next up ------------------------------ */
+/* ------------------------------ Next up (the Now Stage) ------------------------------ */
 export function AgendaNextWidget({ today }: { today: ISODate; now?: number; profile?: unknown }) {
   const ag = useAgenda();
   const [logOpen, setLogOpen] = useState(false);
@@ -199,69 +183,81 @@ export function AgendaNextWidget({ today }: { today: ISODate; now?: number; prof
   const templates = useCollection<WorkoutTemplate>(COL.templates).items;
   const upcoming = upcomingWorkout(templates, today);
   const summary = ag.counts.total ? `${ag.counts.done} of ${ag.counts.total} done` : null;
-  return (
-    <Panel tone="ink" className="md:p-8" aria-label="Next up">
-      <div className="flex items-start justify-between gap-3">
-        <Eyebrow>Next up</Eyebrow>
-        {summary && <span className="eyebrow tnum">{summary}</span>}
-      </div>
-      {!ag.ready ? (
-        <div className="mt-4 h-24 animate-pulse rounded-2xl bg-foreground/10" />
-      ) : n ? (
-        <>
-          <h2 className="display-title mt-3 text-[clamp(2rem,8vw,3.25rem)] [overflow-wrap:anywhere]">
-            {n.label}
-          </h2>
-          <p className="mt-3 text-lg">
-            <span className="tnum font-semibold">{timeLabel(n)}</span>
-            {n.status === "now" && <span> · happening now</span>}
-            {n.moved && <span> · moved</span>}
-          </p>
-          {n.detail && <p className="mt-1 max-w-xl">{n.detail}</p>}
-          {n.conflict && (
-            <p className="mt-2 text-sm">
-              Overlaps another activity. Move one of them from the timeline.
-            </p>
+  const kicker = summary ? `Now · ${summary}` : "Now";
+  if (!ag.ready) return <EmptyCanvas kind="loading" title="Loading today" />;
+  const logMeal = (
+    <Button variant="ghost" onClick={() => setLogOpen(true)}>
+      <Utensils className="size-4" />
+      Log a meal
+    </Button>
+  );
+  const sheet = <MealLogSheet open={logOpen} onOpenChange={setLogOpen} date={today} />;
+  if (n)
+    return (
+      <>
+        <Stage
+          aria-label="Now"
+          kicker={kicker}
+          title={n.label}
+          meta={
+            <>
+              {timeLabel(n)}
+              {n.status === "now" && " · happening now"}
+              {n.moved && " · moved"}
+            </>
+          }
+          actions={
+            <>
+              <PrimaryAction item={n} date={today} onLogMeal={() => setLogOpen(true)} />
+              {n.blockId && n.link.type !== "prayer" && (
+                <Button variant="ghost" onClick={() => void a.skip(n)}>
+                  Skip today
+                </Button>
+              )}
+              {n.link.type !== "meal" && logMeal}
+            </>
+          }
+        >
+          {(n.detail || n.conflict) && (
+            <div className="grid gap-1 text-[0.95rem]">
+              {n.detail && <p className="max-w-xl">{n.detail}</p>}
+              {n.conflict && (
+                <p className="text-warn">
+                  Overlaps another activity. Move one of them from the timeline.
+                </p>
+              )}
+            </div>
           )}
-          <div className="mt-5 flex flex-wrap items-center gap-2">
-            <PrimaryAction item={n} date={today} onLogMeal={() => setLogOpen(true)} />
-            {n.blockId && n.link.type !== "prayer" && (
-              <Button variant="secondary" onClick={() => void a.skip(n)}>
-                Skip today
-              </Button>
-            )}
-            <Button variant="secondary" onClick={() => setLogOpen(true)}>
-              <Utensils className="size-4" />
-              Log a meal
-            </Button>
-          </div>
-        </>
-      ) : (
-        <>
-          <h2 className="display-title mt-3 text-[clamp(2rem,8vw,3.25rem)]">
-            {ag.items.some((i) => !i.context)
-              ? ag.counts.total > 0 && ag.counts.done === ag.counts.total
-                ? "All done"
-                : "Nothing left today"
-              : upcoming
-                ? "Rest day"
-                : "Nothing scheduled"}
-          </h2>
-          <p className="mt-3 max-w-xl text-lg">
-            {ag.items.some((i) => !i.context)
-              ? ag.counts.missed
-                ? `${ag.counts.missed} ${ag.counts.missed === 1 ? "thing" : "things"} slipped by today. That's fine: tick them off if you did them, or leave them.`
-                : "Enjoy the rest of your day."
-              : upcoming
-                ? `Next up: ${upcoming.template.title}, ${upcoming.label.toLowerCase() === "today" ? "today" : upcoming.label}.`
-                : "Build a routine around your day, or log a meal."}
-          </p>
-          <div className="mt-5 flex flex-wrap items-center gap-2">
+        </Stage>
+        {sheet}
+      </>
+    );
+  const scheduled = ag.items.some((i) => !i.context);
+  const title = scheduled
+    ? ag.counts.total > 0 && ag.counts.done === ag.counts.total
+      ? "All done"
+      : "Nothing left today"
+    : upcoming
+      ? "Rest day"
+      : "Nothing scheduled";
+  const body = scheduled
+    ? ag.counts.missed
+      ? `${ag.counts.missed} ${ag.counts.missed === 1 ? "thing" : "things"} slipped by today. That's fine: tick them off if you did them, or leave them.`
+      : "Enjoy the rest of your day."
+    : upcoming
+      ? `Next up: ${upcoming.template.title}, ${upcoming.label.toLowerCase() === "today" ? "today" : upcoming.label}.`
+      : "Build a routine around your day, or log a meal.";
+  return (
+    <>
+      <Stage
+        aria-label="Now"
+        kicker={kicker}
+        title={title}
+        meta={body}
+        actions={
+          <>
             {upcoming ? (
-              <Link
-                to="/train"
-                className="inline-flex min-h-14 items-center rounded-xl bg-primary px-8 text-base font-semibold text-primary-foreground"
-              >
+              <Link to="/train" className={buttonClasses({ variant: "primary", size: "lg" })}>
                 See{" "}
                 {upcoming.label === "Today" || upcoming.label === "Tomorrow"
                   ? upcoming.label.toLowerCase()
@@ -269,22 +265,16 @@ export function AgendaNextWidget({ today }: { today: ISODate; now?: number; prof
                 's workout
               </Link>
             ) : (
-              <Link
-                to="/plan"
-                className="inline-flex min-h-14 items-center rounded-xl bg-primary px-8 text-base font-semibold text-primary-foreground"
-              >
-                {ag.items.some((i) => !i.context) ? "Open the week" : "Build my routine"}
+              <Link to="/plan" className={buttonClasses({ variant: "primary", size: "lg" })}>
+                {scheduled ? "Open the week" : "Build my routine"}
               </Link>
             )}
-            <Button variant="secondary" onClick={() => setLogOpen(true)}>
-              <Utensils className="size-4" />
-              Log a meal
-            </Button>
-          </div>
-        </>
-      )}
-      <MealLogSheet open={logOpen} onOpenChange={setLogOpen} date={today} />
-    </Panel>
+            {logMeal}
+          </>
+        }
+      />
+      {sheet}
+    </>
   );
 }
 
@@ -302,27 +292,21 @@ export function AgendaTimelineWidget({
   const [moving, setMoving] = useState<AgendaItem | null>(null);
   const rows = ag.items;
   return (
-    <Panel aria-label="Today's timeline">
-      <Eyebrow>Today's timeline</Eyebrow>
+    <Section title="Today" aria-label="Today's timeline" className="min-w-0">
       {!ag.ready ? (
-        <div className="mt-3 h-24 animate-pulse rounded-2xl bg-surface-2" />
+        <EmptyCanvas kind="loading" title="Loading the timeline" />
       ) : rows.length === 0 ? (
-        <div className="mt-3">
-          <EmptyState
-            title="Nothing scheduled"
-            body="Add the things you do in a week, or let VAYVOR place them around your work and sleep."
-            action={
-              <Link
-                to="/plan"
-                className="inline-flex min-h-11 items-center rounded-full border border-input px-5 text-sm font-semibold"
-              >
-                Open the week
-              </Link>
-            }
-          />
-        </div>
+        <EmptyCanvas
+          title="Nothing scheduled"
+          body="Add the things you do in a week, or let VAYVOR place them around your work and sleep."
+          action={
+            <Link to="/plan" className={buttonClasses({ variant: "secondary", size: "sm" })}>
+              Open the week
+            </Link>
+          }
+        />
       ) : (
-        <ol className="mt-2">
+        <ol>
           {rows.map((r) => {
             const dim =
               r.status === "done" || r.status === "skipped" || r.status === "rest" || r.context;
@@ -361,7 +345,10 @@ export function AgendaTimelineWidget({
             return (
               <li
                 key={r.key}
-                className={cn("border-t border-line py-3 first:border-t-0", dim && "opacity-60")}
+                className={cn(
+                  "border-t border-line py-3 first:border-t-transparent",
+                  dim && "opacity-60",
+                )}
               >
                 <div className="flex flex-wrap items-start gap-x-3 gap-y-2">
                   <span className="w-[5.5rem] shrink-0 pt-0.5 text-sm tnum text-muted-foreground">
@@ -377,41 +364,48 @@ export function AgendaTimelineWidget({
                         </span>
                       )}
                     </p>
-                    <div className="mt-1 flex flex-wrap gap-1.5">
-                      {!r.context && (
-                        <Chip tone={STATUS_TONE[r.status]}>
-                          {STATUS_LABEL[r.status]}
-                          {r.status === "done" && r.derived ? " · from your record" : ""}
-                        </Chip>
+                    <p
+                      className={cn(
+                        "lv-mono mt-0.5 text-[0.72rem]",
+                        r.status === "missed" || r.conflict
+                          ? "text-warn"
+                          : r.status === "done"
+                            ? "text-ok"
+                            : "text-muted-foreground",
                       )}
-                      {r.moved && <Chip>Moved</Chip>}
-                      {r.conflict && <Chip tone="warn">Overlaps</Chip>}
-                    </div>
+                    >
+                      {!r.context &&
+                        `${STATUS_LABEL[r.status]}${r.status === "done" && r.derived ? " · from your record" : ""}`}
+                      {r.moved && " · Moved"}
+                      {r.conflict && " · Overlaps"}
+                    </p>
                   </div>
-                  {!r.context &&
-                    r.status !== "done" &&
-                    r.status !== "skipped" &&
-                    r.status !== "rest" &&
-                    (r.blockId || r.link.type === "prayer") &&
-                    r.link.type !== "meal" &&
-                    r.link.type !== "mind" &&
-                    r.link.type !== "workout" && (
-                      <Button
-                        size="sm"
-                        onClick={() => void a.done(r)}
-                        aria-label={`Mark ${r.label} done`}
-                      >
-                        <Check className="size-4" />
-                        {r.link.type === "prayer" ? "Prayed" : "Done"}
-                      </Button>
+                  <div className="ml-auto flex shrink-0 items-center gap-1">
+                    {!r.context &&
+                      r.status !== "done" &&
+                      r.status !== "skipped" &&
+                      r.status !== "rest" &&
+                      (r.blockId || r.link.type === "prayer") &&
+                      r.link.type !== "meal" &&
+                      r.link.type !== "mind" &&
+                      r.link.type !== "workout" && (
+                        <Button
+                          size="sm"
+                          onClick={() => void a.done(r)}
+                          aria-label={`Mark ${r.label} done`}
+                        >
+                          <Check className="size-4" />
+                          {r.link.type === "prayer" ? "Prayed" : "Done"}
+                        </Button>
+                      )}
+                    {items.length > 0 && (
+                      <Menu
+                        label={`Options for ${r.label}`}
+                        trigger={<MoreHorizontal className="size-5" />}
+                        items={items}
+                      />
                     )}
-                  {items.length > 0 && (
-                    <Menu
-                      label={`Options for ${r.label}`}
-                      trigger={<MoreHorizontal className="size-5" />}
-                      items={items}
-                    />
-                  )}
+                  </div>
                 </div>
               </li>
             );
@@ -419,7 +413,7 @@ export function AgendaTimelineWidget({
         </ol>
       )}
       <MoveSheet item={moving} date={today} onClose={() => setMoving(null)} />
-    </Panel>
+    </Section>
   );
 }
 
@@ -486,7 +480,7 @@ function MoveSheet({
                 aria-checked={day === d}
                 onClick={() => setDay(d)}
                 className={cn(
-                  "min-h-11 rounded-full border px-4 text-sm font-semibold",
+                  "min-h-11 rounded-[var(--r-control)] border px-4 text-sm font-semibold",
                   day === d ? "border-primary bg-primary text-primary-foreground" : "border-line",
                 )}
               >

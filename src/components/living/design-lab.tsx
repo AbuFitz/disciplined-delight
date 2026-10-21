@@ -149,8 +149,7 @@ function LivingToday() {
   const node = DAY.find((n) => n.id === sel)!;
   return (
     <Canvas kicker="Wednesday 21 October" title="Good morning, Sam">
-      <Dayline nodes={DAY} selectedId={sel} onSelect={setSel} />
-      <div role="tabpanel" aria-labelledby={`dl-${sel}`}>
+      <Dayline nodes={DAY} selectedId={sel} onSelect={setSel}>
         {sel === "now" ? (
           <Stage
             kicker="Now · about 45 min"
@@ -179,7 +178,7 @@ function LivingToday() {
             meta="Tap Now to return to your next action."
           />
         )}
-      </div>
+      </Dayline>
       <Section title="Later today" action={<a className="underline underline-offset-4">All</a>}>
         <DataRow
           label="Log lunch"

@@ -73,9 +73,11 @@
   font-size: clamp(1.5rem, 6.5vw, 2.1rem);
 }
 .lv-stage-meta {
-  font-family: var(--font-mono);
-  font-size: 0.85rem;
+  font-size: 0.95rem;
+  line-height: 1.45;
   color: var(--muted-foreground);
+  max-width: 38rem;
+  overflow-wrap: anywhere;
 }
 .lv-stage-actions {
   display: flex;

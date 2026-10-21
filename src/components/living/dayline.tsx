@@ -1,4 +1,4 @@
-import { useRef, type KeyboardEvent, type ReactNode } from "react";
+import { useId, useRef, type KeyboardEvent, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import "./living.css";
 
@@ -13,7 +13,8 @@ export type DaylineNode = {
 
 /**
  * The signature: one thin rail through readiness, plan, current action and recovery. It is a tab list, so the
- * selected moment owns the Stage below it (render a role="tabpanel" with aria-labelledby={`dl-${id}`}).
+ * selected moment owns the Stage below it: pass the Stage as `children` and it is rendered as the tabpanel,
+ * wired with aria-controls / aria-labelledby using ids unique to this instance.
  * Horizontal when there is room; vertical when the container is narrow or text is zoomed. Arrow keys move.
  */
 export function Dayline({
@@ -22,13 +23,19 @@ export function Dayline({
   onSelect,
   label = "Your day",
   className,
+  children,
 }: {
   nodes: DaylineNode[];
   selectedId: string;
   onSelect: (id: string) => void;
   label?: string;
   className?: string;
+  /** The selected moment's content (usually a Stage). Rendered as the tabpanel. */
+  children?: ReactNode;
 }) {
+  const uid = useId();
+  const tabId = (id: string) => `${uid}-tab-${id}`;
+  const panelId = `${uid}-panel`;
   const refs = useRef<Record<string, HTMLButtonElement | null>>({});
   const lastReached = nodes.reduce(
     (acc, n, i) => (n.state === "done" || n.state === "current" ? i : acc),
@@ -60,7 +67,8 @@ export function Dayline({
           return (
             <button
               key={n.id}
-              id={`dl-${n.id}`}
+              id={tabId(n.id)}
+              aria-controls={children !== undefined ? panelId : undefined}
               ref={(el) => {
                 refs.current[n.id] = el;
               }}
@@ -95,6 +103,11 @@ export function Dayline({
           );
         })}
       </div>
+      {children !== undefined && (
+        <div role="tabpanel" id={panelId} aria-labelledby={tabId(selectedId)} className="mt-6">
+          {children}
+        </div>
+      )}
     </div>
   );
 }

@@ -8,6 +8,7 @@ import { useProfile } from "@/data/hooks";
 import type { AppModule } from "@/data/types";
 import { VIcon, type VIconName } from "./icon";
 import { Sheet } from "./ui";
+import { Glyph, type GlyphName } from "@/components/living";
 import { BOTTOM_SLOT_ID, SIDE_SLOT_ID } from "./shell-slots";
 import { BuddyPanel } from "@/components/buddy/BuddyDock";
 import { BuddyFloat } from "@/components/buddy/BuddyFloat";
@@ -61,6 +62,28 @@ const QUICK: NavItem[] = [
   { to: "/progress", label: "Progress", icon: "progress", match: ["/progress"] },
   { to: "/library", label: "Library", icon: "library", match: ["/library"] },
 ];
+
+const GLYPH_FOR: Partial<Record<VIconName, GlyphName>> = {
+  today: "dayline",
+  training: "train",
+  nutrition: "fuel",
+  mind: "mind",
+  community: "circle",
+  spirituality: "meaning",
+};
+/** Primary areas use the authored VAYVOR glyphs; universal actions keep the Phosphor set. */
+function NavIcon({
+  name,
+  size = 20,
+  active,
+}: {
+  name: VIconName;
+  size?: 16 | 18 | 20 | 24 | 28;
+  active?: boolean;
+}) {
+  const g = GLYPH_FOR[name];
+  return g ? <Glyph name={g} size={size} /> : <VIcon name={name} size={size} active={active} />;
+}
 
 function useTyping() {
   const [typing, setTyping] = useState(false);
@@ -218,13 +241,13 @@ function ShellFrame({ children }: { children: ReactNode }) {
                 to={t.to}
                 aria-current={isActive(t.to, t.match) ? "page" : undefined}
                 className={cn(
-                  "flex min-h-11 items-center gap-3 rounded-2xl px-3 text-[0.95rem] font-medium transition",
+                  "relative flex min-h-11 items-center gap-3 rounded-[var(--r-control)] px-3 text-[0.95rem] font-medium transition",
                   isActive(t.to, t.match)
-                    ? "bg-surface text-foreground"
-                    : "text-muted-foreground hover:bg-surface/50 hover:text-foreground",
+                    ? "text-foreground before:absolute before:inset-y-2 before:left-0 before:w-0.5 before:bg-primary"
+                    : "text-muted-foreground hover:text-foreground",
                 )}
               >
-                <VIcon name={t.icon} active={isActive(t.to, t.match)} />
+                <NavIcon name={t.icon} active={isActive(t.to, t.match)} />
                 {t.label}
               </Link>
             ))}
@@ -237,13 +260,13 @@ function ShellFrame({ children }: { children: ReactNode }) {
                 to={t.to}
                 aria-current={isActive(t.to, t.match) ? "page" : undefined}
                 className={cn(
-                  "flex min-h-11 items-center gap-3 rounded-2xl px-3 text-sm font-medium transition",
+                  "flex min-h-11 items-center gap-3 rounded-[var(--r-control)] px-3 text-sm font-medium transition",
                   isActive(t.to, t.match)
-                    ? "bg-surface text-foreground"
-                    : "text-muted-foreground hover:bg-surface/50 hover:text-foreground",
+                    ? "text-foreground underline decoration-primary decoration-2 underline-offset-8"
+                    : "text-muted-foreground hover:text-foreground",
                 )}
               >
-                <VIcon name={t.icon} size={18} active={isActive(t.to, t.match)} />
+                <NavIcon name={t.icon} size={18} active={isActive(t.to, t.match)} />
                 {t.label}
               </Link>
             ))}
@@ -256,8 +279,10 @@ function ShellFrame({ children }: { children: ReactNode }) {
             to="/settings"
             aria-current={isActive("/settings") ? "page" : undefined}
             className={cn(
-              "flex min-h-11 items-center gap-3 rounded-2xl px-3 text-[0.95rem] font-medium",
-              isActive("/settings") ? "bg-surface" : "text-muted-foreground hover:text-foreground",
+              "flex min-h-11 items-center gap-3 rounded-[var(--r-control)] px-3 text-[0.95rem] font-medium",
+              isActive("/settings")
+                ? "text-foreground"
+                : "text-muted-foreground hover:text-foreground",
             )}
           >
             <VIcon name="settings" active={isActive("/settings")} />
@@ -271,7 +296,7 @@ function ShellFrame({ children }: { children: ReactNode }) {
 
       <div className="min-w-0">
         {/* Mobile header */}
-        <div className="sticky top-0 z-30 flex items-center justify-between bg-gradient-to-b from-background via-background/90 to-transparent px-4 pb-2 pt-[calc(0.5rem+var(--safe-top))] lg:hidden">
+        <div className="sticky top-0 z-30 flex items-center justify-between border-b border-line bg-background/80 px-4 pb-1 pt-[calc(0.5rem+var(--safe-top))] backdrop-blur-xl lg:hidden">
           <Link to="/" aria-label="VAYVOR, Today" className="flex min-h-11 items-center">
             <Wordmark className="text-[1.05rem]" />
           </Link>
@@ -304,7 +329,7 @@ function ShellFrame({ children }: { children: ReactNode }) {
       {/* Reserved bottom stack (small screens): resume bar, Buddy, then tabs. All in flow, none over content. */}
       <div
         ref={stack}
-        className="fixed inset-x-0 bottom-0 z-40 bg-gradient-to-t from-background via-background/90 to-transparent lg:hidden"
+        className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-background/80 backdrop-blur-xl lg:hidden"
         data-testid="bottom-stack"
       >
         {resume && !typing && <div className="border-b border-line">{resume("")}</div>}
@@ -313,10 +338,7 @@ function ShellFrame({ children }: { children: ReactNode }) {
 
         <nav
           aria-label="Primary"
-          className={cn(
-            "mx-2.5 mb-[calc(0.5rem+var(--safe-bottom))] mt-1 rounded-[1.75rem] bg-surface/95 px-1.5 shadow-[0_8px_30px_-8px_rgb(0_0_0/0.55)] backdrop-blur-xl",
-            (typing || onSession) && "hidden",
-          )}
+          className={cn("px-1 pb-[var(--safe-bottom)]", (typing || onSession) && "hidden")}
         >
           <ul className="mx-auto flex max-w-2xl">
             {tabs.map((t) => (
@@ -331,11 +353,11 @@ function ShellFrame({ children }: { children: ReactNode }) {
                 >
                   <span
                     className={cn(
-                      "flex h-7 w-12 max-w-full items-center justify-center rounded-full transition",
-                      isActive(t.to, t.match) ? "bg-primary/20 text-primary" : "",
+                      "flex h-7 w-12 max-w-full items-center justify-center transition",
+                      isActive(t.to, t.match) ? "text-primary" : "",
                     )}
                   >
-                    <VIcon name={t.icon} size={20} active={isActive(t.to, t.match)} />
+                    <NavIcon name={t.icon} size={20} active={isActive(t.to, t.match)} />
                   </span>
                   {t.label}
                 </Link>
@@ -355,8 +377,8 @@ function ShellFrame({ children }: { children: ReactNode }) {
                 >
                   <span
                     className={cn(
-                      "flex h-7 w-12 max-w-full items-center justify-center rounded-full transition",
-                      moreActive ? "bg-primary/20 text-primary" : "",
+                      "flex h-7 w-12 max-w-full items-center justify-center transition",
+                      moreActive ? "text-primary" : "",
                     )}
                   >
                     <VIcon name="more" size={20} />
@@ -385,11 +407,11 @@ function ShellFrame({ children }: { children: ReactNode }) {
               to={t.to}
               aria-current={isActive(t.to, t.match) ? "page" : undefined}
               className={cn(
-                "flex min-h-14 items-center gap-4 rounded-2xl px-3 text-base font-medium",
-                isActive(t.to, t.match) ? "bg-surface text-foreground" : "text-muted-foreground",
+                "flex min-h-14 items-center gap-4 rounded-[var(--r-control)] px-3 text-base font-medium",
+                isActive(t.to, t.match) ? "text-foreground" : "text-muted-foreground",
               )}
             >
-              <VIcon name={t.icon} active={isActive(t.to, t.match)} />
+              <NavIcon name={t.icon} active={isActive(t.to, t.match)} />
               {t.label}
             </Link>
           ))}

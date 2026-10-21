@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { renderToStaticMarkup } from "react-dom/server";
+import { createElement } from "react";
 import { describe, expect, it } from "vitest";
 import {
   Canvas,
@@ -38,10 +39,33 @@ describe("Living Instrument primitives", () => {
     );
     expect(html).toContain('role="tablist"');
     expect(html.match(/role="tab"/g)).toHaveLength(3);
-    expect(html).toMatch(/id="dl-b"[^>]*aria-selected="true"[^>]*tabindex="0"/);
-    expect(html).toMatch(/id="dl-a"[^>]*aria-selected="false"[^>]*tabindex="-1"/);
+    expect(html).toMatch(/id="[^"]*-tab-b"[^>]*aria-selected="true"[^>]*tabindex="0"/);
+    expect(html).toMatch(/id="[^"]*-tab-a"[^>]*aria-selected="false"[^>]*tabindex="-1"/);
     expect(html).toContain(", now");
     expect(html).toContain(", not recorded");
+  });
+
+  it("Dayline ids are unique per instance and tabs control the panel they own", () => {
+    const html = renderToStaticMarkup(
+      <>
+        <Dayline nodes={nodes} selectedId="b" onSelect={() => undefined}>
+          <p>one</p>
+        </Dayline>
+        <Dayline nodes={nodes} selectedId="b" onSelect={() => undefined}>
+          <p>two</p>
+        </Dayline>
+      </>,
+    );
+    const ids = [...html.matchAll(/\sid="([^"]+)"/g)].map((m) => m[1]!);
+    expect(new Set(ids).size).toBe(ids.length);
+    expect(html.match(/role="tabpanel"/g)).toHaveLength(2);
+    const panel = html.match(/role="tabpanel" id="([^"]+)" aria-labelledby="([^"]+)"/)!;
+    expect(html).toContain(`aria-controls="${panel[1]}"`);
+    expect(ids).toContain(panel[2]);
+    // No panel, no dangling aria-controls.
+    expect(
+      renderToStaticMarkup(<Dayline nodes={nodes} selectedId="b" onSelect={() => undefined} />),
+    ).not.toContain("aria-controls");
   });
 
   it("MetricStrip shows unknown as a dash, never zero, and keeps change as text", () => {
@@ -70,6 +94,13 @@ describe("Living Instrument primitives", () => {
     expect(none).toContain("lv-poster");
     expect(none).toContain("Back · cable");
     expect(renderToStaticMarkup(<MediaTile name="Row" loading />)).toContain('aria-busy="true"');
+  });
+
+  it("MediaTile remembers a failure per source, not per tile", () => {
+    const src = readFileSync("src/components/living/media-tile.tsx", "utf8");
+    expect(src).toMatch(/failedSrc === src/);
+    expect(src).not.toMatch(/useState\(false\)/);
+    void createElement;
   });
 
   it("Stage and Canvas render one heading each; DataRow is read-only without a target", () => {
