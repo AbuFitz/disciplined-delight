@@ -26,7 +26,7 @@ const DEV_ONLY_TEXT = [
   "Living Instrument design lab",
   "Two specimens, one decision",
   "Experience lab: Today",
-  "Atmospheric spatial calm",
+  "Ambient Athletic Cinema",
 ];
 const FORBIDDEN_TEXT = [".local-media", "/local-media/", "local-media-index"];
 
