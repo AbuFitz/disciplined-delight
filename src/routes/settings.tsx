@@ -1,21 +1,22 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 import {
   Button,
   Chip,
   ConfirmDialog,
   Field,
+  Group,
   NumberField,
   PageHeader,
-  Row,
+  Section,
   Segmented,
-  Select,
   Sheet,
   Skeleton,
   Switch,
   TextArea,
   TextInput,
+  Select,
 } from "@/components/nl/ui";
 import { saveProfile } from "@/data/actions";
 import { newId, put } from "@/data/db";
@@ -39,6 +40,8 @@ import {
   type AccentWorld,
   type ThemePref,
 } from "@/lib/theme";
+import { WORLDS } from "@/lib/colour-worlds";
+import { cn } from "@/lib/utils";
 import { setSalahEnabled } from "@/data/routine-actions";
 import { FeedbackSection } from "@/components/nl/feedback-section";
 import { IntegrationsPanel } from "@/components/nl/integrations-panel";
@@ -51,108 +54,189 @@ import { SetupPath } from "@/components/nl/setup-path";
 
 export const Route = createFileRoute("/settings")({ component: SettingsPage });
 
-function Section({
-  id,
-  title,
-  hint,
-  children,
-  open,
-  onToggle,
-}: {
-  id: SettingsSectionId;
-  title: string;
-  hint?: string;
-  children: React.ReactNode;
-  open: boolean;
-  onToggle: (id: SettingsSectionId) => void;
-}) {
-  const contentId = `${id}-settings-content`;
-  return (
-    <section
-      id={id}
-      tabIndex={-1}
-      className="scroll-mt-24 border-t border-line outline-none focus-visible:ring-2 focus-visible:ring-ring first:border-t-0"
-    >
-      <button
-        type="button"
-        aria-expanded={open}
-        aria-controls={contentId}
-        className="flex min-h-20 w-full items-center justify-between gap-4 py-5 text-left"
-        onClick={() => onToggle(id)}
-      >
-        <span className="min-w-0 [overflow-wrap:anywhere]">
-          <span className="block font-display text-2xl font-semibold">{title}</span>
-          {hint && <span className="mt-1 block text-sm text-muted-foreground">{hint}</span>}
-        </span>
-        <VIcon
-          name={open ? "collapse" : "next"}
-          className={`shrink-0 ${open ? "text-primary" : "text-muted-foreground"}`}
-        />
-      </button>
-      {open ? (
-        <div
-          id={contentId}
-          className="grid gap-x-10 pb-8 [grid-template-columns:repeat(auto-fit,minmax(min(100%,20rem),1fr))]"
-        >
-          <div className="grid min-w-0 max-w-xl gap-4">{children}</div>
-        </div>
-      ) : null}
-    </section>
-  );
-}
-
 type SettingsSectionId =
   | "profile"
   | "modules"
-  | "nutrition"
-  | "budget"
-  | "faith"
   | "training"
+  | "food"
+  | "faith"
   | "appearance"
-  | "install"
+  | "companion"
   | "reminders"
+  | "checklist"
+  | "install"
   | "account"
   | "data"
   | "help"
-  | "companion"
-  | "credits"
-  | "checklist";
+  | "credits";
 
-const settingsGroups: Array<{
-  title: string;
-  items: Array<{ id: SettingsSectionId; label: string; icon: VIconName }>;
-}> = [
-  {
-    title: "Plan and preferences",
-    items: [
-      { id: "profile", label: "You and your goal", icon: "today" },
-      { id: "modules", label: "Your areas", icon: "checklist" },
-      { id: "training", label: "Training and Gym Mode", icon: "training" },
-      { id: "nutrition", label: "Nutrition targets", icon: "nutrition" },
-      { id: "budget", label: "Food budget", icon: "nutrition" },
-      { id: "faith", label: "Faith & reflection", icon: "spirituality" },
-    ],
+/** Older anchors (and links elsewhere in the app) still resolve to the right sheet. */
+const HASH_ALIAS: Record<string, SettingsSectionId> = {
+  nutrition: "food",
+  budget: "food",
+  feedback: "help",
+};
+
+const SECTION_META: Record<SettingsSectionId, { title: string; hint: string; icon: VIconName }> = {
+  profile: {
+    title: "Profile & goals",
+    hint: "Used for wording and chart reference lines only.",
+    icon: "today",
   },
+  modules: {
+    title: "Your areas",
+    hint: "These choices shape navigation and what appears on Today.",
+    icon: "checklist",
+  },
+  training: {
+    title: "Training",
+    hint: "Gym Mode, haptic cues, music and connections.",
+    icon: "training",
+  },
+  food: {
+    title: "Food",
+    hint: "Targets and your weekly budget.",
+    icon: "nutrition",
+  },
+  faith: {
+    title: "Faith & reflection",
+    hint: "Private, optional practice support. Never inferred.",
+    icon: "spirituality",
+  },
+  appearance: {
+    title: "Appearance",
+    hint: "Theme and colour world. Saved on this device.",
+    icon: "readiness",
+  },
+  companion: {
+    title: "Buddy",
+    hint: "An optional, private coach for real plan and app states.",
+    icon: "buddy",
+  },
+  reminders: {
+    title: "Notifications",
+    hint: "Opt in per type. Off by default.",
+    icon: "timer",
+  },
+  checklist: {
+    title: "Reminder checklist",
+    hint: "Supplements, water, food prep.",
+    icon: "checklist",
+  },
+  install: {
+    title: "Install VAYVOR",
+    hint: "App-like launch and an offline shell on this device.",
+    icon: "external",
+  },
+  account: {
+    title: "Account & sync",
+    hint: "Guests stay on this device. Sign in only if you want backup and friends.",
+    icon: "community",
+  },
+  data: {
+    title: "Data & backup",
+    hint: "Where it lives, backups, and moving between devices.",
+    icon: "archive",
+  },
+  help: {
+    title: "Help & feedback",
+    hint: "Report a bug or idea without exposing private records.",
+    icon: "alert",
+  },
+  credits: {
+    title: "About & credits",
+    hint: "Sources and open-content licences for the exercise library.",
+    icon: "library",
+  },
+};
+
+const GROUPS: { title: string; ids: SettingsSectionId[] }[] = [
+  { title: "Plan", ids: ["profile", "modules", "training", "food", "faith"] },
   {
     title: "Experience",
-    items: [
-      { id: "appearance", label: "Appearance", icon: "readiness" },
-      { id: "companion", label: "Companion", icon: "buddy" },
-      { id: "reminders", label: "Reminders", icon: "timer" },
-      { id: "checklist", label: "Reminder checklist", icon: "checklist" },
-      { id: "install", label: "Install VAYVOR", icon: "external" },
-    ],
+    ids: ["appearance", "companion", "reminders", "checklist", "install"],
   },
-  {
-    title: "Account and support",
-    items: [
-      { id: "account", label: "Account", icon: "community" },
-      { id: "data", label: "Your data", icon: "archive" },
-      { id: "help", label: "Help and feedback", icon: "alert" },
-      { id: "credits", label: "Credits & licences", icon: "library" },
-    ],
-  },
+  { title: "You & data", ids: ["account", "data", "help", "credits"] },
 ];
+
+const isSectionId = (id: string): id is SettingsSectionId => id in SECTION_META;
+const resolveHash = (raw: string): SettingsSectionId | null => {
+  const id = raw.replace(/^#/, "");
+  if (isSectionId(id)) return id;
+  return HASH_ALIAS[id] ?? null;
+};
+
+const pillLink =
+  "inline-flex min-h-12 items-center justify-center rounded-full bg-surface-2 px-6 font-semibold transition active:scale-[0.97]";
+
+/** A titled block inside a settings sheet. */
+function Block({ title, hint, children }: { title?: string; hint?: string; children: ReactNode }) {
+  return (
+    <div className="grid gap-4">
+      {(title || hint) && (
+        <div>
+          {title && <h3 className="text-base font-semibold">{title}</h3>}
+          {hint && <p className="mt-0.5 text-sm text-muted-foreground">{hint}</p>}
+        </div>
+      )}
+      {children}
+    </div>
+  );
+}
+
+/** A soft rounded well for optional advanced settings. */
+function Well({ summary, children }: { summary: string; children: ReactNode }) {
+  return (
+    <details className="group rounded-3xl bg-surface-2/60 px-4">
+      <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-3 font-semibold [&::-webkit-details-marker]:hidden">
+        <span className="min-w-0">{summary}</span>
+        <VIcon name="collapse" size={18} className="shrink-0 transition group-open:rotate-180" />
+      </summary>
+      <div className="grid gap-4 pb-4">{children}</div>
+    </details>
+  );
+}
+
+function NavRow({
+  icon,
+  label,
+  hint,
+  onClick,
+}: {
+  icon: VIconName;
+  label: string;
+  hint?: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex min-h-16 w-full items-center gap-3.5 px-4 py-3 text-left transition active:bg-surface-2/70"
+    >
+      <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/15 text-primary">
+        <VIcon name={icon} size={20} />
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block font-semibold leading-tight [overflow-wrap:anywhere]">{label}</span>
+        {hint && (
+          <span className="mt-0.5 block text-sm leading-snug text-muted-foreground [overflow-wrap:anywhere]">
+            {hint}
+          </span>
+        )}
+      </span>
+      <VIcon name="next" size={18} className="shrink-0 text-muted-foreground" />
+    </button>
+  );
+}
+
+const GOAL_LABEL: Record<Profile["goal"]["kind"], string> = {
+  "gain-weight": "Gain weight gradually",
+  strength: "Get stronger",
+  maintain: "Maintain",
+  "lose-weight": "Lose weight",
+  custom: "Something else",
+};
 
 function SettingsPage() {
   const { profile, ready } = useProfile();
@@ -163,7 +247,7 @@ function SettingsPage() {
   const [accent, setAccent] = useState<AccentWorld>("cobalt");
   const [item, setItem] = useState<Partial<ChecklistItem> | null>(null);
   const [archive, setArchive] = useState<ChecklistItem | null>(null);
-  const [activeSection, setActiveSection] = useState<SettingsSectionId>("profile");
+  const [activeSection, setActiveSection] = useState<SettingsSectionId | null>(null);
   useEffect(() => {
     if (profile && !d) setD(profile);
   }, [profile, d]);
@@ -174,16 +258,8 @@ function SettingsPage() {
   useEffect(() => {
     if (!ready) return;
     const openHash = () => {
-      const id = window.location.hash.slice(1);
-      if (!settingsGroups.some((group) => group.items.some((entry) => entry.id === id))) return;
-      setActiveSection(id as SettingsSectionId);
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          const target = document.getElementById(id);
-          target?.scrollIntoView({ block: "start" });
-          target?.focus({ preventScroll: true });
-        });
-      });
+      const id = resolveHash(window.location.hash);
+      if (id) setActiveSection(id);
     };
     openHash();
     window.addEventListener("hashchange", openHash);
@@ -200,583 +276,619 @@ function SettingsPage() {
   const openSection = (id: SettingsSectionId) => {
     setActiveSection(id);
     window.history.replaceState(null, "", `${window.location.pathname}#${id}`);
-    requestAnimationFrame(() => {
-      const target = document.getElementById(id);
-      target?.scrollIntoView({ block: "start" });
-      target?.focus({ preventScroll: true });
-    });
   };
-  const sectionProps = (id: SettingsSectionId) => ({
-    id,
-    open: activeSection === id,
-    onToggle: openSection,
-  });
+  const closeSection = () => {
+    setActiveSection(null);
+    window.history.replaceState(null, "", window.location.pathname);
+  };
+  const faithOn = hasIslamicPrayerPack(resolveFaithProfile(profile));
+  const worldName = WORLDS.find((w) => w.id === accent)?.name ?? "Cobalt";
+  const hints: Partial<Record<SettingsSectionId, string>> = {
+    profile: GOAL_LABEL[profile.goal.kind],
+    food:
+      profile.targets.status === "confirmed"
+        ? "Targets confirmed"
+        : profile.targets.status === "provisional"
+          ? "Targets carried over"
+          : "Targets not set",
+    appearance: `${theme === "system" ? "Match device" : theme === "dark" ? "Dark" : "Light"} · ${worldName}`,
+    checklist: `${checklist.items.filter((i) => !i.archivedAt).length} items`,
+  };
+  const initial = (profile.name.trim()[0] ?? "V").toUpperCase();
 
-  return (
-    <>
-      <PageHeader
-        eyebrow="Settings"
-        title="Make it yours"
-        sub="Nothing here is required. Skip what you don't need and come back later."
-      />
-      <SetupPath />
-
-      <nav className="mb-8 border-y border-line py-5" aria-label="Settings categories">
-        <p className="eyebrow">Choose one area</p>
-        <div className="mt-4 grid gap-5 lg:grid-cols-3">
-          {settingsGroups.map((group) => (
-            <div key={group.title}>
-              <h2 className="text-sm font-semibold">{group.title}</h2>
-              <div className="mt-2 grid gap-px border border-line bg-line">
-                {group.items.map((entry) => {
-                  const selected = activeSection === entry.id;
-                  return (
-                    <button
-                      key={entry.id}
-                      type="button"
-                      aria-current={selected ? "location" : undefined}
-                      onClick={() => openSection(entry.id)}
-                      className={`flex min-h-12 items-center gap-3 bg-background px-3 text-left text-sm font-medium hover:bg-surface ${selected ? "border-l-2 border-primary text-primary" : "border-l-2 border-transparent"}`}
-                    >
-                      <VIcon name={entry.icon} size={18} active={selected} />
-                      <span>{entry.label}</span>
-                    </button>
-                  );
-                })}
-              </div>
+  const body = (id: SettingsSectionId): ReactNode => {
+    switch (id) {
+      case "profile":
+        return (
+          <>
+            <div>
+              <Link to="/onboarding" className={pillLink}>
+                Review guided setup
+              </Link>
             </div>
-          ))}
-        </div>
-      </nav>
-
-      <Section
-        {...sectionProps("profile")}
-        title="You and your goal"
-        hint="Used for wording and chart reference lines only."
-      >
-        <div>
-          <Link
-            to="/onboarding"
-            className="inline-flex min-h-11 items-center rounded-full border border-input px-5 font-medium"
-          >
-            Review guided setup
-          </Link>
-        </div>
-        <Field label="Name (optional)" htmlFor="s-name">
-          <TextInput
-            id="s-name"
-            value={d.name}
-            onChange={(e) => setD({ ...d, name: e.target.value })}
-          />
-        </Field>
-        <Field label="Goal" htmlFor="s-goal">
-          <Select
-            id="s-goal"
-            value={d.goal.kind}
-            onChange={(e) =>
-              setD({ ...d, goal: { ...d.goal, kind: e.target.value as Profile["goal"]["kind"] } })
-            }
-          >
-            <option value="gain-weight">Gain weight gradually</option>
-            <option value="strength">Get stronger</option>
-            <option value="maintain">Maintain</option>
-            <option value="lose-weight">Lose weight</option>
-            <option value="custom">Something else</option>
-          </Select>
-        </Field>
-        <Field
-          label="Target weight (optional)"
-          hint="Your own goal. The app doesn't set one for you."
-        >
-          <NumberField
-            label="Target weight"
-            unit="kg"
-            step={0.5}
-            decimals={1}
-            value={d.goal.targetWeightKg}
-            onChange={(v) => setD({ ...d, goal: { ...d.goal, targetWeightKg: v } })}
-          />
-        </Field>
-        <Field
-          label="Allergies"
-          htmlFor="s-all"
-          hint="Private to your account. Included in sync and exported backups when enabled."
-        >
-          <TextArea
-            id="s-all"
-            className="min-h-20"
-            value={d.allergies ?? ""}
-            onChange={(e) => setD({ ...d, allergies: e.target.value })}
-            placeholder="None, or list them"
-          />
-        </Field>
-        <Field
-          label="Dietary notes"
-          htmlFor="s-diet"
-          hint="Private to your account. Included in sync and exported backups when enabled."
-        >
-          <TextArea
-            id="s-diet"
-            className="min-h-20"
-            value={d.dietaryNotes ?? ""}
-            onChange={(e) => setD({ ...d, dietaryNotes: e.target.value })}
-            placeholder="e.g. Halal only"
-          />
-        </Field>
-        <div>
-          <Button
-            variant="primary"
-            disabled={!dirtyGoals}
-            onClick={async () => {
-              await saveProfile({
-                name: d.name.trim(),
-                goal: d.goal,
-                allergies: d.allergies,
-                dietaryNotes: d.dietaryNotes,
-                setup: { ...profile.setup, goals: true },
-              });
-              toast.success("Saved");
-            }}
-          >
-            Save
-          </Button>
-        </div>
-      </Section>
-
-      <Section
-        {...sectionProps("modules")}
-        title="Your areas"
-        hint="These choices shape navigation and what appears on Today. Plan connects every enabled area."
-      >
-        {(
-          [
-            ["training", "Training"],
-            ["nutrition", "Nutrition"],
-            ["mind", "Mind"],
-            ["routines", "Routines and Plan"],
-            ["community", "Community"],
-            ["spirituality", "Faith & reflection"],
-          ] as [AppModule, string][]
-        ).map(([id, label]) => {
-          const selected = d.modules ?? ["training", "nutrition", "mind", "routines", "community"];
-          return (
-            <Switch
-              key={id}
-              label={label}
-              checked={selected.includes(id)}
-              onChange={(on) =>
-                setD({
-                  ...d,
-                  modules: on ? [...selected, id] : selected.filter((item) => item !== id),
-                })
-              }
-            />
-          );
-        })}
-        <div>
-          <Button
-            variant="secondary"
-            onClick={async () => {
-              const modules = d.modules ?? [
+            <Field label="Name (optional)" htmlFor="s-name">
+              <TextInput
+                id="s-name"
+                value={d.name}
+                onChange={(e) => setD({ ...d, name: e.target.value })}
+              />
+            </Field>
+            <Field label="Goal" htmlFor="s-goal">
+              <Select
+                id="s-goal"
+                value={d.goal.kind}
+                onChange={(e) =>
+                  setD({
+                    ...d,
+                    goal: {
+                      ...d.goal,
+                      kind: e.target.value as Profile["goal"]["kind"],
+                    },
+                  })
+                }
+              >
+                <option value="gain-weight">Gain weight gradually</option>
+                <option value="strength">Get stronger</option>
+                <option value="maintain">Maintain</option>
+                <option value="lose-weight">Lose weight</option>
+                <option value="custom">Something else</option>
+              </Select>
+            </Field>
+            <Field
+              label="Target weight (optional)"
+              hint="Your own goal. The app doesn't set one for you."
+            >
+              <NumberField
+                label="Target weight"
+                unit="kg"
+                step={0.5}
+                decimals={1}
+                value={d.goal.targetWeightKg}
+                onChange={(v) => setD({ ...d, goal: { ...d.goal, targetWeightKg: v } })}
+              />
+            </Field>
+            <Field
+              label="Allergies"
+              htmlFor="s-all"
+              hint="Private to your account. Included in sync and exported backups when enabled."
+            >
+              <TextArea
+                id="s-all"
+                className="min-h-20"
+                value={d.allergies ?? ""}
+                onChange={(e) => setD({ ...d, allergies: e.target.value })}
+                placeholder="None, or list them"
+              />
+            </Field>
+            <Field
+              label="Dietary notes"
+              htmlFor="s-diet"
+              hint="Private to your account. Included in sync and exported backups when enabled."
+            >
+              <TextArea
+                id="s-diet"
+                className="min-h-20"
+                value={d.dietaryNotes ?? ""}
+                onChange={(e) => setD({ ...d, dietaryNotes: e.target.value })}
+                placeholder="e.g. Halal only"
+              />
+            </Field>
+            <div>
+              <Button
+                variant="primary"
+                disabled={!dirtyGoals}
+                onClick={async () => {
+                  await saveProfile({
+                    name: d.name.trim(),
+                    goal: d.goal,
+                    allergies: d.allergies,
+                    dietaryNotes: d.dietaryNotes,
+                    setup: { ...profile.setup, goals: true },
+                  });
+                  toast.success("Saved");
+                }}
+              >
+                Save
+              </Button>
+            </div>
+          </>
+        );
+      case "modules":
+        return (
+          <>
+            {(
+              [
+                ["training", "Training"],
+                ["nutrition", "Nutrition"],
+                ["mind", "Mind"],
+                ["routines", "Routines and Plan"],
+                ["community", "Community"],
+                ["spirituality", "Faith & reflection"],
+              ] as [AppModule, string][]
+            ).map(([id, label]) => {
+              const selected = d.modules ?? [
                 "training",
                 "nutrition",
                 "mind",
                 "routines",
                 "community",
               ];
-              await saveProfile({
-                modules,
-                faithRoutines: modules.includes("spirituality") ? d.faithRoutines : false,
-              });
-              if (!modules.includes("spirituality")) await setSalahEnabled(false);
-              toast.success("Areas updated");
-            }}
-          >
-            Save areas
-          </Button>
-        </div>
-      </Section>
-
-      <Section
-        {...sectionProps("nutrition")}
-        title="Nutrition targets"
-        hint="Gradual weight gain is usually measured over weeks. If you follow advice from a clinician or dietitian, use their numbers."
-      >
-        <div className="flex flex-wrap items-center gap-2">
-          <Chip
-            tone={t.status === "confirmed" ? "ok" : t.status === "provisional" ? "warn" : "neutral"}
-          >
-            {t.status === "confirmed"
-              ? "Confirmed by you"
-              : t.status === "provisional"
-                ? "Carried over, not confirmed"
-                : "Not set"}
-          </Chip>
-          {t.status === "provisional" && (
-            <span className="text-sm text-muted-foreground">From: {t.source}</span>
-          )}
-        </div>
-        <div className="grid gap-3 min-[480px]:grid-cols-2">
-          <Field label="Calories per day">
-            <NumberField
-              label="Calories"
-              unit="kcal"
-              step={50}
-              decimals={0}
-              value={t.kcal}
-              onChange={(v) => setT({ kcal: v })}
-            />
-          </Field>
-          <Field label="Protein per day">
-            <NumberField
-              label="Protein"
-              unit="g"
-              step={5}
-              decimals={0}
-              value={t.protein}
-              onChange={(v) => setT({ protein: v })}
-            />
-          </Field>
-          <Field label="Carbs range (low)">
-            <NumberField
-              label="Carbs low"
-              unit="g"
-              stepper={false}
-              value={t.carbsRange?.[0]}
-              onChange={(v) =>
-                setT({
-                  carbsRange:
-                    v != null && t.carbsRange
-                      ? [v, t.carbsRange[1]]
-                      : v != null
-                        ? [v, v]
-                        : undefined,
-                })
-              }
-            />
-          </Field>
-          <Field label="Carbs range (high)">
-            <NumberField
-              label="Carbs high"
-              unit="g"
-              stepper={false}
-              value={t.carbsRange?.[1]}
-              onChange={(v) =>
-                setT({
-                  carbsRange:
-                    v != null && t.carbsRange
-                      ? [t.carbsRange[0], v]
-                      : v != null
-                        ? [v, v]
-                        : undefined,
-                })
-              }
-            />
-          </Field>
-          <Field label="Fat range (low)">
-            <NumberField
-              label="Fat low"
-              unit="g"
-              stepper={false}
-              value={t.fatRange?.[0]}
-              onChange={(v) =>
-                setT({
-                  fatRange:
-                    v != null && t.fatRange ? [v, t.fatRange[1]] : v != null ? [v, v] : undefined,
-                })
-              }
-            />
-          </Field>
-          <Field label="Fat range (high)">
-            <NumberField
-              label="Fat high"
-              unit="g"
-              stepper={false}
-              value={t.fatRange?.[1]}
-              onChange={(v) =>
-                setT({
-                  fatRange:
-                    v != null && t.fatRange ? [t.fatRange[0], v] : v != null ? [v, v] : undefined,
-                })
-              }
-            />
-          </Field>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Button
-            variant="primary"
-            onClick={async () => {
-              await saveProfile({
-                targets: { ...t, status: "confirmed", source: "Set by you" },
-                setup: { ...profile.setup, food: true },
-              });
-              toast.success("Targets confirmed");
-            }}
-            disabled={!dirtyTargets && t.status === "confirmed"}
-          >
-            {t.status === "confirmed" ? "Save targets" : "Confirm these targets"}
-          </Button>
-          <Button
-            variant="ghost"
-            onClick={async () => {
-              await saveProfile({ targets: { status: "unset" } });
-              setD({ ...d, targets: { status: "unset" } });
-              toast("Targets cleared");
-            }}
-          >
-            Clear
-          </Button>
-        </div>
-        <p className="text-xs text-muted-foreground">
-          The maintenance estimate in Progress is information only. It never changes these numbers.
-        </p>
-      </Section>
-
-      <Section
-        {...sectionProps("budget")}
-        title="Food budget"
-        hint="Used for the weekly budget on Today and in Food."
-      >
-        <Field label="Weekly food budget">
-          <NumberField
-            label="Weekly budget"
-            unit="£"
-            step={5}
-            decimals={2}
-            value={d.budgetPencePerWeek != null ? d.budgetPencePerWeek / 100 : undefined}
-            onChange={(v) =>
-              setD({ ...d, budgetPencePerWeek: v != null ? Math.round(v * 100) : undefined })
-            }
-          />
-        </Field>
-        <div>
-          <Button
-            variant="secondary"
-            onClick={async () => {
-              await saveProfile({ budgetPencePerWeek: d.budgetPencePerWeek });
-              toast.success("Budget saved");
-            }}
-          >
-            Save budget
-          </Button>
-        </div>
-      </Section>
-
-      <Section
-        {...sectionProps("faith")}
-        title="Faith & reflection"
-        hint="Private, optional practice support. Choose this explicitly; it is never inferred."
-      >
-        <FaithSettings />
-        {hasIslamicPrayerPack(resolveFaithProfile(profile)) && (
-          <div className="border-l-2 border-primary pl-4">
-            <p className="text-sm text-muted-foreground">
-              {prayer
-                ? `${prayer.mode === "manual" ? "Manual times" : "Calculated times"} for ${prayer.locality}.`
-                : "Islamic prayer tools are selected, but times are not configured."}
-            </p>
-            <Link
-              to="/salah"
-              className="mt-2 inline-flex min-h-11 items-center rounded-md border border-input px-5 font-medium"
-            >
-              {prayer ? "Open Salah settings" : "Set up Salah"}
-            </Link>
-          </div>
-        )}
-      </Section>
-
-      <Section {...sectionProps("training")} title="Training">
-        <Switch
-          label="Keep the screen on during a session"
-          hint="Only where your browser supports it. Sessions work without it."
-          checked={!!profile.wakeLock}
-          onChange={async (v) => {
-            await saveProfile({ wakeLock: v });
-          }}
-        />
-        <details className="mt-6 border-t border-line pt-3">
-          <summary className="min-h-11 cursor-pointer py-2 font-semibold">
-            Gym Mode, music and optional location
-          </summary>
-          <p className="mb-4 text-sm text-muted-foreground">
-            Configure this only when it is useful. Location permission is requested from a direct
-            action inside this section.
-          </p>
-          <GymSettings />
-        </details>
-        <details className="border-t border-line pt-3">
-          <summary className="min-h-11 cursor-pointer py-2 font-semibold">
-            Connections: music, health, location, notifications
-          </summary>
-          <IntegrationsPanel />
-        </details>
-      </Section>
-
-      <Section {...sectionProps("appearance")} title="Appearance">
-        <Segmented
-          label="Theme"
-          value={theme}
-          onChange={(v) => {
-            setTheme(v);
-            setThemePref(v);
-          }}
-          options={[
-            { value: "dark", label: "Dark" },
-            { value: "light", label: "Light" },
-            { value: "system", label: "Match device" },
-          ]}
-        />
-        <Field
-          label="Colour world"
-          hint="Curated for readable light and dark contrast; no identity is inferred."
-        >
-          <Select
-            value={accent}
-            onChange={(event) => {
-              const value = event.target.value as AccentWorld;
-              setAccent(value);
-              setAccentWorld(value);
-            }}
-          >
-            <option value="mint">Mint signal</option>
-            <option value="cobalt">Cobalt</option>
-            <option value="violet">Violet</option>
-            <option value="coral">Ember coral</option>
-            <option value="amber">Amber</option>
-            <option value="rose">Rose</option>
-            <option value="slate">Monochrome slate</option>
-          </Select>
-        </Field>
-        <div className="spatial-glass border p-4" aria-live="polite">
-          <p className="eyebrow text-primary">Live signal preview</p>
-          <div className="mt-2 h-1.5 w-full bg-surface-2">
-            <div className="h-full w-2/3 bg-primary" />
-          </div>
-          <p className="mt-2 text-sm">
-            Focus rings, active navigation, charts, Buddy and Gym Mode use this semantic signal.
-          </p>
-        </div>
-        <Button
-          variant="ghost"
-          onClick={() => {
-            setAccent("cobalt");
-            setAccentWorld("cobalt");
-          }}
-        >
-          Reset colour
-        </Button>
-        <p className="text-xs text-muted-foreground">Saved on this device.</p>
-      </Section>
-
-      <Section
-        {...sectionProps("install")}
-        title="Install VAYVOR"
-        hint="App-like launch and an offline shell on this device."
-      >
-        <InstallSection />
-      </Section>
-
-      <Section
-        {...sectionProps("reminders")}
-        title="Reminders"
-        hint="Opt in per type. Off by default."
-      >
-        <RemindersSection showPrayer={hasIslamicPrayerPack(resolveFaithProfile(profile))} />
-      </Section>
-
-      <Section
-        {...sectionProps("account")}
-        title="Account"
-        hint="Sign in for backup and friends. Guests stay on this device."
-      >
-        <AccountSection />
-      </Section>
-
-      <Section
-        {...sectionProps("data")}
-        title="Your data"
-        hint="Where it lives, backups, and moving between devices."
-      >
-        <DataSection />
-        <div>
-          <Link
-            to="/privacy"
-            className="inline-flex min-h-11 items-center rounded-full border border-input px-5 font-medium"
-          >
-            Read the privacy map
-          </Link>
-        </div>
-      </Section>
-
-      <Section
-        {...sectionProps("help")}
-        title="Help and feedback"
-        hint="Report a bug, correction, accessibility issue or idea without exposing private records."
-      >
-        <FeedbackSection />
-      </Section>
-
-      <Section
-        {...sectionProps("companion")}
-        title="Companion"
-        hint="An optional, private coach for real plan and app states—not a decorative mascot."
-      >
-        <CompanionSettings />
-      </Section>
-
-      <Section
-        {...sectionProps("credits")}
-        title="Credits & licences"
-        hint="Sources and open-content licences for the exercise library."
-      >
-        <p className="text-sm text-muted-foreground">
-          Every imported exercise and photo keeps its contributor, original source and licence.
-        </p>
-        <div>
-          <Link
-            to="/credits"
-            className="inline-flex min-h-11 items-center rounded-full border border-input px-5 font-medium"
-          >
-            View library credits
-          </Link>
-        </div>
-      </Section>
-
-      <Section
-        {...sectionProps("checklist")}
-        title="Reminder checklist"
-        hint="Supplements, water, food prep. Items from your original app are only a record of what you used to track, not advice."
-      >
-        <ul>
-          {checklist.items
-            .filter((i) => !i.archivedAt)
-            .sort((a, b) => a.order - b.order)
-            .map((i) => (
-              <Row as="li" key={i.id} className="justify-between">
-                <button className="min-w-0 text-left" onClick={() => setItem(i)}>
-                  <p className="font-medium">{i.label}</p>
-                  <p className="line-clamp-1 text-sm text-muted-foreground">
-                    {i.fromLegacy ? "From original app. " : ""}
-                    {i.detail}
-                  </p>
-                </button>
-                <button
-                  aria-label={`Archive ${i.label}`}
-                  className="inline-flex size-11 shrink-0 items-center justify-center rounded-md hover:bg-surface-2"
-                  onClick={() => setArchive(i)}
+              return (
+                <Switch
+                  key={id}
+                  label={label}
+                  checked={selected.includes(id)}
+                  onChange={(on) =>
+                    setD({
+                      ...d,
+                      modules: on ? [...selected, id] : selected.filter((item) => item !== id),
+                    })
+                  }
+                />
+              );
+            })}
+            <div>
+              <Button
+                variant="secondary"
+                onClick={async () => {
+                  const modules = d.modules ?? [
+                    "training",
+                    "nutrition",
+                    "mind",
+                    "routines",
+                    "community",
+                  ];
+                  await saveProfile({
+                    modules,
+                    faithRoutines: modules.includes("spirituality") ? d.faithRoutines : false,
+                  });
+                  if (!modules.includes("spirituality")) await setSalahEnabled(false);
+                  toast.success("Areas updated");
+                }}
+              >
+                Save areas
+              </Button>
+            </div>
+          </>
+        );
+      case "food":
+        return (
+          <>
+            <Block title="Nutrition targets">
+              <div className="flex flex-wrap items-center gap-2">
+                <Chip
+                  tone={
+                    t.status === "confirmed"
+                      ? "ok"
+                      : t.status === "provisional"
+                        ? "warn"
+                        : "neutral"
+                  }
                 >
-                  <VIcon name="archive" size={16} />
-                </button>
-              </Row>
+                  {t.status === "confirmed"
+                    ? "Confirmed by you"
+                    : t.status === "provisional"
+                      ? "Carried over, not confirmed"
+                      : "Not set"}
+                </Chip>
+                {t.status === "provisional" && (
+                  <span className="text-sm text-muted-foreground">From: {t.source}</span>
+                )}
+              </div>
+              <div className="grid gap-3 min-[480px]:grid-cols-2">
+                <Field label="Calories per day">
+                  <NumberField
+                    label="Calories"
+                    unit="kcal"
+                    step={50}
+                    decimals={0}
+                    value={t.kcal}
+                    onChange={(v) => setT({ kcal: v })}
+                  />
+                </Field>
+                <Field label="Protein per day">
+                  <NumberField
+                    label="Protein"
+                    unit="g"
+                    step={5}
+                    decimals={0}
+                    value={t.protein}
+                    onChange={(v) => setT({ protein: v })}
+                  />
+                </Field>
+                <Field label="Carbs range (low)">
+                  <NumberField
+                    label="Carbs low"
+                    unit="g"
+                    stepper={false}
+                    value={t.carbsRange?.[0]}
+                    onChange={(v) =>
+                      setT({
+                        carbsRange:
+                          v != null && t.carbsRange
+                            ? [v, t.carbsRange[1]]
+                            : v != null
+                              ? [v, v]
+                              : undefined,
+                      })
+                    }
+                  />
+                </Field>
+                <Field label="Carbs range (high)">
+                  <NumberField
+                    label="Carbs high"
+                    unit="g"
+                    stepper={false}
+                    value={t.carbsRange?.[1]}
+                    onChange={(v) =>
+                      setT({
+                        carbsRange:
+                          v != null && t.carbsRange
+                            ? [t.carbsRange[0], v]
+                            : v != null
+                              ? [v, v]
+                              : undefined,
+                      })
+                    }
+                  />
+                </Field>
+                <Field label="Fat range (low)">
+                  <NumberField
+                    label="Fat low"
+                    unit="g"
+                    stepper={false}
+                    value={t.fatRange?.[0]}
+                    onChange={(v) =>
+                      setT({
+                        fatRange:
+                          v != null && t.fatRange
+                            ? [v, t.fatRange[1]]
+                            : v != null
+                              ? [v, v]
+                              : undefined,
+                      })
+                    }
+                  />
+                </Field>
+                <Field label="Fat range (high)">
+                  <NumberField
+                    label="Fat high"
+                    unit="g"
+                    stepper={false}
+                    value={t.fatRange?.[1]}
+                    onChange={(v) =>
+                      setT({
+                        fatRange:
+                          v != null && t.fatRange
+                            ? [t.fatRange[0], v]
+                            : v != null
+                              ? [v, v]
+                              : undefined,
+                      })
+                    }
+                  />
+                </Field>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  variant="primary"
+                  onClick={async () => {
+                    await saveProfile({
+                      targets: {
+                        ...t,
+                        status: "confirmed",
+                        source: "Set by you",
+                      },
+                      setup: { ...profile.setup, food: true },
+                    });
+                    toast.success("Targets confirmed");
+                  }}
+                  disabled={!dirtyTargets && t.status === "confirmed"}
+                >
+                  {t.status === "confirmed" ? "Save targets" : "Confirm these targets"}
+                </Button>
+                <Button
+                  variant="ghost"
+                  onClick={async () => {
+                    await saveProfile({ targets: { status: "unset" } });
+                    setD({ ...d, targets: { status: "unset" } });
+                    toast("Targets cleared");
+                  }}
+                >
+                  Clear
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                The maintenance estimate in Progress is information only. It never changes these
+                numbers.
+              </p>
+            </Block>
+            <Block title="Food budget" hint="Used for the weekly budget on Today and in Food.">
+              <Field label="Weekly food budget">
+                <NumberField
+                  label="Weekly budget"
+                  unit="£"
+                  step={5}
+                  decimals={2}
+                  value={d.budgetPencePerWeek != null ? d.budgetPencePerWeek / 100 : undefined}
+                  onChange={(v) =>
+                    setD({
+                      ...d,
+                      budgetPencePerWeek: v != null ? Math.round(v * 100) : undefined,
+                    })
+                  }
+                />
+              </Field>
+              <div>
+                <Button
+                  variant="secondary"
+                  onClick={async () => {
+                    await saveProfile({
+                      budgetPencePerWeek: d.budgetPencePerWeek,
+                    });
+                    toast.success("Budget saved");
+                  }}
+                >
+                  Save budget
+                </Button>
+              </div>
+            </Block>
+          </>
+        );
+      case "faith":
+        return (
+          <>
+            <FaithSettings />
+            {faithOn && (
+              <div className="rounded-3xl bg-surface-2/60 p-4">
+                <p className="text-sm text-muted-foreground">
+                  {prayer
+                    ? `${prayer.mode === "manual" ? "Manual times" : "Calculated times"} for ${prayer.locality}.`
+                    : "Islamic prayer tools are selected, but times are not configured."}
+                </p>
+                <Link to="/salah" className={cn(pillLink, "mt-3")}>
+                  {prayer ? "Open Salah settings" : "Set up Salah"}
+                </Link>
+              </div>
+            )}
+          </>
+        );
+      case "training":
+        return (
+          <>
+            <Switch
+              label="Keep the screen on during a session"
+              hint="Only where your browser supports it. Sessions work without it."
+              checked={!!profile.wakeLock}
+              onChange={async (v) => {
+                await saveProfile({ wakeLock: v });
+              }}
+            />
+            <Well summary="Gym Mode, music and optional location">
+              <p className="text-sm text-muted-foreground">
+                Configure this only when it is useful. Location permission is requested from a
+                direct action inside this section.
+              </p>
+              <GymSettings />
+            </Well>
+            <Well summary="Connections: music, health, location, notifications">
+              <IntegrationsPanel />
+            </Well>
+          </>
+        );
+      case "appearance":
+        return (
+          <>
+            <Segmented
+              label="Theme"
+              value={theme}
+              onChange={(v) => {
+                setTheme(v);
+                setThemePref(v);
+              }}
+              options={[
+                { value: "dark", label: "Dark" },
+                { value: "light", label: "Light" },
+                { value: "system", label: "Match device" },
+              ]}
+            />
+            <div
+              role="radiogroup"
+              aria-label="Colour world"
+              className="grid grid-cols-2 gap-2.5 min-[480px]:grid-cols-3"
+            >
+              {WORLDS.map((w) => {
+                const on = w.id === accent;
+                return (
+                  <button
+                    key={w.id}
+                    type="button"
+                    role="radio"
+                    aria-checked={on}
+                    onClick={() => {
+                      setAccent(w.id);
+                      setAccentWorld(w.id);
+                    }}
+                    className={cn(
+                      "flex min-h-16 min-w-0 items-center gap-3 rounded-2xl bg-surface-2/60 p-3 text-left transition active:scale-[0.97]",
+                      on && "bg-primary/15 ring-2 ring-primary",
+                    )}
+                  >
+                    <span
+                      aria-hidden
+                      className="size-9 shrink-0 rounded-full"
+                      style={{
+                        background: `linear-gradient(135deg, ${w.swatch[0]} 50%, ${w.swatch[1]} 50%)`,
+                      }}
+                    />
+                    <span className="min-w-0">
+                      <span className="block truncate text-sm font-semibold">{w.name}</span>
+                      <span className="block truncate text-xs text-muted-foreground">{w.note}</span>
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+            <div className="rounded-3xl bg-surface-2/60 p-4" aria-live="polite">
+              <p className="eyebrow text-primary">Live signal preview</p>
+              <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-foreground/10">
+                <div className="h-full w-2/3 rounded-full bg-primary" />
+              </div>
+              <p className="mt-2 text-sm">
+                Focus rings, active navigation, charts, Buddy and Gym Mode use this semantic signal.
+              </p>
+            </div>
+            <div className="flex flex-wrap items-center gap-3">
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  setAccent("cobalt");
+                  setAccentWorld("cobalt");
+                }}
+              >
+                Reset colour
+              </Button>
+              <p className="text-xs text-muted-foreground">
+                Curated for readable light and dark contrast; no identity is inferred.
+              </p>
+            </div>
+          </>
+        );
+      case "install":
+        return <InstallSection />;
+      case "reminders":
+        return <RemindersSection showPrayer={faithOn} />;
+      case "account":
+        return <AccountSection />;
+      case "data":
+        return (
+          <>
+            <DataSection />
+            <div>
+              <Link to="/privacy" className={pillLink}>
+                Read the privacy map
+              </Link>
+            </div>
+          </>
+        );
+      case "help":
+        return <FeedbackSection />;
+      case "companion":
+        return <CompanionSettings />;
+      case "credits":
+        return (
+          <>
+            <p className="text-sm text-muted-foreground">
+              Every imported exercise and photo keeps its contributor, original source and licence.
+            </p>
+            <div>
+              <Link to="/credits" className={pillLink}>
+                View library credits
+              </Link>
+            </div>
+          </>
+        );
+      case "checklist":
+        return (
+          <>
+            <p className="text-sm text-muted-foreground">
+              Items from your original app are only a record of what you used to track, not advice.
+            </p>
+            <Group as="ul">
+              {checklist.items
+                .filter((i) => !i.archivedAt)
+                .sort((a, b) => a.order - b.order)
+                .map((i) => (
+                  <li
+                    key={i.id}
+                    className="flex min-h-16 items-center justify-between gap-2 pl-4 pr-2"
+                  >
+                    <button
+                      className="min-h-12 min-w-0 flex-1 py-2 text-left"
+                      onClick={() => setItem(i)}
+                    >
+                      <p className="font-semibold">{i.label}</p>
+                      <p className="line-clamp-1 text-sm text-muted-foreground">
+                        {i.fromLegacy ? "From original app. " : ""}
+                        {i.detail}
+                      </p>
+                    </button>
+                    <button
+                      aria-label={`Archive ${i.label}`}
+                      className="inline-flex size-11 shrink-0 items-center justify-center rounded-full hover:bg-surface-2"
+                      onClick={() => setArchive(i)}
+                    >
+                      <VIcon name="archive" size={18} />
+                    </button>
+                  </li>
+                ))}
+            </Group>
+            <div>
+              <Button variant="secondary" onClick={() => setItem({ label: "", detail: "" })}>
+                <VIcon name="add" size={16} />
+                Add reminder
+              </Button>
+            </div>
+          </>
+        );
+    }
+  };
+
+  return (
+    <>
+      <PageHeader title="Settings" sub="Nothing here is required. Come back any time." />
+
+      <button
+        type="button"
+        onClick={() => openSection("profile")}
+        className="mb-6 flex min-h-20 w-full items-center gap-4 rounded-3xl bg-surface/80 p-4 text-left transition active:scale-[0.99]"
+      >
+        <span
+          aria-hidden
+          className="flex size-14 shrink-0 items-center justify-center rounded-full bg-primary text-xl font-bold text-primary-foreground"
+        >
+          {initial}
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block truncate text-lg font-bold leading-tight">
+            {profile.name.trim() || "Your profile"}
+          </span>
+          <span className="block truncate text-sm text-muted-foreground">
+            {GOAL_LABEL[profile.goal.kind]}
+          </span>
+        </span>
+        <VIcon name="next" size={18} className="shrink-0 text-muted-foreground" />
+      </button>
+
+      <SetupPath />
+
+      {GROUPS.map((group) => (
+        <Section key={group.title} title={group.title}>
+          <Group>
+            {group.ids.map((id) => (
+              <NavRow
+                key={id}
+                icon={SECTION_META[id].icon}
+                label={SECTION_META[id].title}
+                hint={hints[id] ?? SECTION_META[id].hint}
+                onClick={() => openSection(id)}
+              />
             ))}
-        </ul>
-        <div>
-          <Button variant="secondary" onClick={() => setItem({ label: "", detail: "" })}>
-            <VIcon name="add" size={16} />
-            Add reminder
-          </Button>
-        </div>
-      </Section>
+          </Group>
+        </Section>
+      ))}
+
+      {activeSection && (
+        <Sheet
+          open
+          onOpenChange={(o) => !o && closeSection()}
+          title={SECTION_META[activeSection].title}
+          description={SECTION_META[activeSection].hint}
+          wide
+        >
+          <div className="grid gap-5 pb-4">{body(activeSection)}</div>
+        </Sheet>
+      )}
 
       <Sheet
         open={!!item}

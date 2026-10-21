@@ -87,22 +87,18 @@ export function SetupPath() {
     },
   ];
   if (sessions.items.some((session) => session.status === "completed")) steps[0]!.done = true;
+  const left = steps.filter((step) => !step.done);
+  if (!left.length) return null;
   return (
-    <section
-      className="mb-8 border-y border-line py-5 outline-none focus-visible:ring-2 focus-visible:ring-ring"
-      aria-labelledby="setup-path-title"
-    >
-      <div className="flex flex-wrap items-end justify-between gap-2">
-        <div>
-          <p className="eyebrow">Progressive setup</p>
-          <h2 id="setup-path-title" className="font-display text-2xl font-semibold">
-            Your setup path
-          </h2>
-        </div>
-        <p className="text-sm text-muted-foreground">Optional · stop and resume any time</p>
+    <section className="mb-6 outline-none" aria-labelledby="setup-path-title">
+      <div className="mb-2.5 flex items-baseline justify-between gap-3 px-1">
+        <h2 id="setup-path-title" className="text-[1.05rem] font-semibold tracking-tight">
+          Your setup path
+        </h2>
+        <p className="text-sm text-muted-foreground">Optional · {left.length} left</p>
       </div>
-      <div className="mt-4 grid gap-px border border-line bg-line md:grid-cols-2 xl:grid-cols-3">
-        {steps.map((step) => (
+      <div className="overflow-hidden rounded-3xl bg-surface/80 [&>*+*]:border-t [&>*+*]:border-line/70">
+        {left.slice(0, 3).map((step) => (
           <Link
             key={step.title}
             to={step.to}
@@ -117,22 +113,18 @@ export function SetupPath() {
                 window.location.hash = step.hash;
               }
             }}
-            className="group flex min-h-24 gap-3 bg-background p-4 hover:bg-surface"
+            className="flex min-h-16 items-center gap-3.5 px-4 py-3 transition active:bg-surface-2/70"
           >
-            <VIcon
-              name={step.icon}
-              className={step.done ? "text-primary" : "text-muted-foreground"}
-            />
-            <span className="min-w-0 flex-1">
-              <span className="block font-semibold">{step.title}</span>
-              <span className="block text-sm text-muted-foreground">{step.value}</span>
-              <span className="eyebrow mt-1 block">{step.done ? "Set" : step.time}</span>
+            <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/15 text-primary">
+              <VIcon name={step.icon} size={20} />
             </span>
-            <VIcon
-              name="next"
-              size={16}
-              className="mt-1 text-muted-foreground group-hover:text-primary"
-            />
+            <span className="min-w-0 flex-1">
+              <span className="block font-semibold leading-tight">{step.title}</span>
+              <span className="block text-sm text-muted-foreground">
+                {step.value} · {step.time}
+              </span>
+            </span>
+            <VIcon name="next" size={18} className="shrink-0 text-muted-foreground" />
           </Link>
         ))}
       </div>

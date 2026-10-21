@@ -481,7 +481,7 @@ export function NumberField({
           type="button"
           aria-label={`Decrease ${label}`}
           onClick={() => bump(-1)}
-          className="inline-flex size-11 shrink-0 items-center justify-center rounded-md border border-input active:scale-95"
+          className="inline-flex size-11 shrink-0 items-center justify-center rounded-full bg-surface-2 active:scale-95"
         >
           <VIcon name="minus" size={16} />
         </button>
@@ -509,7 +509,7 @@ export function NumberField({
           type="button"
           aria-label={`Increase ${label}`}
           onClick={() => bump(1)}
-          className="inline-flex size-11 shrink-0 items-center justify-center rounded-md border border-input active:scale-95"
+          className="inline-flex size-11 shrink-0 items-center justify-center rounded-full bg-surface-2 active:scale-95"
         >
           <VIcon name="add" size={16} />
         </button>
@@ -659,7 +659,7 @@ export function Sheet({
           aria-describedby={description ? undefined : undefined}
           className={cn(
             "fixed z-50 flex max-h-[92dvh] flex-col overflow-hidden border border-line bg-popover text-popover-foreground shadow-2xl outline-none",
-            "max-w-[100vw] inset-x-0 bottom-0 rounded-t-lg data-[state=open]:animate-in data-[state=open]:slide-in-from-bottom data-[state=closed]:animate-out data-[state=closed]:slide-out-to-bottom",
+            "max-w-[100vw] inset-x-0 bottom-0 rounded-t-[2rem] data-[state=open]:animate-in data-[state=open]:slide-in-from-bottom data-[state=closed]:animate-out data-[state=closed]:slide-out-to-bottom",
             "md:inset-y-3 md:right-3 md:left-auto md:bottom-3 md:max-h-none md:rounded-lg md:data-[state=open]:slide-in-from-right md:data-[state=closed]:slide-out-to-right",
             wide ? "md:w-[min(40rem,calc(100vw-1.5rem))]" : "md:w-[min(30rem,calc(100vw-1.5rem))]",
           )}
@@ -691,7 +691,7 @@ export function Sheet({
             {children}
           </div>
           {footer && (
-            <div className="shrink-0 border-t border-line bg-popover px-5 pb-[calc(1rem+var(--safe-bottom))] pt-3 md:px-6">
+            <div className="shrink-0 bg-popover px-5 pb-[calc(1rem+var(--safe-bottom))] pt-3 md:px-6">
               {footer}
             </div>
           )}
@@ -722,7 +722,7 @@ export function ConfirmDialog({
     <AlertDialog.Root open={open} onOpenChange={onOpenChange}>
       <AlertDialog.Portal>
         <AlertDialog.Overlay className="fixed inset-0 z-[60] bg-black/60 data-[state=open]:animate-in data-[state=open]:fade-in-0" />
-        <AlertDialog.Content className="fixed left-1/2 top-1/2 z-[60] w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-md border border-line bg-popover p-6 shadow-2xl data-[state=open]:animate-in data-[state=open]:zoom-in-95 data-[state=open]:fade-in-0">
+        <AlertDialog.Content className="fixed left-1/2 top-1/2 z-[60] w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-[1.75rem] border border-line bg-popover p-6 shadow-2xl data-[state=open]:animate-in data-[state=open]:zoom-in-95 data-[state=open]:fade-in-0">
           <AlertDialog.Title className="font-display text-xl font-semibold">
             {title}
           </AlertDialog.Title>
@@ -773,7 +773,7 @@ export function Menu({
         <DM.Content
           align="end"
           sideOffset={6}
-          className="z-[70] min-w-52 rounded-md border border-line bg-popover p-1.5 shadow-2xl data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95"
+          className="z-[70] min-w-52 rounded-2xl border border-line bg-popover p-1.5 shadow-2xl data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95"
         >
           {items.map((it) => (
             <DM.Item
