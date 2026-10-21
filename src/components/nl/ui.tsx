@@ -322,7 +322,7 @@ export function Chip({
     <span
       className={cn(
         "inline-flex max-w-full items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium",
-        tone === "neutral" && "border-line text-muted-foreground",
+        tone === "neutral" && "border-transparent bg-surface-2/70 text-muted-foreground",
         tone === "ok" && "border-ok/40 text-ok",
         tone === "warn" && "border-warn/50 text-warn",
         tone === "info" && "border-line bg-surface-2 text-foreground",
@@ -533,7 +533,7 @@ export function Segmented<T extends string>({
     <div
       role="radiogroup"
       aria-label={label}
-      className="inline-flex max-w-full flex-wrap rounded-md border border-line bg-surface p-1"
+      className="inline-flex max-w-full flex-wrap gap-1 rounded-full bg-surface/80 p-1"
     >
       {options.map((o) => (
         <button
@@ -542,7 +542,7 @@ export function Segmented<T extends string>({
           aria-checked={o.value === value}
           onClick={() => onChange(o.value)}
           className={cn(
-            "min-h-11 min-w-11 rounded-sm px-4 text-sm font-medium transition",
+            "min-h-11 min-w-11 rounded-full px-4 text-sm font-medium transition",
             o.value === value
               ? "bg-primary text-primary-foreground"
               : "text-muted-foreground hover:text-foreground",

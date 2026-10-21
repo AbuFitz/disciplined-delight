@@ -1,16 +1,17 @@
-import { Pause, Play, Square, Trash2 } from "lucide-react";
+import { Pause, PenLine, Play, Smile, Square, Timer, Trash2 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import {
   Button,
-  Chip,
   ConfirmDialog,
   EmptyState,
   Field,
+  Group,
   Panel,
   Skeleton,
   TextArea,
+  TextInput,
 } from "@/components/nl/ui";
 import { getMeta, setMeta } from "@/data/db";
 import { useCollection, useNow } from "@/data/hooks";
@@ -20,13 +21,15 @@ import type { ISODate } from "@/domain/dates";
 import { cn } from "@/lib/utils";
 
 export const PrivacyNote = ({ what }: { what: string }) => (
-  <p className="text-xs text-muted-foreground" role="note">
-    {what} is private to you and never enters Circle. If sync is linked, it is stored with your
-    account and is not end-to-end encrypted.{" "}
-    <Link to="/privacy" className="inline-flex min-h-11 items-center font-semibold underline">
+  <div className="text-xs leading-relaxed text-muted-foreground" role="note">
+    <p>
+      {what} is private to you and never enters Circle. With sync linked it is stored with your
+      account, not end-to-end encrypted.
+    </p>
+    <Link to="/privacy" className="flex min-h-11 items-center font-semibold underline">
       Privacy details
     </Link>
-  </p>
+  </div>
 );
 
 const LEVELS = ["Very low", "Low", "Okay", "Good", "Great"];
@@ -53,32 +56,39 @@ function Scale({
   onChange: (n: 1 | 2 | 3 | 4 | 5) => void;
 }) {
   return (
-    <div
-      role="radiogroup"
-      aria-label={label}
-      className="grid grid-cols-[repeat(auto-fit,minmax(4.25rem,1fr))] gap-1.5"
-    >
-      {LEVELS.map((l, i) => {
-        const n = (i + 1) as 1 | 2 | 3 | 4 | 5;
-        return (
-          <button
-            key={l}
-            role="radio"
-            aria-checked={value === n}
-            aria-label={`${label}: ${l}`}
-            onClick={() => onChange(n)}
-            className={cn(
-              "grid min-h-14 place-items-center rounded-2xl border px-1 text-center transition",
-              value === n
-                ? "border-primary bg-primary text-primary-foreground"
-                : "border-line hover:border-foreground/40",
-            )}
-          >
-            <span className="font-display text-xl font-bold">{n}</span>
-            <span className="text-[0.68rem] leading-tight">{l}</span>
-          </button>
-        );
-      })}
+    <div className="max-w-md">
+      <div className="mb-2 flex items-baseline justify-between gap-2">
+        <h3 className="text-base font-semibold">{label}</h3>
+        <span className="text-sm text-muted-foreground" aria-hidden>
+          {value ? LEVELS[value - 1] : "Tap a number"}
+        </span>
+      </div>
+      <div role="radiogroup" aria-label={label} className="grid grid-cols-5 gap-2">
+        {LEVELS.map((l, i) => {
+          const n = (i + 1) as 1 | 2 | 3 | 4 | 5;
+          return (
+            <button
+              key={l}
+              role="radio"
+              aria-checked={value === n}
+              aria-label={`${label}: ${l}`}
+              onClick={() => onChange(n)}
+              className={cn(
+                "tnum grid min-h-12 place-items-center rounded-full text-lg font-bold transition active:scale-95",
+                value === n
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-surface-2 hover:bg-surface-2/70",
+              )}
+            >
+              {n}
+            </button>
+          );
+        })}
+      </div>
+      <div className="mt-1.5 flex justify-between px-1 text-xs text-muted-foreground" aria-hidden>
+        <span>{LEVELS[0]}</span>
+        <span>{LEVELS[4]}</span>
+      </div>
     </div>
   );
 }
@@ -91,18 +101,14 @@ export function CheckInPanel({ date }: { date: ISODate }) {
   const [busy, setBusy] = useState(false);
   return (
     <Panel aria-label="Check-in">
-      <h2 className="font-display text-2xl font-bold">How are you?</h2>
-      <div className="mt-4 grid gap-4">
+      <h2 className="text-2xl font-bold tracking-tight">How are you?</h2>
+      <div className="mt-5 grid gap-6">
+        <Scale label="Mood" value={mood} onChange={setMood} />
+        <Scale label="Energy" value={energy} onChange={setEnergy} />
         <div>
-          <p className="eyebrow mb-2">Mood</p>
-          <Scale label="Mood" value={mood} onChange={setMood} />
-        </div>
-        <div>
-          <p className="eyebrow mb-2">Energy</p>
-          <Scale label="Energy" value={energy} onChange={setEnergy} />
-        </div>
-        <div>
-          <p className="eyebrow mb-2">What fits? (optional)</p>
+          <h3 className="mb-2 text-base font-semibold">
+            What fits? <span className="font-normal text-muted-foreground">Optional</span>
+          </h3>
           <div className="flex flex-wrap gap-2">
             {TAGS.map((t) => (
               <button
@@ -113,8 +119,10 @@ export function CheckInPanel({ date }: { date: ISODate }) {
                   setTags((x) => (x.includes(t) ? x.filter((y) => y !== t) : [...x, t]))
                 }
                 className={cn(
-                  "min-h-11 rounded-full border px-4 text-sm font-medium",
-                  tags.includes(t) ? "border-primary bg-primary/10 text-primary" : "border-line",
+                  "min-h-11 rounded-full px-4 text-sm font-medium transition active:scale-95",
+                  tags.includes(t)
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-surface-2 hover:bg-surface-2/70",
                 )}
               >
                 {t}
@@ -130,10 +138,11 @@ export function CheckInPanel({ date }: { date: ISODate }) {
             rows={3}
           />
         </Field>
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="grid gap-3">
           <Button
             variant="primary"
             size="lg"
+            className="w-full sm:w-fit"
             disabled={!mood && !energy}
             busy={busy}
             onClick={async () => {
@@ -197,8 +206,7 @@ export function ReflectPanel({ date, space }: { date: ISODate; space: "mind" | "
   const [busy, setBusy] = useState(false);
   return (
     <Panel aria-label="Reflection">
-      <p className="eyebrow">Today's prompt</p>
-      <h2 className="mt-1 font-display text-2xl font-bold leading-tight">{prompt}</h2>
+      <h2 className="text-2xl font-bold leading-tight tracking-tight">{prompt}</h2>
       <div className="mt-4 grid gap-3">
         <Field label="Your reflection">
           <TextArea
@@ -208,10 +216,11 @@ export function ReflectPanel({ date, space }: { date: ISODate; space: "mind" | "
             maxLength={8000}
           />
         </Field>
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="grid gap-3">
           <Button
             variant="primary"
             size="lg"
+            className="w-full sm:w-fit"
             disabled={text.trim().length < 2}
             busy={busy}
             onClick={async () => {
@@ -295,7 +304,7 @@ export function FocusPanel({ date }: { date: ISODate }) {
     <Panel aria-label="Focus timer">
       {active ? (
         <div>
-          <p className="eyebrow">{active.label || "Focus"}</p>
+          <p className="text-base font-semibold text-muted-foreground">{active.label || "Focus"}</p>
           <p
             className="stat mt-2 tnum"
             role="timer"
@@ -304,7 +313,7 @@ export function FocusPanel({ date }: { date: ISODate }) {
           >
             {mmss(remaining)}
           </p>
-          <div className="mt-5 flex flex-wrap gap-2">
+          <div className="mt-6 grid gap-2 sm:flex sm:flex-wrap">
             {active.endsAt != null ? (
               <Button
                 size="lg"
@@ -346,37 +355,35 @@ export function FocusPanel({ date }: { date: ISODate }) {
         </div>
       ) : (
         <div className="grid gap-4">
-          <h2 className="font-display text-2xl font-bold">Focus</h2>
-          <div role="radiogroup" aria-label="Minutes" className="flex flex-wrap gap-2">
+          <h2 className="text-2xl font-bold tracking-tight">Focus</h2>
+          <div role="radiogroup" aria-label="Minutes" className="grid grid-cols-4 gap-2">
             {[15, 25, 45, 60].map((n) => (
               <button
                 key={n}
                 role="radio"
                 aria-checked={minutes === n}
+                aria-label={`${n} minutes`}
                 onClick={() => setMinutes(n)}
                 className={cn(
-                  "min-h-12 rounded-full border px-5 font-semibold",
+                  "tnum min-h-12 rounded-full px-1 text-sm font-semibold transition active:scale-95 sm:text-base",
                   minutes === n
-                    ? "border-primary bg-primary text-primary-foreground"
-                    : "border-line",
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-surface-2 hover:bg-surface-2/70",
                 )}
               >
-                {n} min
+                {n}
+                <span className="ml-0.5 text-xs font-normal">min</span>
               </button>
             ))}
           </div>
           <Field label="On what? (optional)">
-            <input
-              className="min-h-11 w-full rounded-2xl border border-input bg-surface-2/50 px-4"
-              value={label}
-              onChange={(e) => setLabel(e.target.value)}
-              maxLength={80}
-            />
+            <TextInput value={label} onChange={(e) => setLabel(e.target.value)} maxLength={80} />
           </Field>
           <div>
             <Button
               variant="primary"
               size="lg"
+              className="w-full sm:w-fit"
               onClick={() =>
                 save({
                   endsAt: Date.now() + minutes * 60_000,
@@ -425,8 +432,8 @@ export function MindHistory({ space, kinds }: { space: "mind" | "soul"; kinds?: 
   );
   return (
     <section aria-label="History" className="grid gap-3">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 className="eyebrow">History</h2>
+      <div className="flex flex-wrap items-center justify-between gap-2 px-1">
+        <h2 className="text-[1.05rem] font-semibold tracking-tight">History</h2>
         {avail.length > 1 && (
           <div role="radiogroup" aria-label="Filter" className="flex flex-wrap gap-1.5">
             {(["all", ...avail] as const).map((k) => (
@@ -436,8 +443,8 @@ export function MindHistory({ space, kinds }: { space: "mind" | "soul"; kinds?: 
                 aria-checked={kind === k}
                 onClick={() => setKind(k)}
                 className={cn(
-                  "min-h-10 rounded-full border px-3 text-sm",
-                  kind === k ? "border-primary bg-primary/10 text-primary" : "border-line",
+                  "min-h-11 rounded-full px-4 text-sm font-medium transition active:scale-95",
+                  kind === k ? "bg-primary text-primary-foreground" : "bg-surface-2",
                 )}
               >
                 {k === "all" ? "All" : KIND_LABEL[k]}
@@ -449,46 +456,58 @@ export function MindHistory({ space, kinds }: { space: "mind" | "soul"; kinds?: 
       {rows.length === 0 ? (
         <EmptyState title="Nothing yet" body="What you save here appears only for you." />
       ) : (
-        <ul className="grid gap-2">
+        <Group as="ul">
           {rows.map((e) => (
-            <li key={e.id} className="rounded-2xl border border-line bg-surface p-4">
-              <div className="flex items-start justify-between gap-2">
-                <p className="eyebrow">
-                  {e.date} · {KIND_LABEL[e.kind]}
+            <li key={e.id} className="flex items-start gap-3 p-4">
+              <span
+                aria-hidden
+                className="mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/15 text-primary"
+              >
+                {e.kind === "focus" ? (
+                  <Timer className="size-5" />
+                ) : e.kind === "reflection" ? (
+                  <PenLine className="size-5" />
+                ) : (
+                  <Smile className="size-5" />
+                )}
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm text-muted-foreground">
+                  {KIND_LABEL[e.kind]} · {e.date} · Private
                 </p>
-                <button
-                  aria-label={`Delete ${KIND_LABEL[e.kind]} from ${e.date}`}
-                  className="-mr-2 -mt-2 grid size-11 place-items-center rounded-full hover:bg-surface-2"
-                  onClick={() => setDel(e)}
-                >
-                  <Trash2 className="size-4" />
-                </button>
+                {e.kind === "checkin" && (
+                  <p className="tnum mt-0.5 font-semibold">
+                    Mood {e.mood ?? "–"} · Energy {e.energy ?? "–"}
+                    {e.tags?.length ? (
+                      <span className="font-normal text-muted-foreground">
+                        {" "}
+                        · {e.tags.join(", ")}
+                      </span>
+                    ) : null}
+                  </p>
+                )}
+                {e.kind === "focus" && (
+                  <p className="tnum mt-0.5 font-semibold">
+                    {e.minutes} min{e.text ? `: ${e.text}` : ""}
+                  </p>
+                )}
+                {e.kind === "reflection" && e.prompt && (
+                  <p className="mt-0.5 text-sm font-semibold">{e.prompt}</p>
+                )}
+                {e.text && e.kind !== "focus" && (
+                  <p className="mt-1 whitespace-pre-line [overflow-wrap:anywhere]">{e.text}</p>
+                )}
               </div>
-              {e.kind === "checkin" && (
-                <p className="mt-1 tnum">
-                  Mood {e.mood ?? "–"} · Energy {e.energy ?? "–"}
-                  {e.tags?.length ? (
-                    <span className="text-muted-foreground"> · {e.tags.join(", ")}</span>
-                  ) : null}
-                </p>
-              )}
-              {e.kind === "focus" && (
-                <p className="mt-1 tnum">
-                  {e.minutes} min{e.text ? `: ${e.text}` : ""}
-                </p>
-              )}
-              {e.kind === "reflection" && e.prompt && (
-                <p className="mt-1 text-sm text-muted-foreground">{e.prompt}</p>
-              )}
-              {e.text && e.kind !== "focus" && (
-                <p className="mt-1 whitespace-pre-line [overflow-wrap:anywhere]">{e.text}</p>
-              )}
-              <div className="mt-2">
-                <Chip>Private</Chip>
-              </div>
+              <button
+                aria-label={`Delete ${KIND_LABEL[e.kind]} from ${e.date}`}
+                className="-mr-2 -mt-1 grid size-11 shrink-0 place-items-center rounded-full text-muted-foreground hover:bg-surface-2"
+                onClick={() => setDel(e)}
+              >
+                <Trash2 className="size-4" />
+              </button>
             </li>
           ))}
-        </ul>
+        </Group>
       )}
       <ConfirmDialog
         open={!!del}

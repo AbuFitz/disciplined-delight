@@ -22,11 +22,7 @@ function MindPage() {
   const tab = search.tab ?? fallback;
   return (
     <>
-      <PageHeader
-        eyebrow="Mind"
-        title="Clear head"
-        sub="Check in, reflect, focus. Private to you."
-      />
+      <PageHeader title="Mind" sub="Private to you." />
       <div className="mb-5">
         <Segmented
           label="Mind"

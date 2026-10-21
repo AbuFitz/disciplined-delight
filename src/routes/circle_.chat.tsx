@@ -7,7 +7,8 @@ import {
   Chip,
   ConfirmDialog,
   EmptyState,
-  Eyebrow,
+  Group,
+  IconButton,
   PageHeader,
   Panel,
   Skeleton,
@@ -30,13 +31,12 @@ function CircleChatPage() {
   return (
     <>
       <PageHeader
-        eyebrow="Circle · Chat"
-        title="Say it directly"
-        sub="One-to-one messages between accepted connections. No public inbox, no stranger requests."
+        title="Chat"
+        sub="One-to-one with accepted connections. No strangers."
         actions={
           <Link
             to="/circle"
-            className="inline-flex min-h-11 items-center gap-2 rounded-full border border-input px-4 text-sm font-semibold"
+            className="inline-flex min-h-11 items-center gap-2 rounded-full bg-surface-2 px-4 text-sm font-semibold"
           >
             <ArrowLeft className="size-4" /> Circle
           </Link>
@@ -50,15 +50,19 @@ function CircleChatPage() {
 function ChatGate() {
   return (
     <Panel tone="dusk">
-      <MessageCircle className="size-10" aria-hidden />
-      <h2 className="mt-4 font-display text-2xl font-bold">Chat starts with a real connection</h2>
+      <span className="flex size-12 items-center justify-center rounded-full bg-primary/15 text-primary">
+        <MessageCircle className="size-6" aria-hidden />
+      </span>
+      <h2 className="mt-4 text-2xl font-bold leading-tight tracking-tight">
+        Chat starts with a real connection
+      </h2>
       <p className="mt-2 max-w-xl text-sm text-muted-foreground">
         Connect VAYVOR account services, sign in, finish your handle and accept a Circle connection.
         Chat does not create sample conversations.
       </p>
       <Link
         to="/settings"
-        className="mt-5 inline-flex min-h-12 items-center rounded-full bg-primary px-6 font-semibold text-primary-foreground"
+        className="mt-5 inline-flex min-h-12 w-full items-center justify-center rounded-full bg-primary px-6 font-semibold text-primary-foreground sm:w-fit"
       >
         Open account settings
       </Link>
@@ -153,18 +157,10 @@ function ChatLive() {
     <div className="grid gap-4 md:grid-cols-[19rem_minmax(0,1fr)]">
       <Panel className="h-fit" aria-label="Conversations">
         <div className="flex items-center justify-between gap-2">
-          <div>
-            <Eyebrow>Messages</Eyebrow>
-            <h2 className="mt-1 font-display text-xl font-bold">Connections</h2>
-          </div>
-          <Button
-            size="sm"
-            variant="ghost"
-            aria-label="Refresh chat"
-            onClick={() => void loadThreads()}
-          >
+          <h2 className="text-xl font-bold tracking-tight">Connections</h2>
+          <IconButton label="Refresh chat" onClick={() => void loadThreads()}>
             <RefreshCw className="size-4" />
-          </Button>
+          </IconButton>
         </div>
         {threads.length === 0 ? (
           <div className="mt-4">
@@ -179,14 +175,14 @@ function ChatLive() {
             />
           </div>
         ) : (
-          <ul className="mt-4 border-t border-line">
+          <ul className="mt-2 divide-y divide-line/70">
             {threads.map((thread) => (
               <li key={thread.user_id}>
                 <button
                   onClick={() => setSelectedId(thread.user_id)}
                   className={cn(
-                    "flex min-h-16 w-full items-center gap-3 border-b border-line py-2 text-left",
-                    selectedId === thread.user_id && "text-primary",
+                    "flex min-h-16 w-full items-center gap-3 rounded-2xl py-2 text-left",
+                    selectedId === thread.user_id && "font-semibold text-primary",
                   )}
                 >
                   <Avatar thread={thread} />
@@ -211,7 +207,7 @@ function ChatLive() {
         {error && (
           <div
             role="alert"
-            className="mb-4 rounded-2xl border border-destructive/40 p-3 text-sm text-destructive"
+            className="mb-4 rounded-2xl bg-destructive/10 p-3 text-sm text-destructive"
           >
             {error}
           </div>
@@ -220,10 +216,10 @@ function ChatLive() {
           <EmptyState title="Choose a connection" body="Your conversation will appear here." />
         ) : (
           <div className="flex min-h-[28rem] flex-col">
-            <div className="flex items-center gap-3 border-b border-line pb-4">
+            <div className="flex items-center gap-3 pb-2">
               <Avatar thread={selected} />
               <div>
-                <h2 className="font-display text-xl font-bold">{selected.display_name}</h2>
+                <h2 className="text-xl font-bold tracking-tight">{selected.display_name}</h2>
                 <p className="text-xs text-muted-foreground">@{selected.username}</p>
               </div>
               <Chip tone="ok">Connected</Chip>
@@ -267,7 +263,7 @@ function ChatLive() {
                 </ol>
               )}
             </div>
-            <div className="border-t border-line pt-4">
+            <div className="pt-3">
               <TextArea
                 aria-label={`Message ${selected.display_name}`}
                 className="min-h-20"
@@ -297,21 +293,38 @@ function ChatLive() {
           </div>
         )}
       </Panel>
-      <Panel tone="warm" className="md:col-span-2" aria-label="Chat security">
-        <h2 className="flex items-center gap-2 font-display text-lg font-bold">
-          <ShieldAlert className="size-5" aria-hidden /> Honest security
-        </h2>
-        <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
-          Messages are limited to you and the other accepted connection by database policy. They are
-          encrypted in transit and by the hosting provider at rest, but this version is not
-          end-to-end encrypted. Do not use it for passwords, financial details, medical records or
-          emergencies.
-        </p>
-        <p className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
-          <Lock className="size-4" /> Blocking in Circle immediately closes the thread in both
-          directions.
-        </p>
-      </Panel>
+      <section aria-label="Chat security" className="md:col-span-2">
+        <Group as="ul">
+          <li className="flex items-start gap-3.5 p-4">
+            <span
+              aria-hidden
+              className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/15 text-primary"
+            >
+              <ShieldAlert className="size-5" />
+            </span>
+            <div>
+              <h2 className="text-base font-semibold">Honest security</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Messages are limited to you and the other accepted connection by database policy.
+                They are encrypted in transit and by the hosting provider at rest, but this version
+                is not end-to-end encrypted. Do not use it for passwords, financial details, medical
+                records or emergencies.
+              </p>
+            </div>
+          </li>
+          <li className="flex items-start gap-3.5 p-4">
+            <span
+              aria-hidden
+              className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/15 text-primary"
+            >
+              <Lock className="size-5" />
+            </span>
+            <p className="self-center text-sm text-muted-foreground">
+              Blocking in Circle immediately closes the thread in both directions.
+            </p>
+          </li>
+        </Group>
+      </section>
       <ConfirmDialog
         open={!!removing}
         onOpenChange={(open) => {
@@ -345,7 +358,7 @@ function Avatar({ thread }: { thread: ChatThread }) {
   return (
     <span
       aria-hidden
-      className="grid size-11 shrink-0 place-items-center rounded-full bg-foreground font-display text-sm font-bold text-background"
+      className="grid size-11 shrink-0 place-items-center rounded-full bg-primary/15 text-sm font-bold text-primary"
     >
       {initials || thread.username.slice(0, 2).toUpperCase()}
     </span>

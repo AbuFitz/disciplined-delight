@@ -27,55 +27,58 @@ function SoulPage() {
   return (
     <>
       <PageHeader
-        eyebrow="Faith & reflection"
-        title="A private pause"
-        sub="Your selected practices and quiet reflection. No tradition is assumed."
+        title="Soul"
+        sub="Quiet reflection and your own practices. No tradition is assumed."
       />
       {prayerPack && salah.enabled ? (
         <Panel aria-label="Salah" className="mb-4">
-          <div className="flex items-start justify-between gap-3">
-            <p className="eyebrow">Salah</p>
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex min-w-0 items-center gap-3">
+              <span
+                aria-hidden
+                className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/15 text-primary"
+              >
+                <VIcon name="spirituality" size={20} />
+              </span>
+              <h2 className="text-lg font-semibold tracking-tight">Salah</h2>
+            </div>
             <Button variant="ghost" size="sm" onClick={() => void setSalahEnabled(false)}>
               Turn off
             </Button>
           </div>
           {!prayer.configured ? (
             <>
-              <h2 className="mt-1 font-display text-2xl font-bold">
+              <p className="mt-4 text-2xl font-bold leading-tight tracking-tight">
                 Choose how to get prayer times
-              </h2>
+              </p>
               <p className="mt-1 text-sm text-muted-foreground">
                 Pick a locality and method, or enter your mosque's timetable.
               </p>
-              <div className="mt-4">
-                <Link
-                  to="/salah"
-                  className="inline-flex min-h-12 items-center rounded-full bg-primary px-6 font-semibold text-primary-foreground"
-                >
-                  Set up Salah
-                </Link>
-              </div>
+              <Link
+                to="/salah"
+                className="mt-5 inline-flex min-h-12 w-full items-center justify-center rounded-full bg-primary px-6 font-semibold text-primary-foreground sm:w-fit"
+              >
+                Set up Salah
+              </Link>
             </>
           ) : (
             <>
-              <h2 className="mt-1 font-display text-3xl font-extrabold tnum">
+              <p className="tnum mt-4 text-3xl font-bold tracking-tight">
                 {todayLogged} of {PRAYERS.length} prayed today
-              </h2>
+              </p>
               {next?.status === "ok" && (
-                <p className="mt-1">
-                  Next: <strong>{PRAYER_LABEL[next.prayer]}</strong> at{" "}
+                <p className="mt-1 text-muted-foreground">
+                  Next: <strong className="text-foreground">{PRAYER_LABEL[next.prayer]}</strong> at{" "}
                   {formatClock(next.at, prayer.tz)}
                   {next.isTomorrow ? " (tomorrow)" : ""}
                 </p>
               )}
-              <div className="mt-4">
-                <Link
-                  to="/salah"
-                  className="inline-flex min-h-11 items-center rounded-full border border-input px-5 font-semibold hover:bg-surface-2"
-                >
-                  Open Salah
-                </Link>
-              </div>
+              <Link
+                to="/salah"
+                className="mt-5 inline-flex min-h-12 w-full items-center justify-center rounded-full bg-surface-2 px-6 font-semibold sm:w-fit"
+              >
+                Open Salah
+              </Link>
             </>
           )}
           <div className="mt-3">
@@ -84,13 +87,18 @@ function SoulPage() {
         </Panel>
       ) : prayerPack ? (
         <Panel aria-label="Islamic prayer practice" className="mb-4">
-          <VIcon name="spirituality" size={24} className="text-primary" />
-          <h2 className="mt-2 font-display text-2xl font-bold">Islamic prayer practice</h2>
+          <span
+            aria-hidden
+            className="flex size-10 items-center justify-center rounded-full bg-primary/15 text-primary"
+          >
+            <VIcon name="spirituality" size={20} />
+          </span>
+          <h2 className="mt-3 text-2xl font-bold tracking-tight">Islamic prayer practice</h2>
           <p className="mt-1 max-w-prose text-sm text-muted-foreground">
             If you pray, VAYVOR can show prayer times on Today, remind you and keep a private
             record. If not, nothing about prayer appears anywhere.
           </p>
-          <div className="mt-4 flex flex-wrap gap-2">
+          <div className="mt-5 grid gap-2 sm:flex sm:flex-wrap">
             <Button variant="primary" onClick={() => void setSalahEnabled(true)}>
               Turn on Salah
             </Button>
@@ -98,10 +106,10 @@ function SoulPage() {
           </div>
         </Panel>
       ) : null}
-      <ReflectPanel date={date} space="soul" />
-      <div className="mt-6">
-        <MindHistory space="soul" kinds={["reflection"]} />
+      <div className="mb-6">
+        <ReflectPanel date={date} space="soul" />
       </div>
+      <MindHistory space="soul" kinds={["reflection"]} />
     </>
   );
 }

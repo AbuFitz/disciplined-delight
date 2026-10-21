@@ -1,7 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ChevronLeft, ChevronRight, Settings2 } from "lucide-react";
 import { useMemo, useState } from "react";
-import { Button, Chip, EmptyState, Eyebrow, PageHeader, Panel, Skeleton } from "@/components/nl/ui";
+import {
+  Button,
+  Chip,
+  EmptyState,
+  IconButton,
+  PageHeader,
+  Panel,
+  Section,
+  Skeleton,
+} from "@/components/nl/ui";
 import { PrayerList } from "@/components/nl/prayer";
 import { ManualDaySheet, SalahSettingsSheet } from "@/components/nl/salah-setup";
 import { PRAYER_METHODS as METHODS } from "@/domain/prayer-methods";
@@ -38,21 +47,23 @@ function SalahPage() {
     return (
       <>
         <PageHeader
-          eyebrow="Salah"
-          title="Prayer times"
-          sub="Choose a source. Nothing is assumed: times come from the method you pick or from your mosque's own timetable."
+          title="Salah"
+          sub="Nothing is assumed: times come from the method you pick or your mosque's own timetable."
         />
         <Panel tone="dusk" className="max-w-xl">
-          <h2 className="font-display text-2xl font-semibold">Set up your prayer times</h2>
+          <h2 className="text-2xl font-bold tracking-tight">Set up your prayer times</h2>
           <p className="mt-2 text-foreground/80">
-            Use a calculation method for your town, or enter your mosque's timetable. You can change
-            either later. Your logs stay private to your account and never enter Circle.
+            Use a calculation method for your town, or enter your mosque's timetable. Your logs stay
+            private to your account and never enter Circle.
           </p>
-          <div className="mt-5 flex flex-wrap gap-2">
-            <Button variant="primary" size="lg" onClick={() => setSettings(true)}>
-              Choose a source
-            </Button>
-          </div>
+          <Button
+            variant="primary"
+            size="lg"
+            className="mt-6 w-full sm:w-fit"
+            onClick={() => setSettings(true)}
+          >
+            Choose a source
+          </Button>
         </Panel>
         <SalahSettingsSheet open={settings} onOpenChange={setSettings} />
       </>
@@ -62,22 +73,22 @@ function SalahPage() {
   return (
     <>
       <PageHeader
-        eyebrow="Salah"
-        title="Prayer times"
+        title="Salah"
         actions={
-          <Button variant="secondary" onClick={() => setSettings(true)}>
-            <Settings2 className="size-4" />
-            Source and method
-          </Button>
+          <IconButton label="Source and method" onClick={() => setSettings(true)}>
+            <Settings2 className="size-5" />
+          </IconButton>
         }
       />
       <div className="grid gap-5 lg:grid-cols-[1fr_22rem]">
         <div className="grid content-start gap-5">
           {next?.status === "ok" && (
             <Panel tone="dusk">
-              <Eyebrow className="!text-foreground/70">Next prayer</Eyebrow>
-              <p className="num mt-1 text-6xl font-semibold">{PRAYER_LABEL[next.prayer]}</p>
-              <p className="mt-1 text-xl tnum">
+              <p className="text-sm font-semibold text-foreground/70">Next prayer</p>
+              <p className="mt-1 text-5xl font-bold tracking-tight sm:text-6xl">
+                {PRAYER_LABEL[next.prayer]}
+              </p>
+              <p className="tnum mt-2 text-xl">
                 {formatClock(next.at, p.tz)}{" "}
                 <span className="text-foreground/70">
                   · in {formatCountdown(next.at - now)}
@@ -87,25 +98,25 @@ function SalahPage() {
             </Panel>
           )}
           <section aria-label="Prayers for the selected day">
-            <div className="mb-2 flex items-center justify-between gap-2">
-              <div className="flex items-center">
-                <button
-                  aria-label="Previous day"
+            <div className="mb-3 flex items-center justify-between gap-2">
+              <div className="flex min-w-0 items-center">
+                <IconButton
+                  label="Previous day"
+                  className="bg-surface/80"
                   onClick={() => setDate(addDays(d, -1))}
-                  className="inline-flex size-11 shrink-0 items-center justify-center rounded-full border border-line"
                 >
                   <ChevronLeft className="size-5" />
-                </button>
-                <h2 className="min-w-48 px-3 text-center font-display text-xl font-semibold">
+                </IconButton>
+                <h2 className="min-w-0 px-3 text-center text-lg font-semibold tracking-tight sm:min-w-44">
                   {d === p.today ? "Today" : formatDateLong(d)}
                 </h2>
-                <button
-                  aria-label="Next day"
+                <IconButton
+                  label="Next day"
+                  className="bg-surface/80"
                   onClick={() => setDate(addDays(d, 1))}
-                  className="inline-flex size-11 shrink-0 items-center justify-center rounded-full border border-line"
                 >
                   <ChevronRight className="size-5" />
-                </button>
+                </IconButton>
               </div>
               {d !== p.today && (
                 <Button size="sm" variant="ghost" onClick={() => setDate(null)}>
@@ -115,27 +126,29 @@ function SalahPage() {
             </div>
             {day ? (
               <>
-                <PrayerList
-                  day={day}
-                  date={d}
-                  logs={p.logs}
-                  tz={p.tz}
-                  now={d < p.today ? Infinity : now}
-                  showIqamah
-                />
-                <p className="mt-3 text-sm text-muted-foreground">
+                <div className="rounded-3xl bg-surface/80 px-4">
+                  <PrayerList
+                    day={day}
+                    date={d}
+                    logs={p.logs}
+                    tz={p.tz}
+                    now={d < p.today ? Infinity : now}
+                    showIqamah
+                  />
+                </div>
+                <p className="mt-3 px-1 text-sm text-muted-foreground">
                   {day.origin === "manual"
                     ? `Your timetable${p.settings?.mosqueName ? ` (${p.settings.mosqueName})` : ""}`
                     : `Calculated: ${methodName}, ${p.settings!.school ? "Hanafi" : "standard"} Asr, ${p.settings!.locality}`}
-                  . Prayed times are recorded when you tap, and past days can be filled in.
+                  . Tap Prayed to record; past days can be filled in.
                 </p>
                 {isFriday &&
                   (day.jumuah ? (
-                    <p className="mt-2 rounded-2xl bg-surface p-3 text-sm">
+                    <p className="mt-2 rounded-2xl bg-surface/80 p-3 text-sm">
                       <strong>Jumu'ah:</strong> {day.jumuah}
                     </p>
                   ) : (
-                    <p className="mt-2 text-sm text-muted-foreground">
+                    <p className="mt-2 px-1 text-sm text-muted-foreground">
                       Add Jumu'ah details from your mosque with "Enter times".
                     </p>
                   ))}
@@ -164,7 +177,7 @@ function SalahPage() {
               />
             )}
             {day && (
-              <div className="mt-3">
+              <div className="mt-2">
                 <Button variant="ghost" size="sm" onClick={() => setManual(true)}>
                   {day.origin === "manual"
                     ? "Edit these times"
@@ -176,33 +189,34 @@ function SalahPage() {
         </div>
 
         <aside aria-label="Private history" className="content-start">
-          <Panel>
-            <Eyebrow>Last 14 days · private</Eyebrow>
-            <p className="mt-2 text-sm text-muted-foreground tnum">
-              {history.total} of {history.days.length * 5} prayers logged. Logging is optional;
-              blank days just mean nothing was recorded.
-            </p>
-            <ul className="mt-3 grid grid-cols-7 gap-1.5">
-              {history.days
-                .slice()
-                .reverse()
-                .map((x, i) => {
-                  const n = history.logged[history.days.length - 1 - i]!;
-                  return (
-                    <li
-                      key={x}
-                      className="rounded-xl border border-line p-1.5 text-center"
-                      aria-label={`${formatDateLong(x)}: ${n} of 5 logged`}
-                    >
-                      <p className="text-[0.6rem] text-muted-foreground">{x.slice(8)}</p>
-                      <p className="num text-sm font-semibold tnum">{n || "·"}</p>
-                    </li>
-                  );
-                })}
-            </ul>
-          </Panel>
+          <Section title="Last 14 days" className="mb-3">
+            <Panel>
+              <p className="tnum text-sm text-muted-foreground">
+                {history.total} of {history.days.length * 5} prayers logged. Private; blank days
+                just mean nothing was recorded.
+              </p>
+              <ul className="mt-3 grid grid-cols-7 gap-1.5">
+                {history.days
+                  .slice()
+                  .reverse()
+                  .map((x, i) => {
+                    const n = history.logged[history.days.length - 1 - i]!;
+                    return (
+                      <li
+                        key={x}
+                        className={`rounded-xl p-1.5 text-center ${n ? "bg-primary/15" : "bg-surface-2"}`}
+                        aria-label={`${formatDateLong(x)}: ${n} of 5 logged`}
+                      >
+                        <p className="text-[0.6rem] text-muted-foreground">{x.slice(8)}</p>
+                        <p className="tnum text-sm font-semibold">{n || "·"}</p>
+                      </li>
+                    );
+                  })}
+              </ul>
+            </Panel>
+          </Section>
           {p.settings && (
-            <div className="mt-3 flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2">
               <Chip>{p.settings.locality}</Chip>
               <Chip>{p.settings.timezone}</Chip>
             </div>

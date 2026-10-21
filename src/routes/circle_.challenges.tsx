@@ -7,7 +7,6 @@ import {
   Chip,
   ConfirmDialog,
   EmptyState,
-  Eyebrow,
   Field,
   PageHeader,
   Panel,
@@ -45,13 +44,12 @@ function ChallengesPage() {
   return (
     <>
       <PageHeader
-        eyebrow="Circle · Pacts"
-        title="Better together"
-        sub="Invite one real connection, agree a target, then check in honestly. No global leaderboard and no private-data mining."
+        title="Pacts"
+        sub="Invite one connection, agree a target, check in honestly. No leaderboard, no private-data mining."
         actions={
           <Link
             to="/circle"
-            className="inline-flex min-h-11 items-center gap-2 rounded-full border border-input px-4 text-sm font-semibold"
+            className="inline-flex min-h-11 items-center gap-2 rounded-full bg-surface-2 px-4 text-sm font-semibold"
           >
             <ArrowLeft className="size-4" /> Circle
           </Link>
@@ -65,7 +63,9 @@ function ChallengesPage() {
 function ChallengeGate() {
   return (
     <Panel tone="green">
-      <Trophy className="size-10" aria-hidden />
+      <span className="flex size-12 items-center justify-center rounded-full bg-primary/15 text-primary">
+        <Trophy className="size-6" aria-hidden />
+      </span>
       <h2 className="mt-4 font-display text-2xl font-bold">Pacts start with a real connection</h2>
       <p className="mt-2 max-w-xl text-sm text-muted-foreground">
         Connect account services, sign in, finish your handle and accept a Circle connection. VAYVOR
@@ -73,7 +73,7 @@ function ChallengeGate() {
       </p>
       <Link
         to="/settings"
-        className="mt-5 inline-flex min-h-12 items-center rounded-full bg-primary px-6 font-semibold text-primary-foreground"
+        className="mt-5 inline-flex min-h-12 w-full items-center justify-center rounded-full bg-primary px-6 font-semibold text-primary-foreground sm:w-fit"
       >
         Open account settings
       </Link>
@@ -134,7 +134,6 @@ function ChallengesLive() {
       ) : (
         <Panel tone="green" className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <Eyebrow>One person · one target</Eyebrow>
             <h2 className="mt-1 font-display text-2xl font-bold">Make a pact</h2>
             <p className="mt-1 text-sm text-muted-foreground">
               Progress is self-reported and visible only to the two of you.
@@ -216,7 +215,6 @@ function CreatePact({
   };
   return (
     <Panel tone="green" aria-label="Create a pact">
-      <Eyebrow>New pact</Eyebrow>
       <h2 className="mt-1 font-display text-2xl font-bold">Keep it concrete</h2>
       <div className="mt-4 flex flex-wrap gap-2">
         {presets.map((preset) => (
@@ -417,7 +415,7 @@ function ChallengeCard({
             />
           </div>
           {!ended && remaining > 0 && (
-            <div className="mt-6 grid gap-3 border-t border-line pt-5 md:grid-cols-[8rem_1fr_auto]">
+            <div className="mt-6 grid gap-3 pt-2 md:grid-cols-[8rem_1fr_auto]">
               <Field label="Add">
                 <TextInput
                   type="number"
@@ -475,7 +473,7 @@ function ChallengeCard({
         )}
       </div>
       {entries && (
-        <div className="mt-4 border-t border-line pt-4">
+        <div className="mt-4 pt-4">
           {entries.length ? (
             <ol className="grid gap-2">
               {entries.map((entry) => (

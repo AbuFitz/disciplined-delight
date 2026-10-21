@@ -18,7 +18,6 @@ import {
   Chip,
   ConfirmDialog,
   EmptyState,
-  Eyebrow,
   Field,
   PageHeader,
   Panel,
@@ -61,13 +60,12 @@ function CrewsPage() {
   return (
     <>
       <PageHeader
-        eyebrow="Circle · Crews"
-        title="A small room. A clear promise."
-        sub="Build an invitation-only crew around one specific purpose, then answer one honest roll call each week."
+        title="Crews"
+        sub="Invitation-only, one purpose, one honest roll call a week."
         actions={
           <Link
             to="/circle"
-            className="inline-flex min-h-11 items-center gap-2 rounded-full border border-input px-4 text-sm font-semibold"
+            className="inline-flex min-h-11 items-center gap-2 rounded-full bg-surface-2 px-4 text-sm font-semibold"
           >
             <ArrowLeft className="size-4" /> Circle
           </Link>
@@ -81,7 +79,9 @@ function CrewsPage() {
 function CrewsGate() {
   return (
     <Panel tone="green">
-      <Users className="size-10" aria-hidden />
+      <span className="flex size-12 items-center justify-center rounded-full bg-primary/15 text-primary">
+        <Users className="size-6" aria-hidden />
+      </span>
       <h2 className="mt-4 font-display text-2xl font-bold">Crews begin with people you chose</h2>
       <p className="mt-2 max-w-xl text-sm text-muted-foreground">
         Connect account services, sign in, finish your handle and accept at least one Circle
@@ -89,7 +89,7 @@ function CrewsGate() {
       </p>
       <Link
         to="/settings"
-        className="mt-5 inline-flex min-h-12 items-center rounded-full bg-primary px-6 font-semibold text-primary-foreground"
+        className="mt-5 inline-flex min-h-12 w-full items-center justify-center rounded-full bg-primary px-6 font-semibold text-primary-foreground sm:w-fit"
       >
         Open account settings
       </Link>
@@ -171,7 +171,6 @@ function CrewsLive() {
         <Panel className="h-fit" aria-label="Your crews">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <Eyebrow>Crew book</Eyebrow>
               <h2 className="mt-1 font-display text-xl font-bold">Small by design</h2>
             </div>
             <Button
@@ -198,14 +197,14 @@ function CrewsLive() {
             </p>
           )}
           {crews.length ? (
-            <ul className="mt-4 border-t border-line">
+            <ul className="mt-2 divide-y divide-line/70">
               {crews.map((crew) => (
                 <li key={crew.id}>
                   <button
                     type="button"
                     onClick={() => setSelectedId(crew.id)}
                     className={cn(
-                      "min-h-16 w-full border-b border-line py-3 text-left",
+                      "min-h-16 w-full py-3 text-left",
                       selectedId === crew.id && "text-primary",
                     )}
                   >
@@ -292,7 +291,6 @@ export function CreateCrew({
     <Panel tone="green" aria-label="Create a crew">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <Eyebrow>New crew</Eyebrow>
           <h2 className="mt-1 font-display text-2xl font-bold">Name the promise, not the vibe</h2>
         </div>
         <Button
@@ -472,7 +470,7 @@ export function CrewDetail({
 
   return (
     <Panel tone="dusk" aria-label="Selected crew">
-      <div className="flex flex-wrap items-start justify-between gap-4 border-b border-line pb-5">
+      <div className="flex flex-wrap items-start justify-between gap-4 pb-2">
         <div>
           <div className="flex flex-wrap items-center gap-2">
             <Chip tone="ok">{crew.active_count} active</Chip>
@@ -492,7 +490,6 @@ export function CrewDetail({
       <section className="mt-6" aria-labelledby={`roll-call-${crew.id}`}>
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <Eyebrow>This week's roll call</Eyebrow>
             <h3 id={`roll-call-${crew.id}`} className="mt-1 font-display text-2xl font-bold">
               Say what actually happened
             </h3>
@@ -551,7 +548,7 @@ export function CrewDetail({
         </div>
 
         {checkins.length ? (
-          <ol className="mt-4 divide-y divide-line border-y border-line">
+          <ol className="mt-4 divide-y divide-line/70">
             {checkins.map((checkin) => (
               <li
                 key={checkin.id}
@@ -586,10 +583,9 @@ export function CrewDetail({
         )}
       </section>
 
-      <section className="mt-8 border-t border-line pt-6" aria-labelledby={`roster-${crew.id}`}>
+      <section className="mt-8 pt-2" aria-labelledby={`roster-${crew.id}`}>
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <Eyebrow>Roster</Eyebrow>
             <h3 id={`roster-${crew.id}`} className="mt-1 font-display text-xl font-bold">
               Who is in the room
             </h3>
@@ -622,7 +618,7 @@ export function CrewDetail({
             </Button>
           </div>
         )}
-        <ul className="mt-4 divide-y divide-line border-y border-line">
+        <ul className="mt-4 divide-y divide-line/70">
           {members.map((member) => (
             <li
               key={member.user_id}

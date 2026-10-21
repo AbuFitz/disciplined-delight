@@ -17,15 +17,17 @@ import {
   Chip,
   ConfirmDialog,
   EmptyState,
-  Eyebrow,
   Field,
+  Group,
   PageHeader,
   Panel,
+  Section,
   Segmented,
   Select,
   Skeleton,
   TextArea,
   TextInput,
+  Tile,
 } from "@/components/nl/ui";
 import {
   circleApi,
@@ -51,41 +53,24 @@ function CirclePage() {
   return (
     <>
       <PageHeader
-        eyebrow="Circle"
-        title="Together"
-        sub="Real people, deliberate sharing. Your private records stay private."
-        actions={
-          handle ? (
-            <>
-              <Chip tone="ok">@{handle}</Chip>
-              <Link
-                to="/circle/chat"
-                className="inline-flex min-h-11 items-center gap-2 rounded-full border border-input px-4 text-sm font-semibold"
-              >
-                <MessageCircle className="size-4" /> Chat
-              </Link>
-              <Link
-                to="/circle/crews"
-                className="inline-flex min-h-11 items-center gap-2 rounded-full border border-input px-4 text-sm font-semibold"
-              >
-                <Users className="size-4" /> Crews
-              </Link>
-              <Link
-                to="/circle/challenges"
-                className="inline-flex min-h-11 items-center gap-2 rounded-full border border-input px-4 text-sm font-semibold"
-              >
-                <Trophy className="size-4" /> Pacts
-              </Link>
-              <Link
-                to="/circle/four"
-                className="inline-flex min-h-11 items-center gap-2 rounded-full border border-input px-4 text-sm font-semibold"
-              >
-                <Gamepad2 className="size-4" /> Four
-              </Link>
-            </>
-          ) : undefined
-        }
+        title="Circle"
+        sub="Real people, deliberate sharing."
+        actions={handle ? <Chip tone="ok">@{handle}</Chip> : undefined}
       />
+      {handle && (
+        <nav aria-label="Circle sections" className="mb-6 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+          {[
+            { to: "/circle/chat", label: "Chat", icon: MessageCircle },
+            { to: "/circle/crews", label: "Crews", icon: Users },
+            { to: "/circle/challenges", label: "Pacts", icon: Trophy },
+            { to: "/circle/four", label: "Four", icon: Gamepad2 },
+          ].map(({ to, label, icon: I }) => (
+            <Link key={to} to={to} className="block">
+              <Tile icon={<I className="size-5" />} label={label} />
+            </Link>
+          ))}
+        </nav>
+      )}
       {!ready ? <CircleGate signedIn={!!auth.user} profileReady={!!handle} /> : <CircleLive />}
     </>
   );
@@ -93,12 +78,12 @@ function CirclePage() {
 
 function CircleGate({ signedIn, profileReady }: { signedIn: boolean; profileReady: boolean }) {
   return (
-    <div className="grid gap-4 md:grid-cols-2">
+    <div className="grid content-start gap-4 md:grid-cols-2">
       <Panel tone="green" aria-label="Circle setup">
-        <div className="flex size-12 items-center justify-center rounded-2xl bg-primary text-primary-foreground">
+        <div className="flex size-12 items-center justify-center rounded-full bg-primary text-primary-foreground">
           <Users className="size-6" aria-hidden />
         </div>
-        <h2 className="mt-5 font-display text-2xl font-bold">
+        <h2 className="mt-5 text-2xl font-bold leading-tight tracking-tight">
           {!isSupabaseConfigured
             ? "Connect account services"
             : !signedIn
@@ -108,12 +93,12 @@ function CircleGate({ signedIn, profileReady }: { signedIn: boolean; profileRead
                 : "Circle is unavailable"}
         </h2>
         <p className="mt-2 max-w-prose text-sm text-muted-foreground">
-          Circle never fills the screen with pretend activity. Once the VAYVOR account service is
-          connected, this is where real connection requests, chosen milestones and kudos appear.
+          Circle never shows pretend activity. Once your account is connected, real connection
+          requests, chosen milestones and kudos appear here.
         </p>
         <Link
           to="/settings"
-          className="mt-5 inline-flex min-h-12 items-center rounded-full bg-primary px-6 font-semibold text-primary-foreground"
+          className="mt-5 inline-flex min-h-12 w-full items-center justify-center rounded-full bg-primary px-6 font-semibold text-primary-foreground sm:w-fit"
         >
           Open account settings
         </Link>
@@ -129,7 +114,7 @@ function CircleLive() {
   const circle = useCircle(true);
   return (
     <div className="grid gap-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="grid gap-2">
         <Segmented
           label="Circle section"
           value={tab}
@@ -139,7 +124,9 @@ function CircleLive() {
             { value: "people", label: "People" },
           ]}
         />
-        <p className="text-xs text-muted-foreground">Connections only · no public follower count</p>
+        <p className="px-1 text-xs text-muted-foreground">
+          Connections only · no public follower count
+        </p>
       </div>
       {circle.error && (
         <Panel tone="warm" role="alert">
@@ -186,15 +173,24 @@ function ShareComposer({ refresh }: { refresh: () => Promise<void> }) {
   };
   if (!open)
     return (
-      <Panel tone="green" className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <Eyebrow>Share deliberately</Eyebrow>
-          <p className="mt-1 font-display text-xl font-bold">Something worth remembering?</p>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Nothing is posted automatically—not workouts, moods, prayers or meals.
-          </p>
+      <Panel tone="green">
+        <div className="flex items-start gap-3.5">
+          <span
+            aria-hidden
+            className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/15 text-primary"
+          >
+            <Heart className="size-5" />
+          </span>
+          <div className="min-w-0">
+            <p className="text-lg font-bold leading-tight tracking-tight">
+              Something worth remembering?
+            </p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Nothing is posted automatically: not workouts, moods, prayers or meals.
+            </p>
+          </div>
         </div>
-        <Button variant="primary" onClick={() => setOpen(true)}>
+        <Button variant="primary" className="mt-4 w-full sm:w-fit" onClick={() => setOpen(true)}>
           Share an update
         </Button>
       </Panel>
@@ -202,10 +198,7 @@ function ShareComposer({ refresh }: { refresh: () => Promise<void> }) {
   return (
     <Panel tone="green" aria-label="Share an update">
       <div className="flex items-center justify-between gap-3">
-        <div>
-          <Eyebrow>New Circle update</Eyebrow>
-          <h2 className="mt-1 font-display text-2xl font-bold">Share the part you choose</h2>
-        </div>
+        <h2 className="text-2xl font-bold tracking-tight">Share the part you choose</h2>
         <Button variant="ghost" size="sm" onClick={() => setOpen(false)}>
           Cancel
         </Button>
@@ -263,11 +256,17 @@ function ShareComposer({ refresh }: { refresh: () => Promise<void> }) {
       {invalid && draft.title.length > 0 && (
         <p className="mt-3 text-sm text-destructive">{invalid}</p>
       )}
-      <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
+      <div className="mt-5 grid gap-3">
         <p className="flex items-center gap-2 text-xs text-muted-foreground">
           <Lock className="size-4" aria-hidden /> Accepted connections only
         </p>
-        <Button variant="primary" busy={busy} disabled={!!invalid} onClick={() => void share()}>
+        <Button
+          className="w-full sm:w-fit"
+          variant="primary"
+          busy={busy}
+          disabled={!!invalid}
+          onClick={() => void share()}
+        >
           Share now
         </Button>
       </div>
@@ -311,15 +310,17 @@ function Feed({ posts, refresh }: { posts: CirclePost[]; refresh: () => Promise<
                 </div>
                 <Chip>{post.kind}</Chip>
               </div>
-              <h2 className="mt-5 font-display text-2xl font-bold">{post.title}</h2>
+              <h2 className="mt-4 text-2xl font-bold leading-tight tracking-tight">{post.title}</h2>
               {post.body && <p className="mt-2 whitespace-pre-wrap text-sm">{post.body}</p>}
               {post.metric_value && (
-                <div className="mt-5 rounded-2xl bg-surface-2 p-4">
-                  <Eyebrow>{post.metric_label || "Highlight"}</Eyebrow>
+                <div className="mt-4 rounded-2xl bg-surface-2 p-4">
+                  <p className="text-sm font-medium text-muted-foreground">
+                    {post.metric_label || "Highlight"}
+                  </p>
                   <p className="stat-sm mt-1">{post.metric_value}</p>
                 </div>
               )}
-              <div className="mt-5 flex flex-wrap items-center justify-between gap-2 border-t border-line pt-3">
+              <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
                 {post.mine ? (
                   <span className="inline-flex min-h-10 items-center gap-2 text-sm text-muted-foreground">
                     <Heart className="size-4" /> {post.kudos_count} kudos
@@ -408,10 +409,9 @@ function People({
   return (
     <div className="grid gap-4 lg:grid-cols-2">
       <Panel tone="green" aria-label="Find people">
-        <Eyebrow>Find people</Eyebrow>
-        <h2 className="mt-1 font-display text-2xl font-bold">Handle, not phone book</h2>
+        <h2 className="text-2xl font-bold tracking-tight">Find people</h2>
         <p className="mt-2 text-sm text-muted-foreground">
-          Search a VAYVOR handle or display name. Email addresses are never searchable.
+          Search by handle or display name. Email addresses are never searchable.
         </p>
         <div className="mt-4 flex gap-2">
           <TextInput
@@ -432,12 +432,9 @@ function People({
           </Button>
         </div>
         {results.length > 0 && (
-          <ul className="mt-4 border-t border-line">
+          <ul className="mt-4 divide-y divide-line/70">
             {results.map((person) => (
-              <li
-                key={person.user_id}
-                className="flex min-h-16 items-center gap-3 border-b border-line py-2"
-              >
+              <li key={person.user_id} className="flex min-h-16 items-center gap-3 py-2">
                 <Avatar person={person} />
                 <Identity person={person} />
                 <div className="ml-auto">
@@ -466,10 +463,7 @@ function People({
       </Panel>
       <Panel aria-label="Connections">
         <div className="flex items-center justify-between gap-3">
-          <div>
-            <Eyebrow>Your people</Eyebrow>
-            <h2 className="mt-1 font-display text-2xl font-bold">Connections</h2>
-          </div>
+          <h2 className="text-2xl font-bold tracking-tight">Connections</h2>
           <Chip>{connections.filter((x) => x.relationship === "connected").length}</Chip>
         </div>
         {connections.length === 0 ? (
@@ -480,9 +474,9 @@ function People({
             />
           </div>
         ) : (
-          <ul className="mt-4 border-t border-line">
+          <ul className="mt-4 divide-y divide-line/70">
             {connections.map((person) => (
-              <li key={person.user_id} className="border-b border-line py-3">
+              <li key={person.user_id} className="py-3">
                 <div className="flex items-center gap-3">
                   <Avatar person={person} />
                   <Identity person={person} />
@@ -540,14 +534,11 @@ function People({
           </ul>
         )}
         {blocks.length > 0 && (
-          <div className="mt-6 border-t border-line pt-5">
-            <Eyebrow>Blocked</Eyebrow>
-            <ul className="mt-2">
+          <div className="mt-6">
+            <h3 className="text-base font-semibold">Blocked</h3>
+            <ul className="mt-2 divide-y divide-line/70">
               {blocks.map((person) => (
-                <li
-                  key={person.user_id}
-                  className="flex min-h-14 items-center gap-3 border-b border-line py-2"
-                >
+                <li key={person.user_id} className="flex min-h-14 items-center gap-3 py-2">
                   <Avatar person={person} />
                   <Identity person={person} />
                   <Button
@@ -586,24 +577,31 @@ function People({
 
 function PrivacyPanel() {
   return (
-    <Panel tone="dusk" aria-label="Circle privacy">
-      <h2 className="flex items-center gap-2 font-display text-xl font-bold">
-        <ShieldCheck className="size-5" aria-hidden />
-        Private stays private
-      </h2>
-      <ul className="mt-4 grid gap-3 text-sm text-muted-foreground">
-        <li>• Journal, mood, focus and prayer records never enter Circle.</li>
-        <li>• Workouts and meals are not posted automatically.</li>
-        <li>• Only accepted connections can see an update.</li>
-        <li>• Block removes the connection in both directions.</li>
-      </ul>
-      <Link
-        to="/privacy"
-        className="mt-5 inline-flex min-h-11 items-center font-semibold underline underline-offset-4"
-      >
-        Read the full privacy map
-      </Link>
-    </Panel>
+    <section aria-label="Circle privacy" className="content-start">
+      <Section title="Private stays private" className="mb-0">
+        <Group as="ul">
+          {[
+            "Journal, mood, focus and prayer records never enter Circle.",
+            "Workouts and meals are not posted automatically.",
+            "Only accepted connections can see an update.",
+            "Block removes the connection in both directions.",
+          ].map((t) => (
+            <li key={t} className="flex items-start gap-3 px-4 py-3 text-sm">
+              <ShieldCheck className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden />
+              <span>{t}</span>
+            </li>
+          ))}
+          <li>
+            <Link
+              to="/privacy"
+              className="flex min-h-12 items-center px-4 text-sm font-semibold underline underline-offset-4"
+            >
+              Read the full privacy map
+            </Link>
+          </li>
+        </Group>
+      </Section>
+    </section>
   );
 }
 
@@ -617,7 +615,7 @@ function Avatar({ person }: { person: { display_name: string; username: string }
   return (
     <span
       aria-hidden
-      className="grid size-11 shrink-0 place-items-center rounded-full bg-foreground font-display text-sm font-bold text-background"
+      className="grid size-11 shrink-0 place-items-center rounded-full bg-primary/15 text-sm font-bold text-primary"
     >
       {initials || person.username.slice(0, 2).toUpperCase()}
     </span>
